@@ -1,0 +1,33 @@
+3:23:27 PM  [main] 	Initializing Control Panel
+3:23:27 PM  [main] 	Windows Version:  Home  64-bit
+3:23:27 PM  [main] 	XAMPP Version: 8.2.4
+3:23:27 PM  [main] 	Control Panel Version: 3.3.0  [ Compiled: Apr 6th 2021 ]
+3:23:27 PM  [main] 	You are not running with administrator rights! This will work for
+3:23:27 PM  [main] 	most application stuff but whenever you do something with services
+3:23:27 PM  [main] 	there will be a security dialogue or things will break! So think 
+3:23:27 PM  [main] 	about running this application with administrator rights!
+3:23:27 PM  [main] 	XAMPP Installation Directory: "d:\moodlewindowsinstallerlatest405\server\"
+3:23:27 PM  [main] 	Checking for prerequisites
+3:23:30 PM  [main] 	All prerequisites found
+3:23:30 PM  [main] 	Initializing Modules
+3:23:31 PM  [Apache] 	XAMPP Apache is already running on port 80
+3:23:31 PM  [Apache] 	XAMPP Apache is already running on port 443
+3:23:31 PM  [mysql] 	XAMPP MySQL is already running on port 3306
+3:23:31 PM  [main] 	The FileZilla module is disabled
+3:23:31 PM  [main] 	The Mercury module is disabled
+3:23:31 PM  [Tomcat] 	Problem detected: Tomcat Not Found!
+3:23:31 PM  [Tomcat] 	Disabling Tomcat buttons
+3:23:31 PM  [Tomcat] 	Run this program from your XAMPP root directory!
+3:23:31 PM  [Tomcat] 	Problem detected: Required Tool catalina_start.bat Not Found!
+3:23:31 PM  [Tomcat] 	Problem detected: Required Tool catalina_stop.bat Not Found!
+3:23:31 PM  [Tomcat] 	Problem detected: Required Tool catalina_service.bat Not Found!
+3:23:31 PM  [main] 	Starting Check-Timer
+3:23:31 PM  [main] 	Control Panel Ready
+3:24:11 PM  [Apache] 	Attempting to stop Apache (PID: 18956)
+3:24:11 PM  [Apache] 	Attempting to stop Apache (PID: 1436)
+3:24:12 PM  [Apache] 	Status change detected: stopped
+3:24:16 PM  [mysql] 	Attempting to stop MySQL app...
+3:24:16 PM  [mysql] 	Status change detected: stopped
+5:01:03 PM  [main] 	Deinitializing Modules
+5:01:03 PM  [main] 	Deinitializing Control Panel
+
