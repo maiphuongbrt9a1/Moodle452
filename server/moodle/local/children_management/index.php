@@ -27,9 +27,7 @@ require_once($CFG->dirroot . '/local/children_management/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
 
 try {
-    $id = required_param('id', PARAM_INT);
-    $user = $DB->get_record('user', ['id' => $id], '*', MUST_EXIST);
-    require_login($user);
+    require_login();
 
     $url = new moodle_url('/local/children_management/index.php', []);
     $PAGE->set_url($url);
@@ -38,7 +36,7 @@ try {
     $PAGE->set_heading(get_string('children_management_heading', 'local_children_management'));
     echo $OUTPUT->header();
 
-    $parentid = $user->id;
+    $parentid = $USER->id;
     $sql = "SELECT student.*
             FROM {children_and_parent_information} student
             WHERE student.parentid = :parentid";

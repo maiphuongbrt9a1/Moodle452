@@ -609,6 +609,7 @@ $cache = array (
     array (
       'adminer' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/adminer',
       'children_management' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/children_management',
+      'codechecker' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/codechecker',
       'cohortrole' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole',
       'dlog' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/dlog',
       'moodlecheck' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/moodlecheck',
@@ -4631,6 +4632,11 @@ $cache = array (
     'local_adminer_admin_settingspage_tabs' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/adminer/classes/admin_settingspage_tabs.php',
     'local_adminer_secret_form' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/adminer/classes/secret_form.php',
     'local_adminer_util' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/adminer/classes/util.php',
+    'local_codechecker\\privacy\\provider' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/codechecker/classes/privacy/provider.php',
+    'local_codechecker\\report' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/codechecker/classes/report.php',
+    'local_codechecker\\runner' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/codechecker/classes/runner.php',
+    'local_codechecker_report' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/codechecker/classes/report.php',
+    'local_codechecker_runner' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/codechecker/classes/runner.php',
     'local_cohortrole\\event\\definition_created' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole/classes/event/definition_created.php',
     'local_cohortrole\\event\\definition_deleted' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole/classes/event/definition_deleted.php',
     'local_cohortrole\\form\\edit' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole/classes/form/edit.php',
@@ -7776,6 +7782,7 @@ $cache = array (
       'local' => 
       array (
         'adminer' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/adminer/settings.php',
+        'codechecker' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/codechecker/settings.php',
         'cohortrole' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole/settings.php',
         'moodlecheck' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/moodlecheck/settings.php',
         'profilecohort' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/profilecohort/settings.php',
