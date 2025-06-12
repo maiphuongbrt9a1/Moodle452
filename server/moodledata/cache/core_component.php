@@ -610,6 +610,7 @@ $cache = array (
       'adminer' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/adminer',
       'children_management' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/children_management',
       'cohortrole' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole',
+      'dlog' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/dlog',
       'moodlecheck' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/moodlecheck',
       'profilecohort' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/profilecohort',
     ),
@@ -7391,6 +7392,7 @@ $cache = array (
       array (
         'adminer' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/adminer/lib.php',
         'children_management' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/children_management/lib.php',
+        'dlog' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/dlog/lib.php',
       ),
       'h5plib' => 
       array (
