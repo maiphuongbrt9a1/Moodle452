@@ -613,6 +613,7 @@ $cache = array (
       'cohortrole' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole',
       'dlog' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/dlog',
       'moodlecheck' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/moodlecheck',
+      'navbarplus' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/navbarplus',
       'profilecohort' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/profilecohort',
     ),
     'h5plib' => 
@@ -4648,6 +4649,7 @@ $cache = array (
     'local_cohortrole_observers' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole/classes/observers.php',
     'local_cohortrole_persistent' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole/classes/persistent.php',
     'local_moodlecheck\\privacy\\provider' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/moodlecheck/classes/privacy/provider.php',
+    'local_navbarplus\\privacy\\provider' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/navbarplus/classes/privacy/provider.php',
     'local_profilecohort\\cohort_form' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/profilecohort/classes/cohort_form.php',
     'local_profilecohort\\field_base' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/profilecohort/classes/field_base.php',
     'local_profilecohort\\field_checkbox' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/profilecohort/classes/field_checkbox.php',
@@ -7399,6 +7401,7 @@ $cache = array (
         'adminer' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/adminer/lib.php',
         'children_management' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/children_management/lib.php',
         'dlog' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/dlog/lib.php',
+        'navbarplus' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/navbarplus/lib.php',
       ),
       'h5plib' => 
       array (
@@ -7785,6 +7788,7 @@ $cache = array (
         'codechecker' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/codechecker/settings.php',
         'cohortrole' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/cohortrole/settings.php',
         'moodlecheck' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/moodlecheck/settings.php',
+        'navbarplus' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/navbarplus/settings.php',
         'profilecohort' => 'D:\\MoodleWindowsInstallerLatest405\\server\\moodle/local/profilecohort/settings.php',
       ),
       'h5plib' => 
