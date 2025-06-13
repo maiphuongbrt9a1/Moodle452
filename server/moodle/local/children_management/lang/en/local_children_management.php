@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 // en/local_parentportal.php
-$string['pluginname'] = 'children_management';
+$string['pluginname'] = 'Children Management';
 $string['children_management'] = 'Children Management';
 $string['children_management_title'] = 'My Children';
 $string['children_management_heading'] = 'List of My Children';
@@ -58,3 +58,4 @@ $string['view_child_events'] = 'View Child Events';
 $string['view_child_projects'] = 'View Child Projects';
 $string['view_child_resources'] = 'View Child Resources';
 $string['view_child_reports'] = 'View Child Reports';
+$string['children_management:view'] = 'children_management:view';
