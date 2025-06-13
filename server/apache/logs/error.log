@@ -494,3 +494,5 @@
 [Fri Jun 13 17:22:52.713595 2025] [core:notice] [pid 13320:tid 460] AH00094: Command line: 'apache\\bin\\httpd.exe -d D:/MoodleWindowsInstallerLatest405/server/apache -f conf\\httpd.conf'
 [Fri Jun 13 17:22:52.719590 2025] [mpm_winnt:notice] [pid 13320:tid 460] AH00418: Parent: Created child process 12992
 [Fri Jun 13 17:22:53.924881 2025] [ssl:warn] [pid 12992:tid 432] AH01909: www.example.com:443:0 server certificate does NOT include an ID which matches the server name
+[Fri Jun 13 17:22:54.243891 2025] [ssl:warn] [pid 12992:tid 432] AH01909: www.example.com:443:0 server certificate does NOT include an ID which matches the server name
+[Fri Jun 13 17:22:54.780869 2025] [mpm_winnt:notice] [pid 12992:tid 432] AH00354: Child: Starting 150 worker threads.
