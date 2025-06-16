@@ -116,25 +116,44 @@ class primary implements renderable, templatable {
         if(isloggedin()) {
             $systemcontext = \context_system::instance();
             $usercontext = \context_user::instance($USER->id);
-        
-            if(has_capability('local/children_management:view', $usercontext, $USER)) {
+            
+            /* 
+                check current user is admin or not
+                this is most quickly way to check if the current user is admin or not
+            */ 
+
+            $isadmin = is_siteadmin();
+
+            /* 
+                check if the user has the capability 'local/children_management:view' and not an admin 
+                display the custom menu item for children management
+            */
+
+            if(has_capability('local/children_management:view', $systemcontext, $USER) 
+                // && !$isadmin
+            ) {
                 $stringlang1 = get_string('children_management', 'local_children_management');
                 $stringURL1 = $CFG->wwwroot . '/local/children_management/index.php';
                 $CFG->custommenuitems .= "$stringlang1 | $stringURL1";
             }
-
-            // // Debugging for parent account. This parent account is Trinh Dinh Dung and when i logged in as this parent account,
-            // // i dont see the custom menu items - the children management menu item.
-            // // This is because the parent account does not have the capability 'local/children_management:view'.
-            // // So, i will add a debug code to show the current course context and the roles and capabilities of the current user.
-            // // This will help me to understand why the custom menu items are not showing up for this parent account.
             
-            // // when i check variable systemcontext, i see that the context level is 10 (system context) and the instance id is 1.
-            // // This means that the current user is in the system context and this account haven't capability 'local/children_management:view'.
+
+            /*
+                Debugging for parent account. This parent account is Trinh Dinh Dung and when i logged in as this parent account,
+                i dont see the custom menu items - the children management menu item.
+                This is because the parent account does not have the capability 'local/children_management:view'.
+                So, i will add a debug code to show the current course context and the roles and capabilities of the current user.
+                This will help me to understand why the custom menu items are not showing up for this parent account.
+                
+                when i check variable systemcontext, i see that the context level is 10 (system context) and the instance id is 1.
+                This means that the current user is in the system context and this account haven't capability 'local/children_management:view'.
+            */
+
             // else {
             //     echo '<pre>';
             //     echo '<h2>Debugging Current Course Context:</h2>';
             //     var_dump($systemcontext);
+            //     var_dump($usercontext);
             //     echo '</pre>';
 
             //     echo '<pre>'; // Bắt đầu thẻ <pre> để định dạng output
@@ -155,6 +174,7 @@ class primary implements renderable, templatable {
             //             r.archetype,
             //             c.contextlevel,
             //             c.instanceid,
+            //             c.id AS context_id,
             //             CASE
             //                 WHEN c.contextlevel = 10 THEN 'System'
             //                 WHEN c.contextlevel = 20 THEN (SELECT name FROM {course_categories} WHERE id = c.instanceid)

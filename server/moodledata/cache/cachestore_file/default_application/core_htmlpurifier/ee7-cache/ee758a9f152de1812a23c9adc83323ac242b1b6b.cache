@@ -1,0 +1,1 @@
+s:241:"<strong>Stack trace: </strong> <ul style="text-align:left;"><li>line 875 of \lib\accesslib.php: core\exception\required_capability_exception thrown</li><li>line 28 of \local\adminer\lib\run_adminer.php: call to require_capability()</li></ul>";
