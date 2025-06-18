@@ -48,6 +48,7 @@ try {
             JOIN {user} user on user.id = children.childrenid
             WHERE children.parentid = :parentid";
     $students = $DB->get_records_sql($sql, ['parentid' => $parentid]);
+    $stt = 0;
 
     if (!$students) {
         echo $OUTPUT->notification(get_string('no_children_found', 'local_children_management'), 'info');
@@ -57,6 +58,7 @@ try {
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
+            get_string('stt', 'local_children_management'),
             get_string('studentid', 'local_children_management'),
             get_string('avatar', 'local_children_management'),
             get_string('fullname', 'local_children_management'),
@@ -66,7 +68,7 @@ try {
             get_string('finished_course_number', 'local_children_management'),
             get_string('actions', 'local_children_management'),
         ];
-        $table->align = ['center', 'center','left', 'left', 'left', 'left' , 'left', 'center'];
+        $table->align = ['center', 'center', 'center','left', 'left', 'left', 'left' , 'left', 'center'];
         foreach ($students as $student) {
             // You might want to add a link to student's profile overview etc.
             $profileurl = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
@@ -108,8 +110,9 @@ try {
             // Get image for the student.            
             // Get the avatar URL for the student.
             $avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
-
+            $stt = $stt + 1;
             $table->data[] = [
+                $stt,
                 $student->childrenid,
                 html_writer::tag('img', '', array(
                             'src' => $avatar_url->get_url($PAGE),

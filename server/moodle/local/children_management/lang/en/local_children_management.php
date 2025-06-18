@@ -33,6 +33,7 @@ $string['children_management_heading'] = 'List of My Children';
 $string['children_list'] = 'Your Children';
 $string['no_children_found'] = 'No children linked to your account.';
 $string['view_profile'] = 'View Profile';
+$string['stt'] = 'STT';
 $string['studentid'] = 'Student ID';
 $string['avatar'] = 'Avatar';
 $string['fullname'] = 'Full Name';
