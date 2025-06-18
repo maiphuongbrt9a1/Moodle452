@@ -34,6 +34,7 @@ try {
     $PAGE->set_context(context_system::instance());
     $PAGE->set_title(get_string('children_management_title', 'local_children_management'));
     $PAGE->set_heading(get_string('children_management_heading', 'local_children_management'));
+    $PAGE->requires->css('/local/children_management/style/style.css');
     echo $OUTPUT->header();
 
     $parentid = $USER->id;
@@ -52,21 +53,12 @@ try {
         echo $OUTPUT->notification(get_string('no_children_found', 'local_children_management'), 'info');
     } else {
         echo html_writer::start_tag('div');
-        // echo html_writer::tag('h3', get_string('children_list', 'local_children_management'));
-
-        // add search form for page
-        // $searchform = new \local_children_management\form\search_form(null, ['context' => context_system::instance()]);
-        // if ($searchform->is_cancelled()) {
-        //     redirect(new moodle_url('/local/children_management/index.php'));
-        // } else if ($data = $searchform->get_data()) {
-        //     // Process search data here if needed.
-        // }
-        // $searchform->display();
 
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
             get_string('studentid', 'local_children_management'),
+            get_string('avatar', 'local_children_management'),
             get_string('fullname', 'local_children_management'),
             get_string('email', 'local_children_management'),
             get_string('phone1', 'local_children_management'),
@@ -74,20 +66,63 @@ try {
             get_string('finished_course_number', 'local_children_management'),
             get_string('actions', 'local_children_management'),
         ];
-        $table->align = ['center', 'left', 'left', 'left', 'left' , 'left', 'center'];
+        $table->align = ['center', 'center','left', 'left', 'left', 'left' , 'left', 'center'];
         foreach ($students as $student) {
             // You might want to add a link to student's profile overview etc.
             $profileurl = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
             $actions = html_writer::link($profileurl, get_string('view_profile', 'local_children_management'));
-            // Add to show total registered and finished courses.
+
+            // Add to show total registered courses.
+            $sql_register_course_by_user = "SELECT COUNT(DISTINCT c.id) number_of_unique_registered_courses
+                FROM {user} u
+                JOIN {role_assignments} ra ON ra.userid = u.id
+                JOIN {role} r ON r.id = ra.roleid
+                JOIN {context} ctx ON ctx.id = ra.contextid
+                JOIN {course} c ON c.id = ctx.instanceid
+                WHERE ctx.contextlevel = 50 AND u.id = :studentid";
+            
+            // Add to show total finished courses.
+            $sql_finished_course_by_user = "SELECT COUNT(DISTINCT u.id) number_of_unique_finished_courses
+                FROM {user} u
+                JOIN {role_assignments} ra ON ra.userid = u.id
+                JOIN {role} r ON r.id = ra.roleid
+                JOIN {context} ctx ON ctx.id = ra.contextid
+                JOIN {course} c ON c.id = ctx.instanceid
+                WHERE ctx.contextlevel = 50 AND u.id = :studentid and c.enddate > 0 and c.enddate < UNIX_TIMESTAMP()
+                group by u.id";
+
+            // Prepare the parameters for the SQL query
+            $params = ['studentid' => $student->childrenid];
+            
+            // Execute the SQL query to get the count of registered courses
+            // for the current student.
+            $registeredcourses = $DB->get_record_sql($sql_register_course_by_user, $params);
+            
+            // Execute the SQL query to get the count of finished courses      
+            // If no courses found, set count to 0.
+            $finishedcourses = $DB->get_record_sql($sql_finished_course_by_user, $params);
+            
+            $finishedcount = $finishedcourses ? $finishedcourses->number_of_unique_finished_courses : 0;
+            $registeredcount = $registeredcourses ? $registeredcourses->number_of_unique_registered_courses : 0;
+
+            // Get image for the student.            
+            // Get the avatar URL for the student.
+            $avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
 
             $table->data[] = [
                 $student->childrenid,
+                html_writer::tag('img', '', array(
+                            'src' => $avatar_url->get_url($PAGE),
+                            'alt' => 'Avatar image of ' . format_string($student->firstname) . " " . format_string($student->lastname),
+                            'width' => 40,
+                            'height' => 40,
+                            'class' => 'rounded-avatar'
+                        )),
                 format_string($student->firstname) . " " . format_string($student->lastname),
                 format_string($student->email),
                 format_string($student->phone1),
-                "count of registered courses",
-                "count of finished course",
+                $registeredcount,
+                $finishedcount,
                 $actions,
             ];
         }
@@ -102,5 +137,6 @@ try {
     echo $OUTPUT->footer();
 } catch (Exception $e) {
     dlog($e->getTrace());
+    var_dump($e->getTrace());
     throw new \moodle_exception('error', 'local_children_management', '', null, $e->getMessage());
 }

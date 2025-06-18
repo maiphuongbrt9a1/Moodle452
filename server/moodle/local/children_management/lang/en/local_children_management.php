@@ -34,6 +34,7 @@ $string['children_list'] = 'Your Children';
 $string['no_children_found'] = 'No children linked to your account.';
 $string['view_profile'] = 'View Profile';
 $string['studentid'] = 'Student ID';
+$string['avatar'] = 'Avatar';
 $string['fullname'] = 'Full Name';
 $string['email'] = 'Email';
 $string['phone1'] = 'Phone number';
