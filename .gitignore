@@ -1,5 +1,5 @@
-server/moodle_data/
-server/mariadb_data/
+server/moodledata/
+server/mysql/
 
 node_modules/
 .vscode/
