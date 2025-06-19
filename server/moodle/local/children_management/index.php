@@ -99,18 +99,22 @@ try {
             // Execute the SQL query to get the count of registered courses
             // for the current student.
             $registeredcourses = $DB->get_record_sql($sql_register_course_by_user, $params);
+            $registeredcount = $registeredcourses ? $registeredcourses->number_of_unique_registered_courses : 0;
             
             // Execute the SQL query to get the count of finished courses      
             // If no courses found, set count to 0.
-            $finishedcourses = $DB->get_record_sql($sql_finished_course_by_user, $params);
-            
+            $finishedcourses = $DB->get_record_sql($sql_finished_course_by_user, $params);      
             $finishedcount = $finishedcourses ? $finishedcourses->number_of_unique_finished_courses : 0;
-            $registeredcount = $registeredcourses ? $registeredcourses->number_of_unique_registered_courses : 0;
 
             // Get image for the student.            
             // Get the avatar URL for the student.
             $avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
+            
+            // add no. for the table.
             $stt = $stt + 1;
+
+            // Add the row to the table.
+            // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 $stt,
                 $student->childrenid,
