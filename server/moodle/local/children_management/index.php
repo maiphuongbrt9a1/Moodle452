@@ -43,9 +43,12 @@ try {
     $search_context->action = $url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_children_management'); // Placeholder text for the search input
-    $search_context->value = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters
-    $search_context->extraclasses = 'my-4'; // Additional CSS classes for styling
-    $search_context->btnclass = 'primary';
+    
+    $search_query = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters.
+    
+    $search_context->value = $search_query; // Set the value of the search input to the current search query.
+    $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
+    $search_context->btnclass = 'btn-primary';
 
     // Renderer for template core
     $core_renderer = $PAGE->get_renderer('core');
@@ -56,21 +59,67 @@ try {
     // --- End code to render Search Input ---
 
     $parentid = $USER->id;
-    $sql = "SELECT children.childrenid,
+    $stt = 0;
+    $students = [];
+
+    // Get all children of current parent account.
+    if (empty($search_query)) {
+        $sql = "SELECT children.childrenid,
+                        children.parentid,
+                        user.firstname,
+                        user.lastname,
+                        user.email,
+                        user.phone1
+                FROM {children_and_parent_information} children
+                JOIN {user} user on user.id = children.childrenid
+                WHERE children.parentid = :parentid";
+        $students = $DB->get_records_sql($sql, ['parentid' => $parentid]);
+    }
+    
+    // if parent use search input, we need to filter the children list.
+    if(!empty($search_query)) {
+        
+        // Escape the search query to prevent SQL injection.
+        $search_query = trim($search_query);
+        $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
+        
+        // Process the search query.
+        $sql = "SELECT children.childrenid,
                     children.parentid,
+                    user.username,
                     user.firstname,
                     user.lastname,
                     user.email,
                     user.phone1
             FROM {children_and_parent_information} children
             JOIN {user} user on user.id = children.childrenid
-            WHERE children.parentid = :parentid";
-    $students = $DB->get_records_sql($sql, ['parentid' => $parentid]);
-    $stt = 0;
+            WHERE children.parentid = :parentid 
+                 and 
+                    (
+                        children.childrenid like :searchparamid 
+                        or user.username like :searchparamusername
+                        or user.firstname like :searchparamfirstname
+                        or user.lastname like :searchparamlastname
+                        or user.email like :searchparamemail
+                    )";
+        
+        $params = [
+            'parentid' => $parentid,
+            'searchparamid' => $search_query,
+            'searchparamusername' => $search_query,
+            'searchparamfirstname' => $search_query,
+            'searchparamlastname' => $search_query,
+            'searchparamemail' => $search_query
+        ];
+        
+        $students = $DB->get_records_sql($sql, $params);
+    }
 
     if (!$students) {
         echo $OUTPUT->notification(get_string('no_children_found', 'local_children_management'), 'info');
     } else {
+        // If there are children, display them in a table.
+        // and parent does not need to search for children.
         echo html_writer::start_tag('div');
 
         // Display the list of children in a table.
@@ -143,7 +192,7 @@ try {
                             'height' => 40,
                             'class' => 'rounded-avatar'
                         )),
-                format_string($student->firstname) . " " . format_string($student->lastname),
+                html_writer::link($profileurl, format_string($student->firstname) . " " . format_string($student->lastname)),
                 format_string($student->email),
                 format_string($student->phone1),
                 $registeredcount,
@@ -162,6 +211,10 @@ try {
     echo $OUTPUT->footer();
 } catch (Exception $e) {
     dlog($e->getTrace());
-    var_dump($e->getTrace());
+    
+    echo "<pre>";
+        var_dump($e->getTrace());
+    echo "</pre>";
+    
     throw new \moodle_exception('error', 'local_children_management', '', null, $e->getMessage());
 }

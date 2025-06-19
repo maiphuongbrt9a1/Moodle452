@@ -25,7 +25,3 @@
 require('../../config.php');
 require_once($CFG->dirroot . '/local/children_management/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
-
-
-
-?>
