@@ -37,6 +37,24 @@ try {
     $PAGE->requires->css('/local/children_management/style/style.css');
     echo $OUTPUT->header();
 
+    // --- Start code to render Search Input ---
+
+    $search_context = new stdClass();
+    $search_context->action = $url; // Action URL for the search form
+    $search_context->inputname = 'searchquery';
+    $search_context->searchstring = get_string('searchitems', 'local_children_management'); // Placeholder text for the search input
+    $search_context->value = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters
+    $search_context->extraclasses = 'my-4'; // Additional CSS classes for styling
+    $search_context->btnclass = 'primary';
+
+    // Renderer for template core
+    $core_renderer = $PAGE->get_renderer('core');
+
+    // Render search input
+    echo $core_renderer->render_from_template('core/search_input', $search_context);
+
+    // --- End code to render Search Input ---
+
     $parentid = $USER->id;
     $sql = "SELECT children.childrenid,
                     children.parentid,
