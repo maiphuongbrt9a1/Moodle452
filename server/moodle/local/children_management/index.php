@@ -32,11 +32,16 @@ try {
     $url = new moodle_url('/local/children_management/index.php', []);
     $PAGE->set_url($url);
     $PAGE->set_context(context_system::instance());
+    $PAGE->set_pagelayout('base');
     $PAGE->set_title(get_string('children_management_title', 'local_children_management'));
     $PAGE->set_heading(get_string('children_management_heading', 'local_children_management'));
     $PAGE->requires->css('/local/children_management/style/style.css');
     echo $OUTPUT->header();
 
+    // Add a button to add a new child.
+    $addchildurl = new moodle_url('/local/children_management/add_child.php');
+    echo $OUTPUT->single_button($addchildurl, get_string('add_child', 'local_children_management'), 'post');
+    
     // --- Start code to render Search Input ---
 
     $search_context = new stdClass();
@@ -58,12 +63,27 @@ try {
 
     // --- End code to render Search Input ---
 
+    // Set default variable.
     $parentid = $USER->id;
     $stt = 0;
     $students = [];
+    $per_page = optional_param('perpage', 10, PARAM_INT);
+    $current_page = optional_param('page', 0, PARAM_INT);
+    $total_records = 0;
+    $offset = $current_page * $per_page;
+    $params = [];
 
     // Get all children of current parent account.
     if (empty($search_query)) {
+        $params = ['parentid' => $parentid];
+
+        $total_count_sql = "SELECT COUNT(*)
+                            FROM {children_and_parent_information} children
+                            JOIN {user} user on user.id = children.childrenid
+                            WHERE children.parentid = :parentid
+                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+        $total_records = $DB->count_records_sql($total_count_sql, $params);
+
         $sql = "SELECT children.childrenid,
                         children.parentid,
                         user.firstname,
@@ -72,8 +92,9 @@ try {
                         user.phone1
                 FROM {children_and_parent_information} children
                 JOIN {user} user on user.id = children.childrenid
-                WHERE children.parentid = :parentid";
-        $students = $DB->get_records_sql($sql, ['parentid' => $parentid]);
+                WHERE children.parentid = :parentid
+                ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+        $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
     
     // if parent use search input, we need to filter the children list.
@@ -82,7 +103,30 @@ try {
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
+        $params = [
+            'parentid' => $parentid,
+            'searchparamid' => $search_query,
+            'searchparamusername' => $search_query,
+            'searchparamfirstname' => $search_query,
+            'searchparamlastname' => $search_query,
+            'searchparamemail' => $search_query
+        ];
+
+        $total_count_sql = "SELECT COUNT(*)
+                            FROM {children_and_parent_information} children
+                            JOIN {user} user on user.id = children.childrenid
+                            WHERE children.parentid = :parentid 
+                                and 
+                                    (
+                                        children.childrenid like :searchparamid 
+                                        or user.username like :searchparamusername
+                                        or user.firstname like :searchparamfirstname
+                                        or user.lastname like :searchparamlastname
+                                        or user.email like :searchparamemail
+                                    )
+                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
         
+        $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
         $sql = "SELECT children.childrenid,
                     children.parentid,
@@ -101,27 +145,25 @@ try {
                         or user.firstname like :searchparamfirstname
                         or user.lastname like :searchparamlastname
                         or user.email like :searchparamemail
-                    )";
+                    )
+            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
         
-        $params = [
-            'parentid' => $parentid,
-            'searchparamid' => $search_query,
-            'searchparamusername' => $search_query,
-            'searchparamfirstname' => $search_query,
-            'searchparamlastname' => $search_query,
-            'searchparamemail' => $search_query
-        ];
-        
-        $students = $DB->get_records_sql($sql, $params);
+        $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
+    // Display children list of parent on screen.
     if (!$students) {
         echo $OUTPUT->notification(get_string('no_children_found', 'local_children_management'), 'info');
     } else {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('div');
-
+        
+        $base_url = new moodle_url('/local/children_management/index.php', []);
+        if (!empty($search_query)) {
+            $base_url->param('searchquery', $search_query);
+        }
+        
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
@@ -201,12 +243,11 @@ try {
             ];
         }
         echo html_writer::table($table);
+        
+        echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
+        
         echo html_writer::end_tag('div');
     }
-
-    // Add a button to add a new child.
-    $addchildurl = new moodle_url('/local/children_management/add_child.php');
-    echo $OUTPUT->single_button($addchildurl, get_string('add_child', 'local_children_management'), 'get', ['class' => 'btn btn-primary mt-3']);
 
     echo $OUTPUT->footer();
 } catch (Exception $e) {
