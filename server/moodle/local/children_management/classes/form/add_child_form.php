@@ -16,9 +16,7 @@ class add_child_form extends \moodleform {
 
         // Set type of element.
         $mform->setType('studentid', PARAM_TEXT);
-
-        // Default value.
-        $mform->setDefault('studentid', defaultValue: '');
+        $mform->addRule('studentid', 'Student ID is missing.','required', null, 'client');
 
         // Add elements to your form.
         $mform->addElement('text', 'username', get_string('username'));
@@ -26,53 +24,57 @@ class add_child_form extends \moodleform {
         // Set type of element.
         $mform->setType('username', PARAM_TEXT);
 
-        // Default value.
-        $mform->setDefault('username', '');
-
+        
         // Add elements to your form.
         $mform->addElement('text', 'firstname', get_string('firstname'));
 
         // Set type of element.
         $mform->setType('firstname', PARAM_TEXT);
 
-        // Default value.
-        $mform->setDefault('firstname', '');
         // Add elements to your form.
         $mform->addElement('text', 'lastname', get_string('lastname'));
 
         // Set type of element.
         $mform->setType('lastname', PARAM_TEXT);
 
-        // Default value.
-        $mform->setDefault('lastname', '');
-
+        
          // Add elements to your form.
         $mform->addElement('text', 'email', get_string('email'));
 
         // Set type of element.
         $mform->setType('email', PARAM_EMAIL);
+        $mform->addRule('email', 'Email is missing.','required', null, 'client');
 
-        // Default value.
-        $mform->setDefault('email', '');
-
+        
          // Add elements to your form.
         $mform->addElement('text', 'phone', get_string('phone'));
 
         // Set type of element.
         $mform->setType('phone', PARAM_TEXT);
-
-        // Default value.
-        $mform->setDefault('phone', '');
-       
+        $mform->addRule('phone', 'Phone number is missing.','required', null, 'client');
+        
+        
         // Add elements to your form.
         $mform->addElement('text', 'OTP', get_string('OTP', 'local_children_management'));
 
         // Set type of element.
-        $mform->setType('OTP', PARAM_TEXT);
+        $mform->setType('OTP', PARAM_INT);
+        $mform->addRule('OTP', 'OTP code is required', 'required', null, 'client');
+        
+        $mform->addElement('html', 
+        '<div class="fitem fitem_fsubmit mb-3 row">
+            <div class="col-md-4 col-form-label d-flex pb-0 pe-md-0">
+                <div class="form-label-addon d-flex align-items-center align-self-start">
+                </div>
+            </div>
+            <div class="felement fsubmit col-md-7 d-flex flex-wrap align-items-start">
+                <input type="button" class="btn btn-secondary" id="send_otp_button" value="' 
+                . get_string('sendotp', 'local_children_management')
+                . '"> <span id="otp_status_message" class="text-info ml-2"></span>
+            </div>
+        </div>');
 
-        // Default value.
-        $mform->setDefault('OTP', '');
-       
+    
         $this->add_action_buttons();
         
     }

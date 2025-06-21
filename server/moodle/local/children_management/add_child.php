@@ -115,7 +115,8 @@ try {
     echo $OUTPUT->header();
     
     $mform->display();
-    
+    $PAGE->requires->js_call_amd('local_children_management/otp_handler', 'init', [], null, true); // true để đảm bảo nó được thêm vào cuối body
+
     echo $OUTPUT->footer();
     
 } catch (Exception $e) {
