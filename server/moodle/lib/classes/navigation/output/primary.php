@@ -130,7 +130,7 @@ class primary implements renderable, templatable {
             */
 
             if(has_capability('local/children_management:view', $systemcontext, $USER) 
-                && !$isadmin
+                // && !$isadmin
             ) {
                 $stringlang1 = get_string('children_management', 'local_children_management');
                 $stringURL1 = $CFG->wwwroot . '/local/children_management/index.php';

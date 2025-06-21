@@ -33,4 +33,10 @@ $capabilities = array(
         'contextlevel' => CONTEXT_SYSTEM,
         'clonepermissionsfrom' => 'moodle/site:viewparticipants',
     ),
+    
+    'local/children_management:edit' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'clonepermissionsfrom' => 'moodle/site:viewparticipants',
+    ),
 );

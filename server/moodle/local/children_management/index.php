@@ -28,11 +28,10 @@ require_once($CFG->dirroot . '/local/dlog/lib.php');
 
 try {
     require_login();
-
-    $url = new moodle_url('/local/children_management/index.php', []);
-    $PAGE->set_url($url);
+    require_capability('local/children_management:view', context_system::instance());
+    $PAGE->set_url(new moodle_url('/local/children_management/index.php', []));
     $PAGE->set_context(context_system::instance());
-    $PAGE->set_pagelayout('base');
+    $PAGE->set_pagelayout('report');
     $PAGE->set_title(get_string('children_management_title', 'local_children_management'));
     $PAGE->set_heading(get_string('children_management_heading', 'local_children_management'));
     $PAGE->requires->css('/local/children_management/style/style.css');
@@ -40,12 +39,14 @@ try {
 
     // Add a button to add a new child.
     $addchildurl = new moodle_url('/local/children_management/add_child.php');
-    echo $OUTPUT->single_button($addchildurl, get_string('add_child', 'local_children_management'), 'post');
-    
+    echo '<div class="d-flex justify-content-end align-items-center">';
+    echo '<div><a class="btn btn-primary " href="'. $addchildurl->out() .'">Add new children</a></div>';
+    echo '</div>';
+
     // --- Start code to render Search Input ---
 
     $search_context = new stdClass();
-    $search_context->action = $url; // Action URL for the search form
+    $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_children_management'); // Placeholder text for the search input
     
