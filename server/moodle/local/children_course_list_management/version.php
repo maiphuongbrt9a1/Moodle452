@@ -15,18 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for local_children_management
+ * Version information for local_children_course_list_management
  *
- * @package    local_children_management
+ * @package    local_children_course_list_management
  * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component    = 'local_children_management';
+$plugin->component    = 'local_children_course_list_management';
 $plugin->release      = '1.0';
-$plugin->version      = 2025060620;
+$plugin->version      = 2025060604;
 $plugin->requires     = 2024100700;
 $plugin->supported    = [405, 500];
 $plugin->maturity     = MATURITY_STABLE;
