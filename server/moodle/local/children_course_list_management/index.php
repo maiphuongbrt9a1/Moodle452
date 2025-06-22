@@ -84,7 +84,8 @@ try {
                             ORDER BY children.childrenid, user.firstname, user.lastname ASC";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
-        $sql = "SELECT children.childrenid,
+        $sql = "SELECT CONCAT(children.childrenid, children.parentid, c.id) id,
+                        children.childrenid,
                         children.parentid,
                         user.firstname children_firstname,
                         user.lastname children_lastname,
@@ -117,7 +118,8 @@ try {
             'searchparamfirstname' => $search_query,
             'searchparamlastname' => $search_query,
             'searchparamemail' => $search_query,
-            'searchparamcoursename'=> $search_query
+            'searchparamcoursename'=> $search_query,
+            'searchparamteachername'=> $search_query
         ];
 
         $total_count_sql = "SELECT COUNT(*)
@@ -138,12 +140,14 @@ try {
                                         or user.lastname like :searchparamlastname
                                         or user.email like :searchparamemail
                                         or c.fullname like :searchparamcoursename
+                                        
                                     )
                             ORDER BY children.childrenid, user.firstname, user.lastname ASC";
         
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT children.childrenid,
+        $sql = "SELECT CONCAT(children.childrenid, children.parentid, c.id) id,
+                        children.childrenid,
                         children.parentid,
                         user.firstname children_firstname,
                         user.lastname children_lastname,
@@ -196,8 +200,9 @@ try {
             get_string('student_avatar', 'local_children_course_list_management'),
             get_string('student_fullname', 'local_children_course_list_management'),
             get_string('teacher_fullname', 'local_children_course_list_management'),
-            get_string('course_total_time', 'local_children_course_list_management'),
             get_string('study_time', 'local_children_course_list_management'),
+            get_string('course_total_time', 'local_children_course_list_management'),
+            get_string('average_score', 'local_children_course_list_management'),
             get_string('actions', 'local_children_course_list_management'),
         ];
         $table->align = ['center', 'center', 'center','left', 'left', 'left' , 'left', 'center'];
@@ -210,11 +215,31 @@ try {
             $profileurl = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
             $actions = html_writer::link($course_detail_url, get_string('view_course_detail', 'local_children_course_list_management'));
 
-            // Add to show course total time. 
-            $course_total_time = $student->course_end_date - $student->course_start_date;
+            $start_datetime = (new DateTime())->setTimestamp($student->course_start_date);
+            $end_datetime = (new DateTime())->setTimestamp($student->course_end_date);
 
-            // Add to show study time
-            $course_study_time = time() - $student->course_start_date;
+            // Tính toán khoảng thời gian giữa hai ngày
+            $interval_total = $end_datetime->diff($start_datetime);
+
+            // Lấy tổng số ngày (tuyệt đối) từ khoảng thời gian
+            $course_total_days = $interval_total->days; // Lấy tổng số ngày không kể giờ, phút, giây
+
+            // --- 2. Tính thời gian đã học (Study Time) ---
+            $current_time = time(); // Lấy Unix timestamp hiện tại
+
+            // So sánh thời gian hiện tại với thời gian bắt đầu và kết thúc khóa học
+            if ($student->course_start_date <= $current_time && $current_time <= $student->course_end_date) {
+                // Nếu khóa học đang diễn ra, tính từ ngày bắt đầu đến ngày hiện tại
+                $current_datetime = (new DateTime())->setTimestamp($current_time);
+                $interval_study = $current_datetime->diff($start_datetime);
+                $course_study_days = $interval_study->days;
+            } else if ($current_time > $student->course_end_date) {
+                // Nếu khóa học đã kết thúc, thời gian học bằng tổng thời gian khóa học
+                $course_study_days = $course_total_days;
+            } else {
+                // Nếu khóa học chưa bắt đầu
+                $course_study_days = 0;
+            }
 
             // add to show teacher full name.
             $teacherfullname = 'Lê Thị Bảo Thu';
@@ -222,6 +247,8 @@ try {
             // Get image for the student.            
             // Get the avatar URL for the student.
             $avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
+            
+            $average_score = 0;
             
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
@@ -237,8 +264,9 @@ try {
                         )),
                 html_writer::link($profileurl, format_string($student->children_firstname) . " " . format_string($student->children_lastname)),
                 $teacherfullname,
-                format_string($course_study_time),
-                format_string($course_total_time),
+                $course_study_days,
+                $course_total_days,
+                $average_score,
                 $actions,
             ];
         }
