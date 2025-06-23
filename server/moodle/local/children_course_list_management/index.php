@@ -63,6 +63,7 @@ try {
     $parentid = $USER->id;
     $stt = 0;
     $students = [];
+    
     $per_page = optional_param('perpage', 10, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
@@ -118,8 +119,7 @@ try {
             'searchparamfirstname' => $search_query,
             'searchparamlastname' => $search_query,
             'searchparamemail' => $search_query,
-            'searchparamcoursename'=> $search_query,
-            'searchparamteachername'=> $search_query
+            'searchparamcoursename'=> $search_query
         ];
 
         $total_count_sql = "SELECT COUNT(*)
@@ -212,8 +212,8 @@ try {
 
             // You might want to add a link to student's profile overview and course detail.
             $course_detail_url = new moodle_url('/course/view.php', ['id' => $student->courseid]);
-            $profileurl = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
-            $actions = html_writer::link($course_detail_url, get_string('view_course_detail', 'local_children_course_list_management'));
+            $student_profile_url = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
+            $view_course_detail_action = html_writer::link($course_detail_url, get_string('view_course_detail', 'local_children_course_list_management'));
 
             $start_datetime = (new DateTime())->setTimestamp($student->course_start_date);
             $end_datetime = (new DateTime())->setTimestamp($student->course_end_date);
@@ -241,33 +241,89 @@ try {
                 $course_study_days = 0;
             }
 
-            // add to show teacher full name.
-            $teacherfullname = 'Lê Thị Bảo Thu';
+            // add sql to query teachers of this student in current course
+            $teachers = [];
+            $teachers_fullname = [];
 
+            // search teachers by name.
+            // If search query is empty, we will get all teachers of this student in current course.
+            if (empty($search_query)) {
+
+                $sql = "SELECT  CONCAT(teacher.id, role.id, course.id) id ,
+                                teacher.id teacherid , 
+                                teacher.firstname teacher_firstname, 
+                                teacher.lastname teacher_lastname,  
+                                role.id teacher_role_id, 
+                                role.shortname role_shortname,
+                                course.id courseid, 
+                                course.fullname course_fullname
+                          from {user} teacher
+                          join {role_assignments} ra on ra.userid = teacher.id
+                          join {role} role on role.id = ra.roleid
+                          join {context} context on context.id = ra.contextid
+                          join {course} course on course.id = context.instanceid
+                          where (role.shortname = 'teacher' or role.shortname = 'editingteacher')
+                                 and context.contextlevel = 50 
+                                 and course.id = :student_course_id";
+                $params = ['student_course_id' => $student->courseid];
+            }
+            else { 
+                $sql = "SELECT  CONCAT(teacher.id, role.id, course.id) id ,
+                                teacher.id teacherid , 
+                                teacher.firstname teacher_firstname, 
+                                teacher.lastname teacher_lastname,  
+                                role.id teacher_role_id, 
+                                role.shortname role_shortname,
+                                course.id courseid, 
+                                course.fullname course_fullname
+                          from {user} teacher
+                          join {role_assignments} ra on ra.userid = teacher.id
+                          join {role} role on role.id = ra.roleid
+                          join {context} context on context.id = ra.contextid
+                          join {course} course on course.id = context.instanceid
+                          where (role.shortname = 'teacher' or role.shortname = 'editingteacher')
+                                 and context.contextlevel = 50 
+                                 and course.id = :student_course_id
+                                 and (teacher.firstname like :searchparamteachername or teacher.lastname like :searchparamteachername)";
+                $params = ['student_course_id' => $student->courseid,
+                            'searchparamteachername'=> $search_query];
+            }
+            // Get all teachers of this student in current course.
+            $teachers = $DB->get_records_sql($sql, $params);
+            
+            if (!empty($teachers)) {    
+                foreach ($teachers as $teacher) {
+                    // add to show teacher full name.
+                    $teacher_profile_url = new moodle_url('/user/profile.php', ['id' => $teacher->teacherid]);
+                    $teacher_fullname = html_writer::link($teacher_profile_url, format_string($teacher->teacher_firstname) . " " . format_string($teacher->teacher_lastname));
+
+                    $teachers_fullname[] = $teacher_fullname;
+                }
+            }
             // Get image for the student.            
             // Get the avatar URL for the student.
-            $avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
+            $student_avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
             
             $average_score = 0;
-            
+
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 $stt,
                 html_writer::link($course_detail_url, format_string($student->course_name)),
                 html_writer::tag('img', '', array(
-                            'src' => $avatar_url->get_url($PAGE),
+                            'src' => $student_avatar_url->get_url($PAGE),
                             'alt' => 'Avatar image of ' . format_string($student->children_firstname) . " " . format_string($student->children_lastname),
                             'width' => 40,
                             'height' => 40,
                             'class' => 'rounded-avatar'
                         )),
-                html_writer::link($profileurl, format_string($student->children_firstname) . " " . format_string($student->children_lastname)),
-                $teacherfullname,
+                html_writer::link($student_profile_url, format_string($student->children_firstname) . " " . format_string($student->children_lastname)),
+                implode(', ',  $teachers_fullname),
                 $course_study_days,
                 $course_total_days,
                 $average_score,
-                $actions,
+                $view_course_detail_action,
             ];
         }
         echo html_writer::table($table);
