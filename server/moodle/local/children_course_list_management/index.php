@@ -25,6 +25,8 @@
 require('../../config.php');
 require_once($CFG->dirroot . '/local/children_course_list_management/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+require_once($CFG->libdir . '/gradelib.php');
+require_once($CFG->dirroot . '/grade/querylib.php');
 
 try {
     require_login();
@@ -304,8 +306,9 @@ try {
             // Get the avatar URL for the student.
             $student_avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
             
-            $average_score = 0;
-
+            $course_score = grade_get_course_grade($student->childrenid, $student->courseid);
+            $average_score = $course_score->grade ? $course_score->grade : 0;
+    
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [

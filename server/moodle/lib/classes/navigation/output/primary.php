@@ -145,6 +145,7 @@ class primary implements renderable, templatable {
                 $CFG->custommenuitems .= "
                 $stringlang2 | $stringURL2";
             }
+
             
         }
          
