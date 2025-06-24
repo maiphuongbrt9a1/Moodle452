@@ -35,14 +35,14 @@ function local_course_calendar_extend_settings_navigation($settingsnav, $context
     }
 
     if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
-        $strfoo = get_string('course_calendar_title', 'local_course_calendar');
-        $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('id' => $PAGE->course->id));
+        $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
+        $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
         $foonode = navigation_node::create(
             $strfoo,
             $url,
             navigation_node::NODETYPE_LEAF,
-            'course_calendar',
-            'course_calendar',
+            get_string('edit_total_lesson_for_course', 'local_course_calendar'),
+            'edit_total_lesson_for_course',
             new pix_icon('i/edit', $strfoo)
         );
         if ($PAGE->url->compare($url, URL_MATCH_BASE)) {

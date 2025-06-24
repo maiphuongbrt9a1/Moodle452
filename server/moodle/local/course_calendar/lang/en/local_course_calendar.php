@@ -26,11 +26,17 @@
 defined('MOODLE_INTERNAL') || die();
 
 // en/local_course_calendar.php
-$string['pluginname'] = 'Course Calendar';
-$string['course_calendar'] = 'Course Calendar';
+$string['pluginname'] = 'Course Calendar Management';
+$string['course_calendar'] = 'Course Calendar Management';
 $string['course_calendar:view'] = 'course_calendar:view';
 $string['course_calendar:edit'] = 'course_calendar:edit';
 $string['course_calendar:edit_total_lesson_for_course'] = 'course_calendar:edit_total_lesson_for_course';
-$string['course_calendar_title'] = 'Course Calendar';
-$string['course_calendar_heading'] = 'Course Calendar';
-
+$string['course_calendar_title'] = 'Course Calendar Management';
+$string['course_calendar_heading'] = 'Course Calendar Management';
+$string['edit_total_lesson_for_course'] = 'Edit Total Lesson Number for Course';
+$string['total_lesson_for_course'] = 'Total Lesson Number for Course';
+$string['total_section_for_course'] = 'Total Section Number for Course';
+$string['total_chapter_for_course'] = 'Total Chapter Number for Course';
+$string['total_lesson_for_course_help'] = 'This field allows you to set the total number of lessons for the course.';
+$string['total_section_for_course_help'] = 'This field allows you to set the total number of sections for the course.';
+$string['total_chapter_for_course_help'] = 'This field allows you to set the total number of chapters for the course.';

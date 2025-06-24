@@ -24,240 +24,116 @@
 
 
 require('../../config.php');
-require_once($CFG->dirroot . '/local/children_management/lib.php');
+require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+require_once($CFG->dirroot .'/local/course_calendar/classes/form/edit_total_lesson_for_course.php');
 
 try {
     require_login();
-    require_capability('local/children_management:view', context_system::instance());
-    $PAGE->set_url(new moodle_url('/local/children_management/index.php', []));
-    $PAGE->set_context(context_system::instance());
-    $PAGE->set_pagelayout('report');
-    $PAGE->set_title(get_string('children_management_title', 'local_children_management'));
-    $PAGE->set_heading(get_string('children_management_heading', 'local_children_management'));
-    $PAGE->requires->css('/local/children_management/style/style.css');
-    echo $OUTPUT->header();
-
-    // Add a button to add a new child.
-    $addchildurl = new moodle_url('/local/children_management/add_child.php');
-    echo '<div class="d-flex justify-content-end align-items-center">';
-    echo '<div><a class="btn btn-primary " href="'. $addchildurl->out() .'">Add new children</a></div>';
-    echo '</div>';
-
-    // --- Start code to render Search Input ---
-
-    $search_context = new stdClass();
-    $search_context->action = $PAGE->url; // Action URL for the search form
-    $search_context->inputname = 'searchquery';
-    $search_context->searchstring = get_string('searchitems', 'local_children_management'); // Placeholder text for the search input
     
-    $search_query = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters.
-    
-    $search_context->value = $search_query; // Set the value of the search input to the current search query.
-    $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
-    $search_context->btnclass = 'btn-primary';
-
-    // Renderer for template core
-    $core_renderer = $PAGE->get_renderer('core');
-
-    // Render search input
-    echo $core_renderer->render_from_template('core/search_input', $search_context);
-
-    // --- End code to render Search Input ---
-
-    // Set default variable.
-    $parentid = $USER->id;
-    $stt = 0;
-    $students = [];
-    $per_page = optional_param('perpage', 10, PARAM_INT);
-    $current_page = optional_param('page', 0, PARAM_INT);
-    $total_records = 0;
-    $offset = $current_page * $per_page;
-    $params = [];
-
-    // Get all children of current parent account.
-    if (empty($search_query)) {
-        $params = ['parentid' => $parentid];
-
-        $total_count_sql = "SELECT COUNT(*)
-                            FROM {children_and_parent_information} children
-                            JOIN {user} user on user.id = children.childrenid
-                            WHERE children.parentid = :parentid
-                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        $total_records = $DB->count_records_sql($total_count_sql, $params);
-
-        $sql = "SELECT children.childrenid,
-                        children.parentid,
-                        user.firstname,
-                        user.lastname,
-                        user.email,
-                        user.phone1
-                FROM {children_and_parent_information} children
-                JOIN {user} user on user.id = children.childrenid
-                WHERE children.parentid = :parentid
-                ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
+    $courseid = optional_param('courseid', 1, PARAM_INT);
+    if ($courseid <= 1) {
+        throw new \moodle_exception('invalidcourseid '. $courseid, 'local_course_calendar');
     }
     
-    // if parent use search input, we need to filter the children list.
-    if(!empty($search_query)) {
+    require_capability('local/course_calendar:edit_total_lesson_for_course', context_course::instance($courseid));
+    $PAGE->set_context(context_course::instance($courseid));
+    $PAGE->set_url(new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', ['courseid' => $courseid]));
+    $PAGE->set_pagelayout('standard');
+    $PAGE->set_title(get_string('edit_total_lesson_for_course', 'local_course_calendar'));
+    $PAGE->set_heading(get_string('edit_total_lesson_for_course', 'local_course_calendar'));
+    $PAGE->requires->css('/local/course_calendar/style/style.css');
+
+    // Instantiate the myform form from within the plugin.
+    $mform = new \local_course_calendar\form\edit_total_lesson_for_course_form();
+    $toform = '';
+    
+    // Form processing and displaying is done here.
+    if ($mform->is_cancelled()) {
+        // If there is a cancel element on the form, and it was pressed,
+        // then the `is_cancelled()` function will return true.
+        // You can handle the cancel operation here.
+        redirect( new moodle_url('/course/view.php', ['id' => $courseid]), 'Cancelled edit total lesson information for course.', 0, \core\output\notification::NOTIFY_ERROR);
+    } else if ($fromform = $mform->get_data()) {
         
-        // Escape the search query to prevent SQL injection.
-        $search_query = trim($search_query);
-        $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
+        global $PAGE, $OUTPUT, $DB, $USER;
+        $courseid = $fromform->courseid;
+        
+        if ($courseid <= 1) {
+            throw new \moodle_exception('invalidcourseid '. $courseid, 'local_course_calendar');
+        }
+         
+        // When the form is submitted, and the data is successfully validated,
+        // the `get_data()` function will return the data posted in the form.
+        
+        // find children information from user table in system.
+        // if have student information then insert information to children_and_parent_information table
+        // if not information about student then return add new child fail because don't have this account in system
+        
+        // Check and search student information 
+        // prepare search condition
+        $total_lesson_for_course = $fromform->total_lesson_for_course;
+        $total_section_for_course = $fromform->total_section_for_course;
+        $total_chapter_for_course = $fromform->total_chapter_for_course;
+        $courseid_search_query = $courseid;
+
         $params = [
-            'parentid' => $parentid,
-            'searchparamid' => $search_query,
-            'searchparamusername' => $search_query,
-            'searchparamfirstname' => $search_query,
-            'searchparamlastname' => $search_query,
-            'searchparamemail' => $search_query
+            'search_param_courseid' => $courseid_search_query
         ];
 
-        $total_count_sql = "SELECT COUNT(*)
-                            FROM {children_and_parent_information} children
-                            JOIN {user} user on user.id = children.childrenid
-                            WHERE children.parentid = :parentid 
-                                and 
-                                    (
-                                        children.childrenid like :searchparamid 
-                                        or user.username like :searchparamusername
-                                        or user.firstname like :searchparamfirstname
-                                        or user.lastname like :searchparamlastname
-                                        or user.email like :searchparamemail
-                                    )
-                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        
-        $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT children.childrenid,
-                    children.parentid,
-                    user.username,
-                    user.firstname,
-                    user.lastname,
-                    user.email,
-                    user.phone1
-            FROM {children_and_parent_information} children
-            JOIN {user} user on user.id = children.childrenid
-            WHERE children.parentid = :parentid 
-                 and 
-                    (
-                        children.childrenid like :searchparamid 
-                        or user.username like :searchparamusername
-                        or user.firstname like :searchparamfirstname
-                        or user.lastname like :searchparamlastname
-                        or user.email like :searchparamemail
-                    )
-            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        
-        $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
-    }
+        $sql = "SELECT c.id
+            FROM {course} c
+            WHERE   (
+                        c.id = :search_param_courseid
+                    )";
 
-    // Display children list of parent on screen.
-    if (!$students) {
-        echo $OUTPUT->notification(get_string('no_children_found', 'local_children_management'), 'info');
-    } else {
-        // If there are children, display them in a table.
-        // and parent does not need to search for children.
-        echo html_writer::start_tag('div');
+        $course = $DB->get_record_sql($sql, $params);
         
-        $base_url = new moodle_url('/local/children_management/index.php', []);
-        if (!empty($search_query)) {
-            $base_url->param('searchquery', $search_query);
-        }
-        
-        // Display the list of children in a table.
-        $table = new html_table();
-        $table->head = [
-            get_string('stt', 'local_children_management'),
-            get_string('studentid', 'local_children_management'),
-            get_string('avatar', 'local_children_management'),
-            get_string('fullname', 'local_children_management'),
-            get_string('email', 'local_children_management'),
-            get_string('phone1', 'local_children_management'),
-            get_string('registed_course_number', 'local_children_management'),
-            get_string('finished_course_number', 'local_children_management'),
-            get_string('actions', 'local_children_management'),
-        ];
-        $table->align = ['center', 'center', 'center','left', 'left', 'left', 'left' , 'left', 'center'];
-        foreach ($students as $student) {
-            // You might want to add a link to student's profile overview etc.
-            $profileurl = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
-            $actions = html_writer::link($profileurl, get_string('view_profile', 'local_children_management'));
-
-            // Add to show total registered courses.
-            $sql_register_course_by_user = "SELECT COUNT(DISTINCT c.id) number_of_unique_registered_courses
-                FROM {user} u
-                JOIN {role_assignments} ra ON ra.userid = u.id
-                JOIN {role} r ON r.id = ra.roleid
-                JOIN {context} ctx ON ctx.id = ra.contextid
-                JOIN {course} c ON c.id = ctx.instanceid
-                WHERE ctx.contextlevel = 50 AND u.id = :studentid";
+        if (!$course) {
             
-            // Add to show total finished courses.
-            $sql_finished_course_by_user = "SELECT COUNT(DISTINCT u.id) number_of_unique_finished_courses
-                FROM {user} u
-                JOIN {role_assignments} ra ON ra.userid = u.id
-                JOIN {role} r ON r.id = ra.roleid
-                JOIN {context} ctx ON ctx.id = ra.contextid
-                JOIN {course} c ON c.id = ctx.instanceid
-                WHERE ctx.contextlevel = 50 AND u.id = :studentid and c.enddate > 0 and c.enddate < UNIX_TIMESTAMP()
-                group by u.id";
-
-            // Prepare the parameters for the SQL query
-            $params = ['studentid' => $student->childrenid];
+            redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Error: This course with course ID: ' . $courseid_search_query . ' was not found.', 0, \core\output\notification::NOTIFY_ERROR);
+        } else {
             
-            // Execute the SQL query to get the count of registered courses
-            // for the current student.
-            $registeredcourses = $DB->get_record_sql($sql_register_course_by_user, $params);
-            $registeredcount = $registeredcourses ? $registeredcourses->number_of_unique_registered_courses : 0;
-            
-            // Execute the SQL query to get the count of finished courses      
-            // If no courses found, set count to 0.
-            $finishedcourses = $DB->get_record_sql($sql_finished_course_by_user, $params);      
-            $finishedcount = $finishedcourses ? $finishedcourses->number_of_unique_finished_courses : 0;
-
-            // Get image for the student.            
-            // Get the avatar URL for the student.
-            $avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
-            
-            // add no. for the table.
-            $stt = $stt + 1;
-
-            // Add the row to the table.
-            // Use html_writer to create the avatar image and other fields.
-            $table->data[] = [
-                $stt,
-                $student->childrenid,
-                html_writer::tag('img', '', array(
-                            'src' => $avatar_url->get_url($PAGE),
-                            'alt' => 'Avatar image of ' . format_string($student->firstname) . " " . format_string($student->lastname),
-                            'width' => 40,
-                            'height' => 40,
-                            'class' => 'rounded-avatar'
-                        )),
-                html_writer::link($profileurl, format_string($student->firstname) . " " . format_string($student->lastname)),
-                format_string($student->email),
-                format_string($student->phone1),
-                $registeredcount,
-                $finishedcount,
-                $actions,
-            ];
-        }
-        echo html_writer::table($table);
-        
-        echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
-        
-        echo html_writer::end_tag('div');
-    }
-
-    echo $OUTPUT->footer();
-} catch (Exception $e) {
-    dlog($e->getTrace());
+            // If have information about student. Add this information to children_and_parent_information table
+            $data = new stdClass();
+            $data->courseid = $courseid;
+            $data->total_course_section = $total_section_for_course;
+            $data->total_course_lesson = $total_lesson_for_course;
+            $data->total_course_chapter = $total_chapter_for_course;
+            $data->created_user_id = $USER->id;
+            $data->modified_user_id = $USER->id;
+            $data->createtime = time();
+            $data->lastmodifytime = time();
     
+            if ($DB->insert_record('local_course_calendar_total_course_lesson', $data)) {
+                redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Add new total lesson number for course with course ID: '. $courseid_search_query .' successfully', 0, \core\output\notification::NOTIFY_SUCCESS);
+
+            } else {
+                redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Error: Add new total lesson number for course with course ID: '. $courseid_search_query .' failed', 0, \core\output\notification::NOTIFY_ERROR);
+            }
+        }
+
+    } else {
+        // This branch is executed if the form is submitted but the data doesn't
+        // validate and the form should be redisplayed or on the first display of the form.
+
+        // Set anydefault data (if any).
+        $mform->set_data($toform);
+
+        // Display the form.
+    }
+
+    echo $OUTPUT->header();
+    
+    $mform->display();
+    
+    echo $OUTPUT->footer();
+    
+} catch (Exception $e) {
     echo "<pre>";
         var_dump($e->getTrace());
     echo "</pre>";
     
-    throw new \moodle_exception('error', 'local_children_management', '', null, $e->getMessage());
+    throw new \moodle_exception('error', 'local_course_calendar', '', null, $e->getMessage());
 }

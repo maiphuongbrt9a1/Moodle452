@@ -43,7 +43,7 @@ try {
     
     // Instantiate the myform form from within the plugin.
     $mform = new \local_children_management\form\add_child_form();
-    $toform = 'testemail@gmail.com';
+    $toform = '';
     
     // Form processing and displaying is done here.
     if ($mform->is_cancelled()) {
@@ -98,8 +98,12 @@ try {
             $data->createtime = time();
             $data->lastmodifytime = time();
     
-            $DB->insert_record('children_and_parent_information', $data);
-            redirect(new moodle_url('/local/children_management/index.php', []), 'Add new children with children ID: '. $studentid_search_query .' successfully', 0, \core\output\notification::NOTIFY_SUCCESS);
+            if ($DB->insert_record('children_and_parent_information', $data)) {
+                redirect(new moodle_url('/local/children_management/index.php', []), 'Add new children with children ID: '. $studentid_search_query .' successfully', 0, \core\output\notification::NOTIFY_SUCCESS);
+
+            } else {
+                redirect(new moodle_url('/local/children_management/add_child.php', []), 'Error: Add new children with children ID: '. $studentid_search_query .' failed', 0, \core\output\notification::NOTIFY_ERROR);
+            }
         }
 
     } else {
