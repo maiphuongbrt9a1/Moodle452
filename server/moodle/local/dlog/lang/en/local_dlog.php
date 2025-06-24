@@ -15,31 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for local_course_calendar
+ * English language pack for local_dlog
  *
- * @package    local_course_calendar
+ * @package    local_dlog
+ * @category   string
  * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$capabilities = array(
-    'local/course_calendar:view' => array(
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'clonepermissionsfrom' => 'moodle/site:viewparticipants',
-    ),
-    
-    'local/course_calendar:edit' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'clonepermissionsfrom' => 'moodle/site:viewparticipants',
-    ),
+// en/local_dlog.php
 
-    'local/course_calendar:edit_total_lesson_for_course' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'clonepermissionsfrom' => 'moodle/site:viewparticipants',
-    ),
-);
+$string['pluginname'] = 'Dlog';

@@ -29,17 +29,51 @@
  * @param mixed $context The context object for the current user.
  * @return void
  */
-function local_children_management_extend_navigation_user($navigation, $user, $context) {
-    if (has_capability('local/children_management:view', $context)) {
-        $url = new moodle_url('/local/children_management/index.php', ['id' => $user->id]);
-        $navigation->add(
-            get_string('children_management_title', 'local_children_management'),
+// function local_children_management_extend_navigation(global_navigation $navigation) {
+//     global $USER;
+//     if (has_capability('local/children_management:view', context_system::instance())) {
+//         $string = get_string('children_management_title', 'local_children_management');
+//         $url = new moodle_url('/local/children_management/index.php', ['id' => $USER->id]);
+//         $navigation->add(
+//             get_string('children_management_title', 'local_children_management'),
+//             $url,
+//             navigation_node::TYPE_CONTAINER,
+//             null,
+//             null,
+//             new pix_icon('i/children', $string)
+//         );
+//         $navigation->find('children_management')->make_active();
+//     }
+// }
+
+function local_children_management_extend_settings_navigation($settingsnav, $context) {
+    global $CFG, $PAGE;
+
+    // Only add this settings item on non-site course pages.
+    if (!$PAGE->course or $PAGE->course->id == 1) {
+        return;
+    }
+
+    // Only let users with the appropriate capability see this settings item.
+    if (!has_capability('local/children_management:view', context_system::instance())) {
+        return;
+    }
+
+    if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
+        $strfoo = get_string('children_management_title', 'local_children_management');
+        $url = new moodle_url('/local/children_management/index.php', array('id' => $PAGE->course->id));
+        $foonode = navigation_node::create(
+            $strfoo,
             $url,
-            navigation_node::TYPE_SETTING,
-            null,
-            null,
-            new pix_icon('i/children', '')
+            navigation_node::NODETYPE_LEAF,
+            'children_management',
+            'children_management',
+            new pix_icon('t/addcontact', $strfoo)
         );
+        if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
+            $foonode->make_active();
+        }
+        $settingnode->add_node($foonode);
     }
 }
 

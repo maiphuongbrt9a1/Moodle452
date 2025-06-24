@@ -155,7 +155,14 @@ class primary implements renderable, templatable {
                 $stringlang3 | $stringURL3";
             }
             
-            
+            if(has_capability('local/course_calendar:view', $systemcontext, $USER) 
+                // && !$isadmin
+            ) {
+                $stringlang4 = get_string('course_calendar', 'local_course_calendar');
+                $stringURL4 = $CFG->wwwroot . '/local/course_calendar/index.php';
+                $CFG->custommenuitems .= "
+                $stringlang4 | $stringURL4";
+            }
         }
          
         // Early return if a custom menu does not exists.

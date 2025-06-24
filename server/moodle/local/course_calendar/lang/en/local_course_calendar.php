@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * English language pack for local_children_management
+ * English language pack for local_course_calendar
  *
- * @package    local_children_management
+ * @package    local_course_calendar
  * @category   string
  * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,4 +27,10 @@ defined('MOODLE_INTERNAL') || die();
 
 // en/local_course_calendar.php
 $string['pluginname'] = 'Course Calendar';
-$string['local_course_calendar'] = 'Course Calendar';
+$string['course_calendar'] = 'Course Calendar';
+$string['course_calendar:view'] = 'course_calendar:view';
+$string['course_calendar:edit'] = 'course_calendar:edit';
+$string['course_calendar:edit_total_lesson_for_course'] = 'course_calendar:edit_total_lesson_for_course';
+$string['course_calendar_title'] = 'Course Calendar';
+$string['course_calendar_heading'] = 'Course Calendar';
+
