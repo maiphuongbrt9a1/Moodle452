@@ -87,3 +87,4 @@ $string['otpsubject'] = 'Your OTP for {$a}';
 $string['otpemailmessage'] = 'Your One-Time Password is: {$a}. It will expire in 5 minutes.'; 
 $string['course_full_name'] = 'Course full name';
 $string['average_score'] = 'Average score';
+$string['children_course_calendar'] = 'Children Course Calendar';

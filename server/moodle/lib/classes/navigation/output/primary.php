@@ -145,7 +145,16 @@ class primary implements renderable, templatable {
                 $CFG->custommenuitems .= "
                 $stringlang2 | $stringURL2";
             }
-
+            
+            if(has_capability('local/children_course_list_management:view', $systemcontext, $USER) 
+                // && !$isadmin
+            ) {
+                $stringlang3 = get_string('children_course_calendar', 'local_children_course_list_management');
+                $stringURL3 = $CFG->wwwroot . '/local/children_course_list_management/children_course_calendar.php';
+                $CFG->custommenuitems .= "
+                $stringlang3 | $stringURL3";
+            }
+            
             
         }
          
