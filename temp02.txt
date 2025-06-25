@@ -1,0 +1,38 @@
+// --- TẠO THANH ĐIỀU KHIỂN PHỤ (TABS) ---
+// Lấy đối tượng setting_navigation
+$custom_setting_navigation = $PAGE->settingsnav; // Lấy thanh điều hướng
+
+// Thêm các tab/mục vào thanh điều hướng phụ (secondary navigation)
+// Mỗi add() tạo ra một mục trên thanh điều khiển.
+// Đảm bảo tên file, URL và string keys phù hợp với plugin của bạn.
+// 1. Tab "teaching schedule assignment"
+$url_course_list_overview = new moodle_url('/local/course_calendar/index.php', []);
+$custom_setting_navigation->add(
+    get_string('teaching_schedule_assignment', 'local_course_calendar'),
+    $url_course_list_overview,
+    \navigation_node::NODETYPE_LEAF, 
+    'course_list_overview_page', // ID duy nhất cho node này
+    'course_list_view' // Hành động (action) liên quan
+);
+
+// 2. Tab "view_teaching_schedule"
+$view_teaching_schedule = new moodle_url('/local/course_calendar/course_calendar.php', []);
+$custom_setting_navigation->add(
+    get_string('view_teaching_schedule', 'local_course_calendar'), 
+    $view_teaching_schedule,
+    \navigation_node::NODETYPE_LEAF,
+    'view_teaching_schedule',
+    'view_teaching_schedule'
+);
+
+// 3. Tab "View teaching statistics"
+$url_view_teaching_statistics = new moodle_url('/local/course_calendar/course_calendar_statistic.php', []);
+$custom_setting_navigation->add(
+    get_string('view_teaching_statistics', 'local_course_calendar'),
+    $url_view_teaching_statistics,
+    \navigation_node::NODETYPE_LEAF,
+    'view_teaching_statistics',
+    'view_teaching_statistics'
+);
+
+// --- KẾT THÚC THÊM TAB ---

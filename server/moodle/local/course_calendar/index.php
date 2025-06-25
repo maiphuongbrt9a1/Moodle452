@@ -21,38 +21,70 @@
  * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-
-require('../../config.php');
-require_once($CFG->dirroot . '/local/children_management/lib.php');
+require_once(__DIR__ . '/../../config.php');
+require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
 
 try {
+    // Yêu cầu người dùng đăng nhập
     require_login();
-    require_capability('local/children_management:view', context_system::instance());
-    $PAGE->set_url(new moodle_url('/local/children_management/index.php', []));
-    $PAGE->set_context(context_system::instance());
-    $PAGE->set_pagelayout('report');
-    $PAGE->set_title(get_string('children_management_title', 'local_children_management'));
-    $PAGE->set_heading(get_string('children_management_heading', 'local_children_management'));
-    $PAGE->requires->css('/local/children_management/style/style.css');
+    require_capability('local/course_calendar:view', context_system::instance()); // Kiểm tra quyền truy cập
+
+    // Khai báo các biến toàn cục
+    global $PAGE, $OUTPUT, $DB, $USER;
+
+    // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
+    $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
+    // Đặt ngữ cảnh trang
+    $PAGE->set_context($context); 
+
+    // Thiết lập trang Moodle
+    // Đặt URL cho trang hiện tại
+    $PAGE->set_url(new moodle_url('/local/course_calendar/index.php', [])); 
+    // Tiêu đề trang
+    $PAGE->set_title(get_string('course_calendar_title', 'local_course_calendar')); 
+    $PAGE->set_heading(get_string('course_list', 'local_course_calendar'));
+
+
+    // Thêm một breadcrumb cho các link khác.
+    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+
+    // Thêm breadcrumb cho trang hiện tại
+    $PAGE->navbar->add(get_string('course_list', 'local_course_calendar'));
+
+    // // add menu item to the settings navigation.
+    // $settingsnav = $PAGE->settingsnav;
+    // if (has_capability('local/course_calendar:edit', context_system::instance())) {
+    //     if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
+    //         $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
+    //         $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
+    //         $foonode = navigation_node::create(
+    //             $strfoo,
+    //             $url,
+    //             navigation_node::NODETYPE_LEAF,
+    //             get_string('edit_total_lesson_for_course', 'local_course_calendar'),
+    //             'edit_total_lesson_for_course',
+    //             new pix_icon('i/edit', $strfoo)
+    //         );
+    //         if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
+    //             $foonode->make_active();
+    //         }
+    //         $settingnode->add_node($foonode);
+    //     }
+    // }
+
+
     echo $OUTPUT->header();
 
-    // Add a button to add a new child.
-    $addchildurl = new moodle_url('/local/children_management/add_child.php');
-    echo '<div class="d-flex justify-content-end align-items-center">';
-    echo '<div><a class="btn btn-primary " href="'. $addchildurl->out() .'">Add new children</a></div>';
-    echo '</div>';
-
-    // --- Start code to render Search Input ---
-
+    // Nội dung trang của bạn
+    echo $OUTPUT->box_start();
     $search_context = new stdClass();
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
-    $search_context->searchstring = get_string('searchitems', 'local_children_management'); // Placeholder text for the search input
-    
+    $search_context->searchstring = get_string('searchitems', 'local_course_calendar'); // Placeholder text for the search input
+
     $search_query = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters.
-    
+
     $search_context->value = $search_query; // Set the value of the search input to the current search query.
     $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
     $search_context->btnclass = 'btn-primary';
@@ -66,9 +98,9 @@ try {
     // --- End code to render Search Input ---
 
     // Set default variable.
-    $parentid = $USER->id;
     $stt = 0;
-    $students = [];
+    $courses = [];
+
     $per_page = optional_param('perpage', 10, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
@@ -77,28 +109,21 @@ try {
 
     // Get all children of current parent account.
     if (empty($search_query)) {
-        $params = ['parentid' => $parentid];
+        $params = [];
 
-        $total_count_sql = "SELECT COUNT(*)
-                            FROM {children_and_parent_information} children
-                            JOIN {user} user on user.id = children.childrenid
-                            WHERE children.parentid = :parentid
-                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+        $total_count_sql = "SELECT count(*)
+                            FROM mdl_course c
+                            where c.id != 1
+                            ORDER BY c.category, c.fullname ASC";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
-        $sql = "SELECT children.childrenid,
-                        children.parentid,
-                        user.firstname,
-                        user.lastname,
-                        user.email,
-                        user.phone1
-                FROM {children_and_parent_information} children
-                JOIN {user} user on user.id = children.childrenid
-                WHERE children.parentid = :parentid
-                ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
+        $sql = "SELECT *
+                FROM mdl_course c
+                where c.id != 1
+                ORDER BY c.category, c.fullname ASC";
+        $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
-    
+
     // if parent use search input, we need to filter the children list.
     if(!empty($search_query)) {
         
@@ -106,62 +131,44 @@ try {
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
         $params = [
-            'parentid' => $parentid,
-            'searchparamid' => $search_query,
-            'searchparamusername' => $search_query,
-            'searchparamfirstname' => $search_query,
-            'searchparamlastname' => $search_query,
-            'searchparamemail' => $search_query
+            'searchparamcourseid' => $search_query,
+            'searchparamcoursename'=> $search_query
         ];
 
-        $total_count_sql = "SELECT COUNT(*)
-                            FROM {children_and_parent_information} children
-                            JOIN {user} user on user.id = children.childrenid
-                            WHERE children.parentid = :parentid 
+        $total_count_sql = "SELECT count(*)
+                            FROM mdl_course c
+                            where c.id != 1
                                 and 
                                     (
-                                        children.childrenid like :searchparamid 
-                                        or user.username like :searchparamusername
-                                        or user.firstname like :searchparamfirstname
-                                        or user.lastname like :searchparamlastname
-                                        or user.email like :searchparamemail
+                                        c.id like :searchparamcourseid 
+                                        or c.fullname like :searchparamcoursename
+                                        
                                     )
-                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+                            ORDER BY c.category, c.fullname ASC";
         
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT children.childrenid,
-                    children.parentid,
-                    user.username,
-                    user.firstname,
-                    user.lastname,
-                    user.email,
-                    user.phone1
-            FROM {children_and_parent_information} children
-            JOIN {user} user on user.id = children.childrenid
-            WHERE children.parentid = :parentid 
-                 and 
-                    (
-                        children.childrenid like :searchparamid 
-                        or user.username like :searchparamusername
-                        or user.firstname like :searchparamfirstname
-                        or user.lastname like :searchparamlastname
-                        or user.email like :searchparamemail
+        $sql = "SELECT *
+                FROM mdl_course c
+                where c.id != 1
+                and (
+                        c.id like :searchparamcourseid 
+                        or c.fullname like :searchparamcoursename
                     )
-            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        
-        $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
+                ORDER BY c.category, c.fullname ASC";
+
+        $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
     // Display children list of parent on screen.
-    if (!$students) {
-        echo $OUTPUT->notification(get_string('no_children_found', 'local_children_management'), 'info');
+    if (!$courses) {
+        echo $OUTPUT->notification(get_string('no_course_found', 'local_course_calendar'), 'info');
     } else {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('div');
         
-        $base_url = new moodle_url('/local/children_management/index.php', []);
+        $base_url = new moodle_url('/local/course_calendar/index.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
@@ -169,79 +176,78 @@ try {
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
-            get_string('stt', 'local_children_management'),
-            get_string('studentid', 'local_children_management'),
-            get_string('avatar', 'local_children_management'),
-            get_string('fullname', 'local_children_management'),
-            get_string('email', 'local_children_management'),
-            get_string('phone1', 'local_children_management'),
-            get_string('registed_course_number', 'local_children_management'),
-            get_string('finished_course_number', 'local_children_management'),
-            get_string('actions', 'local_children_management'),
+            get_string('stt', 'local_course_calendar'),
+            // get_string('course_avatar', 'local_course_calendar'),
+            get_string('course_full_name', 'local_course_calendar'),
+            get_string('student_number', 'local_course_calendar'),
+            get_string('chapter_number', 'local_course_calendar'),
+            get_string('lesson_number', 'local_course_calendar'),
+            get_string('section_number', 'local_course_calendar'),
+            get_string('actions', 'local_course_calendar'),
         ];
-        $table->align = ['center', 'center', 'center','left', 'left', 'left', 'left' , 'left', 'center'];
-        foreach ($students as $student) {
-            // You might want to add a link to student's profile overview etc.
-            $profileurl = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
-            $actions = html_writer::link($profileurl, get_string('view_profile', 'local_children_management'));
-
-            // Add to show total registered courses.
-            $sql_register_course_by_user = "SELECT COUNT(DISTINCT c.id) number_of_unique_registered_courses
-                FROM {user} u
-                JOIN {role_assignments} ra ON ra.userid = u.id
-                JOIN {role} r ON r.id = ra.roleid
-                JOIN {context} ctx ON ctx.id = ra.contextid
-                JOIN {course} c ON c.id = ctx.instanceid
-                WHERE ctx.contextlevel = 50 AND u.id = :studentid";
-            
-            // Add to show total finished courses.
-            $sql_finished_course_by_user = "SELECT COUNT(DISTINCT u.id) number_of_unique_finished_courses
-                FROM {user} u
-                JOIN {role_assignments} ra ON ra.userid = u.id
-                JOIN {role} r ON r.id = ra.roleid
-                JOIN {context} ctx ON ctx.id = ra.contextid
-                JOIN {course} c ON c.id = ctx.instanceid
-                WHERE ctx.contextlevel = 50 AND u.id = :studentid and c.enddate > 0 and c.enddate < UNIX_TIMESTAMP()
-                group by u.id";
-
-            // Prepare the parameters for the SQL query
-            $params = ['studentid' => $student->childrenid];
-            
-            // Execute the SQL query to get the count of registered courses
-            // for the current student.
-            $registeredcourses = $DB->get_record_sql($sql_register_course_by_user, $params);
-            $registeredcount = $registeredcourses ? $registeredcourses->number_of_unique_registered_courses : 0;
-            
-            // Execute the SQL query to get the count of finished courses      
-            // If no courses found, set count to 0.
-            $finishedcourses = $DB->get_record_sql($sql_finished_course_by_user, $params);      
-            $finishedcount = $finishedcourses ? $finishedcourses->number_of_unique_finished_courses : 0;
-
-            // Get image for the student.            
-            // Get the avatar URL for the student.
-            $avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
-            
+        $table->align = ['center', 'left', 'left','left', 'left', 'left' , 'center'];
+        foreach ($courses as $course) {
             // add no. for the table.
             $stt = $stt + 1;
+
+            // You might want to add a link to course's profile overview and course detail.
+            $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->id]);
+            $view_course_detail_action = html_writer::link($course_detail_url, get_string('view_course_detail', 'local_course_calendar'));
+
+
+            // Count student number in this course.
+            $sql = "SELECT count(*)
+                    from {user} user
+                    join {role_assignments} ra on ra.userid = user.id
+                    join {role} role on role.id = ra.roleid
+                    join {context} context on context.id = ra.contextid
+                    join {course} course on course.id = context.instanceid
+                    where course.id != 1 and course.id = :courseid
+                            and role.shortname = 'student'
+                            and context.contextlevel = 50 
+                    ORDER BY course.id ASC";
+            
+            // get total lesson, chapter, section of this course.
+            $sql_total_lesson_of_course = "SELECT *
+                                            FROM {local_course_calendar_total_course_lesson} c
+                                            where c.courseid != 1 and c.courseid = :courseid
+                                            ORDER BY c.createtime DESC";
+
+            $params = ['courseid' => $course->id];
+            
+            $total_students = $DB->count_records_sql($sql, $params);
+            
+            // get record latest containing total lesson, chapter, section of this course.
+            $records = $DB->get_records_sql($sql_total_lesson_of_course, $params);
+            
+            $total_lesson_of_course = 0;
+            $total_chapter_of_course = 0;
+            $total_section_of_course = 0;
+            
+            foreach ($records as $record) {
+                // get total lesson for this course.
+                $total_lesson_of_course = $record->total_course_lesson;
+    
+                // get total chapter for this course.
+                $total_chapter_of_course = $record->total_course_chapter;
+                
+                // get total section for this course.
+                $total_section_of_course = $record->total_course_section;
+                
+                break; // We only need the first record.                
+            }
+
 
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 $stt,
-                $student->childrenid,
-                html_writer::tag('img', '', array(
-                            'src' => $avatar_url->get_url($PAGE),
-                            'alt' => 'Avatar image of ' . format_string($student->firstname) . " " . format_string($student->lastname),
-                            'width' => 40,
-                            'height' => 40,
-                            'class' => 'rounded-avatar'
-                        )),
-                html_writer::link($profileurl, format_string($student->firstname) . " " . format_string($student->lastname)),
-                format_string($student->email),
-                format_string($student->phone1),
-                $registeredcount,
-                $finishedcount,
-                $actions,
+                html_writer::link($course_detail_url, format_string($course->fullname)),
+                $total_students,
+                $total_chapter_of_course,
+                $total_lesson_of_course,
+                $total_section_of_course,
+                $view_course_detail_action
             ];
         }
         echo html_writer::table($table);
@@ -251,7 +257,10 @@ try {
         echo html_writer::end_tag('div');
     }
 
+    echo $OUTPUT->box_end();
+
     echo $OUTPUT->footer();
+
 } catch (Exception $e) {
     dlog($e->getTrace());
     
@@ -259,5 +268,6 @@ try {
         var_dump($e->getTrace());
     echo "</pre>";
     
-    throw new \moodle_exception('error', 'local_children_management', '', null, $e->getMessage());
+    throw new \moodle_exception('error', 'local_course_calendar', '', null, $e->getMessage());
 }
+ 

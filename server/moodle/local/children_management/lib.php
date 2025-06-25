@@ -42,7 +42,7 @@
 //             null,
 //             new pix_icon('i/children', $string)
 //         );
-//         $navigation->find('children_management')->make_active();
+//         
 //     }
 // }
 
