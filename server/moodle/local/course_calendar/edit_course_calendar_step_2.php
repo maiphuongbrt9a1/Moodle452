@@ -29,7 +29,7 @@ try {
     // Yêu cầu người dùng đăng nhập
     require_login();
     require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
-
+    $PAGE->requires->css('/local/course_calendar/style/style.css');
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
 

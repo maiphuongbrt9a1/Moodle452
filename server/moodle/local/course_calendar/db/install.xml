@@ -33,9 +33,9 @@
             <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/> <!-- Liên kết tới user -->
             <FIELD NAME="created_user_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
             <FIELD NAME="modified_user_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-            <FIELD NAME="course_room_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-            <FIELD NAME="course_schedule_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-            <FIELD NAME="createdtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            <FIELD NAME="course_room_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            <FIELD NAME="course_schedule_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            <FIELD NAME="createdtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
             <FIELD NAME="modifiedtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
             <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false"/> <!-- Liên kết tới user -->
             
