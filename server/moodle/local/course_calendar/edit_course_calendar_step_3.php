@@ -80,7 +80,7 @@ try {
     echo $OUTPUT->header();
 
     // Add a button to add a new course schedule.
-    $add_new_course_schedule = new moodle_url('/local/course_calendar/edit_course_calendar.php', []);
+    $add_new_course_schedule = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
     echo '<div class="d-flex justify-content-end align-items-center">';
     echo '<div><a class="btn btn-primary " href="'. $add_new_course_schedule->out() .'">+ Add new schedule</a></div>';
     echo '</div>';
@@ -207,7 +207,7 @@ try {
             $view_course_detail_action = null;
             // If the user has permission to edit the course, add an edit link.
             if (has_capability('local/course_calendar:edit', context_system::instance())) {
-                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar.php', ['courseid' => $course->id]);
+                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', ['courseid' => $course->id]);
                 $edit_course_schedule_action = $OUTPUT->action_icon(
                     $edit_schedule_url,
                     new pix_icon('i/edit', get_string('edit_schedule', 'local_course_calendar'))

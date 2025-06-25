@@ -45,6 +45,9 @@ try {
     $PAGE->set_title(get_string('course_calendar_title', 'local_course_calendar')); 
     $PAGE->set_heading(get_string('course_list', 'local_course_calendar'));
 
+    // Thêm một breadcrumb cho các link khác.
+    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+
 
     // Thêm một breadcrumb cho các link khác.
     $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
@@ -57,7 +60,7 @@ try {
     // if (has_capability('local/course_calendar:edit', context_system::instance())) {
     //     if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
     //         $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
-    //         $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
+    //         $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => 1));
     //         $foonode = navigation_node::create(
     //             $strfoo,
     //             $url,
@@ -75,6 +78,13 @@ try {
 
 
     echo $OUTPUT->header();
+
+    // Add a button to add a new course schedule.
+    $add_new_course_schedule = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
+    echo '<div class="d-flex justify-content-end align-items-center">';
+    echo '<div><a class="btn btn-primary " href="'. $add_new_course_schedule->out() .'">+ Add new schedule</a></div>';
+    echo '</div>';
+
 
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
@@ -185,15 +195,29 @@ try {
             get_string('section_number', 'local_course_calendar'),
             get_string('actions', 'local_course_calendar'),
         ];
-        $table->align = ['center', 'left', 'left','left', 'left', 'left' , 'center'];
+        $table->align = ['center', 'left', 'center','center', 'center', 'center' , 'center'];
         foreach ($courses as $course) {
             // add no. for the table.
             $stt = $stt + 1;
 
             // You might want to add a link to course's profile overview and course detail.
             $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->id]);
-            $view_course_detail_action = html_writer::link($course_detail_url, get_string('view_course_detail', 'local_course_calendar'));
+    
+            $edit_course_schedule_action = null;
+            $view_course_detail_action = null;
+            // If the user has permission to edit the course, add an edit link.
+            if (has_capability('local/course_calendar:edit', context_system::instance())) {
+                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', ['courseid' => $course->id]);
+                $edit_course_schedule_action = $OUTPUT->action_icon(
+                    $edit_schedule_url,
+                    new pix_icon('i/edit', get_string('edit_schedule', 'local_course_calendar'))
+                );
+            }
 
+            $view_course_detail_action = $OUTPUT->action_icon(
+                $course_detail_url,
+                new pix_icon('i/show', get_string('view_course_detail', 'local_course_calendar'))
+            );
 
             // Count student number in this course.
             $sql = "SELECT count(*)
@@ -247,7 +271,7 @@ try {
                 $total_chapter_of_course,
                 $total_lesson_of_course,
                 $total_section_of_course,
-                $view_course_detail_action
+                $view_course_detail_action . ' ' . $edit_course_schedule_action
             ];
         }
         echo html_writer::table($table);

@@ -60,7 +60,7 @@
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
             <FIELD NAME="room_number" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-            <FIELD NAME="room_floor" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+            <FIELD NAME="room_floor" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
             <FIELD NAME="room_building" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false"/>
             <FIELD NAME="ward_address" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false"/>
             <FIELD NAME="district_address" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false"/>

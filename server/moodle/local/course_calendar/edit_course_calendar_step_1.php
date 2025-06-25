@@ -28,7 +28,7 @@ require_once($CFG->dirroot . '/local/dlog/lib.php');
 try {
     // Yêu cầu người dùng đăng nhập
     require_login();
-    require_capability('local/course_calendar:view', context_system::instance()); // Kiểm tra quyền truy cập
+    require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
 
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
@@ -40,10 +40,10 @@ try {
 
     // Thiết lập trang Moodle
     // Đặt URL cho trang hiện tại
-    $PAGE->set_url(new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->set_url(new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', [])); 
     // Tiêu đề trang
-    $PAGE->set_title(get_string('course_calendar_title', 'local_course_calendar')); 
-    $PAGE->set_heading(get_string('course_list', 'local_course_calendar'));
+    $PAGE->set_title(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar')); 
+    $PAGE->set_heading(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar'));
 
     // Thêm một breadcrumb cho các link khác.
     $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
@@ -53,7 +53,7 @@ try {
     $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
 
     // Thêm breadcrumb cho trang hiện tại
-    $PAGE->navbar->add(get_string('course_list', 'local_course_calendar'));
+    $PAGE->navbar->add(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar'));
 
     // // add menu item to the settings navigation.
     // $settingsnav = $PAGE->settingsnav;
@@ -78,13 +78,6 @@ try {
 
 
     echo $OUTPUT->header();
-
-    // Add a button to add a new course schedule.
-    $add_new_course_schedule = new moodle_url('/local/course_calendar/edit_course_calendar.php', []);
-    echo '<div class="d-flex justify-content-end align-items-center">';
-    echo '<div><a class="btn btn-primary " href="'. $add_new_course_schedule->out() .'">+ Add new schedule</a></div>';
-    echo '</div>';
-
 
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
@@ -176,109 +169,86 @@ try {
     } else {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
-        echo html_writer::start_tag('div');
+        echo html_writer::start_tag('form', ['action' => 'edit_course_calendar_step_2.php', 'method' => 'get']);
         
-        $base_url = new moodle_url('/local/course_calendar/index.php', []);
+        
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
-        
+
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
+            // Checkbox "Select All"
+            html_writer::empty_tag('input', [
+                'type' => 'checkbox',
+                'id' => 'selectall',
+                'onchange' => 'toggleAllCheckboxes(this)',
+            ]),
             get_string('stt', 'local_course_calendar'),
-            // get_string('course_avatar', 'local_course_calendar'),
+            get_string('course_category', 'local_course_calendar'),
             get_string('course_full_name', 'local_course_calendar'),
-            get_string('student_number', 'local_course_calendar'),
-            get_string('chapter_number', 'local_course_calendar'),
-            get_string('lesson_number', 'local_course_calendar'),
-            get_string('section_number', 'local_course_calendar'),
-            get_string('actions', 'local_course_calendar'),
+            get_string('start_date', 'local_course_calendar'),
+            get_string('end_date', 'local_course_calendar'),
+            get_string('user_created_course', 'local_course_calendar')
         ];
-        $table->align = ['center', 'left', 'center','center', 'center', 'center' , 'center'];
+        $table->align = ['center', 'center', 'left', 'left','center', 'center', 'center'];
         foreach ($courses as $course) {
             // add no. for the table.
             $stt = $stt + 1;
 
             // You might want to add a link to course's profile overview and course detail.
             $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->id]);
-    
-            $edit_course_schedule_action = null;
-            $view_course_detail_action = null;
-            // If the user has permission to edit the course, add an edit link.
-            if (has_capability('local/course_calendar:edit', context_system::instance())) {
-                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar.php', ['courseid' => $course->id]);
-                $edit_course_schedule_action = $OUTPUT->action_icon(
-                    $edit_schedule_url,
-                    new pix_icon('i/edit', get_string('edit_schedule', 'local_course_calendar'))
-                );
-            }
+            
+            // Get course category name.
+            $course_category = $DB->get_record('course_categories', ['id' => $course->category]);
 
-            $view_course_detail_action = $OUTPUT->action_icon(
-                $course_detail_url,
-                new pix_icon('i/show', get_string('view_course_detail', 'local_course_calendar'))
-            );
-
-            // Count student number in this course.
-            $sql = "SELECT count(*)
-                    from {user} user
-                    join {role_assignments} ra on ra.userid = user.id
-                    join {role} role on role.id = ra.roleid
-                    join {context} context on context.id = ra.contextid
-                    join {course} course on course.id = context.instanceid
-                    where course.id != 1 and course.id = :courseid
-                            and role.shortname = 'student'
-                            and context.contextlevel = 50 
-                    ORDER BY course.id ASC";
+            // // Get course creator's name.
             
-            // get total lesson, chapter, section of this course.
-            $sql_total_lesson_of_course = "SELECT *
-                                            FROM {local_course_calendar_total_course_lesson} c
-                                            where c.courseid != 1 and c.courseid = :courseid
-                                            ORDER BY c.createtime DESC";
-
-            $params = ['courseid' => $course->id];
-            
-            $total_students = $DB->count_records_sql($sql, $params);
-            
-            // get record latest containing total lesson, chapter, section of this course.
-            $records = $DB->get_records_sql($sql_total_lesson_of_course, $params);
-            
-            $total_lesson_of_course = 0;
-            $total_chapter_of_course = 0;
-            $total_section_of_course = 0;
-            
-            foreach ($records as $record) {
-                // get total lesson for this course.
-                $total_lesson_of_course = $record->total_course_lesson;
-    
-                // get total chapter for this course.
-                $total_chapter_of_course = $record->total_course_chapter;
-                
-                // get total section for this course.
-                $total_section_of_course = $record->total_course_section;
-                
-                break; // We only need the first record.                
-            }
-
+            // $sql = "SELECT user.firstname, user.lastname
+            //         from {user} user
+            //         join {role_assignments} ra on ra.userid = user.id
+            //         join {role} role on role.id = ra.roleid
+            //         join {context} context on context.id = ra.contextid
+            //         join {course} course on course.id = context.instanceid
+            //         where course.id != 1 and course.id = :courseid
+            //                 and role.shortname = 'coursecreator'
+            //                 and context.contextlevel = 50 
+            //         ORDER BY course.id ASC";
+            // $params = ['courseid' => $course->id];
+            // $course_creator = $DB->get_records_sql($sql, $params);
 
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
+                html_writer::empty_tag('input', [
+                    'type' => 'checkbox',
+                    'value' => $course->id,
+                    'class' => 'select-checkbox',
+                    'name' => 'selected_courses[]',
+                ]),
                 $stt,
+                $course_category->name,
                 html_writer::link($course_detail_url, format_string($course->fullname)),
-                $total_students,
-                $total_chapter_of_course,
-                $total_lesson_of_course,
-                $total_section_of_course,
-                $view_course_detail_action . ' ' . $edit_course_schedule_action
+                date('Y-m-d H:i:s', $course->startdate),
+                date('Y-m-d H:i:s', $course->enddate),
+                // format_string($course_creator->firstname) . ' ' . format_string($course_creator->lastname),
+                "Võ Mai Phương",
             ];
         }
         echo html_writer::table($table);
+
+        echo '<div class="d-flex justify-content-end align-items-center">';
+            echo '<div>';
+                echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('next_step','local_course_calendar')));
+            echo '</div>';
+        echo '</div>';
+        
+        echo html_writer::end_tag('form');
         
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
         
-        echo html_writer::end_tag('div');
     }
 
     echo $OUTPUT->box_end();
