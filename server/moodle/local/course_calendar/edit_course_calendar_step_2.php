@@ -53,6 +53,9 @@ try {
     $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
 
     // Thêm breadcrumb cho trang hiện tại
+    $PAGE->navbar->add(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar'), new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []));
+
+    // Thêm breadcrumb cho trang hiện tại
     $PAGE->navbar->add(get_string('teaching_schedule_assignment_choose_teacher', 'local_course_calendar'));
 
     // // add menu item to the settings navigation.
