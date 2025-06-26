@@ -230,7 +230,7 @@ try {
                 $time_address->room_number,
                 date('D, d-m-Y H:i:s', $time_address->class_begin_time),
                 date('D, d-m-Y H:i:s', $time_address->class_end_time),
-                $time_address->province_address,
+                $time_address->ward_address . ', ' . $time_address->district_address . ', ' . $time_address->province_address
 
             ];
         }

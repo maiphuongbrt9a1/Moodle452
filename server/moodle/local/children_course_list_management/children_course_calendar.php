@@ -262,7 +262,7 @@ try {
             // If the course has an online address, we will show it.
             $class_address = '';
             if (!empty($student->room_building) && !empty($student->room_floor) && !empty($student->room_number)) {
-                $class_address = $student->room_building . '-' . $student->room_floor . '-' . $student->room_number;
+                $class_address = $student->room_building . '- Floor ' . $student->room_floor . '- Room ' . $student->room_number . '-' . $student->ward_address . '-' . $student->district_address . '-' . $student->province_address;
             }
 
             $class_start_time = (new DateTime())->setTimestamp($student->class_begin_time);
