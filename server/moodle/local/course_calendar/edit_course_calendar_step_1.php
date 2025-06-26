@@ -104,7 +104,7 @@ try {
     $stt = 0;
     $courses = [];
 
-    $per_page = optional_param('perpage', 10, PARAM_INT);
+    $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;
@@ -231,8 +231,8 @@ try {
                 $stt,
                 $course_category->name,
                 html_writer::link($course_detail_url, format_string($course->fullname)),
-                date('Y-m-d H:i:s', $course->startdate),
-                date('Y-m-d H:i:s', $course->enddate),
+                date('D, d-m-Y', $course->startdate),
+                date('D, d-m-Y', $course->enddate),
                 // format_string($course_creator->firstname) . ' ' . format_string($course_creator->lastname),
                 "Võ Mai Phương",
             ];

@@ -111,7 +111,7 @@ try {
     $stt = 0;
     $courses = [];
 
-    $per_page = optional_param('perpage', 10, PARAM_INT);
+    $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;
@@ -216,7 +216,7 @@ try {
 
             $view_course_detail_action = $OUTPUT->action_icon(
                 $course_detail_url,
-                new pix_icon('i/show', get_string('view_course_detail', 'local_course_calendar'))
+                new pix_icon('i/hide', get_string('view_course_detail', 'local_course_calendar'))
             );
 
             // Count student number in this course.

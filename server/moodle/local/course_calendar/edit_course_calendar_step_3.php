@@ -110,7 +110,7 @@ try {
     $stt = 0;
     $available_time_address = [];
 
-    $per_page = optional_param('perpage', 10, PARAM_INT);
+    $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;
@@ -219,7 +219,8 @@ try {
             $table->data[] = [
                 html_writer::empty_tag('input', [
                     'type' => 'checkbox',
-                    'value' => [$time_address->course_schedule_id, $time_address->course_room_id],
+                    // 'value' => [$time_address->course_schedule_id, $time_address->course_room_id],
+                    'value' => $time_address->course_schedule_id,
                     'class' => 'select-checkbox',
                     'name' => 'selected_courses[]',
                 ]),
@@ -227,8 +228,8 @@ try {
                 $time_address->room_building,
                 $time_address->room_floor,
                 $time_address->room_number,
-                date('Y-m-d H:i:s', $time_address->class_begin_time),
-                date('Y-m-d H:i:s', $time_address->class_end_time),
+                date('D, d-m-Y H:i:s', $time_address->class_begin_time),
+                date('D, d-m-Y H:i:s', $time_address->class_end_time),
                 $time_address->province_address,
 
             ];
@@ -237,7 +238,7 @@ try {
 
         echo '<div class="d-flex justify-content-end align-items-center">';
             echo '<div>';
-                echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('next_step','local_course_calendar')));
+                echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('save_changes','local_course_calendar')));
             echo '</div>';
         echo '</div>';
         

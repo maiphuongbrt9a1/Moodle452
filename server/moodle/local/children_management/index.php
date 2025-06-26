@@ -68,7 +68,7 @@ try {
     $parentid = $USER->id;
     $stt = 0;
     $students = [];
-    $per_page = optional_param('perpage', 10, PARAM_INT);
+    $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;

@@ -84,3 +84,5 @@ $string['end_time'] = 'End time';
 $string['building'] = 'Building';
 $string['room'] = 'Room';
 $string['floor'] = 'Floor';
+$string['save_changes'] = 'Save Changes';
+$string['cancel'] = 'Cancel';

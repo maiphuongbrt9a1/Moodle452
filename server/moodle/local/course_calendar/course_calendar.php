@@ -31,7 +31,7 @@ try {
     require_capability('local/course_calendar:view', context_system::instance()); // Kiểm tra quyền truy cập
 
     // Khai báo các biến toàn cục
-    global $PAGE, $OUTPUT, $DB, $USER;
+    global $PAGE, $OUTPUT, $DB;
 
     // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
@@ -111,7 +111,7 @@ try {
     $stt = 0;
     $courses = [];
 
-    $per_page = optional_param('perpage', 10, PARAM_INT);
+    $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;
