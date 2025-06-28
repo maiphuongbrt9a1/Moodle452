@@ -40,20 +40,18 @@ try {
 
     // Thiết lập trang Moodle
     // Đặt URL cho trang hiện tại
-    $PAGE->set_url(new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->set_url(new moodle_url('/local/course_calendar/course_calendar.php', [])); 
     // Tiêu đề trang
-    $PAGE->set_title(get_string('course_calendar_title', 'local_course_calendar')); 
-    $PAGE->set_heading(get_string('course_list', 'local_course_calendar'));
+    $PAGE->set_title(get_string('course_calendar_list_title', 'local_course_calendar')); 
+    $PAGE->set_heading(get_string('course_calendar_list_heading', 'local_course_calendar'));
 
     // Thêm một breadcrumb cho các link khác.
     $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
 
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('course_calendar_list', 'local_course_calendar')); 
 
-    // Thêm breadcrumb cho trang hiện tại
-    $PAGE->navbar->add(get_string('course_list', 'local_course_calendar'));
 
     // // add menu item to the settings navigation.
     // $settingsnav = $PAGE->settingsnav;
@@ -78,13 +76,6 @@ try {
 
 
     echo $OUTPUT->header();
-
-    // Add a button to add a new course schedule.
-    $add_new_course_schedule = new moodle_url('/local/course_calendar/edit_course_calendar.php', []);
-    echo '<div class="d-flex justify-content-end align-items-center">';
-    echo '<div><a class="btn btn-primary " href="'. $add_new_course_schedule->out() .'">+ Add new schedule</a></div>';
-    echo '</div>';
-
 
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
@@ -117,55 +108,168 @@ try {
     $offset = $current_page * $per_page;
     $params = [];
 
-    // Get all children of current parent account.
+    // Get all course with teacher and room information.
     if (empty($search_query)) {
         $params = [];
 
         $total_count_sql = "SELECT count(*)
-                            FROM mdl_course c
-                            where c.id != 1
-                            ORDER BY c.category, c.fullname ASC";
+                            FROM mdl_user user 
+                            join mdl_role_assignments ra on ra.userid = user.id
+                            join mdl_role r on r.id = ra.roleid
+                            join mdl_context ctx on ctx.id = ra.contextid
+                            join mdl_course c on c.id = ctx.instanceid 
+                            join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
+                            join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
+                            join mdl_local_course_calendar_course_schedule course_schedule on course_schedule.id = course_section.course_schedule_id
+                            WHERE c.id != 1 
+                                and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
+                                and ctx.contextlevel = 50   
+                            ORDER BY course_schedule.class_begin_time, 
+                                    c.id, 
+                                    user.id,
+                                    user.firstname, 
+                                    user.lastname ASC";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
-        $sql = "SELECT *
-                FROM mdl_course c
-                where c.id != 1
-                ORDER BY c.category, c.fullname ASC";
+        $sql = "SELECT concat (user.id, c.id, course_schedule.class_begin_time) id,
+                        user.id userid, 
+                        user.firstname user_firstname, 
+                        user.lastname user_lastname, 
+                        c.id courseid, 
+                        c.fullname course_fullname, 
+                        course_room.room_building, 
+                        course_room.room_floor,
+                        course_room.room_number,
+                        course_room.ward_address,
+                        course_room.district_address,
+                        course_room.province_address,
+                        course_room.room_online_url,
+                        course_schedule.class_begin_time,
+                        course_schedule.class_end_time
+                FROM mdl_user user 
+                join mdl_role_assignments ra on ra.userid = user.id
+                join mdl_role r on r.id = ra.roleid
+                join mdl_context ctx on ctx.id = ra.contextid
+                join mdl_course c on c.id = ctx.instanceid 
+                join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
+                join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
+                join mdl_local_course_calendar_course_schedule course_schedule on course_schedule.id = course_section.course_schedule_id
+                WHERE c.id != 1 
+                    and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
+                    and ctx.contextlevel = 50    
+                ORDER BY course_schedule.class_begin_time, 
+                        c.id, 
+                        user.id,
+                        user.firstname, 
+                        user.lastname ASC";
         $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
-    // if parent use search input, we need to filter the children list.
+    // if admin use search input, we need to filter the course calendar list.
     if(!empty($search_query)) {
         
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
         $params = [
-            'searchparamcourseid' => $search_query,
-            'searchparamcoursename'=> $search_query
+            'search_param_course_id' => $search_query,
+            'search_param_course_name'=> $search_query,
+            'search_param_user_firstname'=> $search_query,
+            'search_param_user_lastname'=> $search_query,
+            'search_param_room_building'=> $search_query,
+            'search_param_room_floor'=> $search_query,
+            'search_param_room_number'=> $search_query,
+            'search_param_ward_address'=> $search_query,
+            'search_param_district_address'=> $search_query,
+            'search_param_province_address'=> $search_query,
+            'search_param_room_online_url'=> $search_query,
+            'search_param_class_begin_time'=> $search_query,
+            'search_param_class_end_time'=> $search_query
         ];
 
         $total_count_sql = "SELECT count(*)
-                            FROM mdl_course c
-                            where c.id != 1
+                            FROM mdl_user user 
+                            join mdl_role_assignments ra on ra.userid = user.id
+                            join mdl_role r on r.id = ra.roleid
+                            join mdl_context ctx on ctx.id = ra.contextid
+                            join mdl_course c on c.id = ctx.instanceid 
+                            join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
+                            join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
+                            join mdl_local_course_calendar_course_schedule course_schedule on course_schedule.id = course_section.course_schedule_id
+                            WHERE c.id != 1 
+                                and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
+                                and ctx.contextlevel = 50   
                                 and 
                                     (
-                                        c.id like :searchparamcourseid 
-                                        or c.fullname like :searchparamcoursename
-                                        
+                                        c.id like :search_param_course_id 
+                                        or c.fullname like :search_param_course_name
+                                        or user.firstname like :search_param_user_firstname
+                                        or user.lastname like :search_param_user_lastname
+                                        or course_room.room_building like :search_param_room_building
+                                        or course_room.room_floor like :search_param_room_floor
+                                        or course_room.room_number like :search_param_room_number
+                                        or course_section.ward_address like :search_param_ward_address
+                                        or course_section.district_address like :search_param_district_address
+                                        or course_section.province_address like :search_param_province_address
+                                        or course_room.online_url like :search_param_room_online_url
+                                        or course_schedule.class_begin_time like :search_param_class_begin_time
+                                        or course_schedule.class_end_time like :search_param_class_end_time
                                     )
-                            ORDER BY c.category, c.fullname ASC";
+                            ORDER BY course_schedule.class_begin_time, 
+                                    c.id, 
+                                    user.id,
+                                    user.firstname, 
+                                    user.lastname ASC";
         
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT *
-                FROM mdl_course c
-                where c.id != 1
-                and (
-                        c.id like :searchparamcourseid 
-                        or c.fullname like :searchparamcoursename
-                    )
-                ORDER BY c.category, c.fullname ASC";
+        $sql = "SELECT concat (user.id, c.id, course_schedule.class_begin_time) id,
+                        user.id userid, 
+                        user.firstname user_firstname, 
+                        user.lastname user_lastname, 
+                        c.id courseid, 
+                        c.fullname course_fullname, 
+                        course_room.room_building, 
+                        course_room.room_floor,
+                        course_room.room_number,
+                        course_room.ward_address,
+                        course_room.district_address,
+                        course_room.province_address,
+                        course_room.room_online_url,
+                        course_schedule.class_begin_time,
+                        course_schedule.class_end_time
+                FROM mdl_user user 
+                join mdl_role_assignments ra on ra.userid = user.id
+                join mdl_role r on r.id = ra.roleid
+                join mdl_context ctx on ctx.id = ra.contextid
+                join mdl_course c on c.id = ctx.instanceid 
+                join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
+                join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
+                join mdl_local_course_calendar_course_schedule course_schedule on course_schedule.id = course_section.course_schedule_id
+                WHERE c.id != 1 
+                    and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
+                    and ctx.contextlevel = 50   
+                    and 
+                        (
+                            c.id like :search_param_course_id 
+                            or c.fullname like :search_param_course_name
+                            or user.firstname like :search_param_user_firstname
+                            or user.lastname like :search_param_user_lastname
+                            or course_room.room_building like :search_param_room_building
+                            or course_room.room_floor like :search_param_room_floor
+                            or course_room.room_number like :search_param_room_number
+                            or course_section.ward_address like :search_param_ward_address
+                            or course_section.district_address like :search_param_district_address
+                            or course_section.province_address like :search_param_province_address
+                            or course_room.online_url like :search_param_room_online_url
+                            or course_schedule.class_begin_time like :search_param_class_begin_time
+                            or course_schedule.class_end_time like :search_param_class_end_time
+                        )
+                ORDER BY course_schedule.class_begin_time, 
+                        c.id, 
+                        user.id,
+                        user.firstname, 
+                        user.lastname ASC";
 
         $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
@@ -178,7 +282,7 @@ try {
         // and parent does not need to search for children.
         echo html_writer::start_tag('div');
         
-        $base_url = new moodle_url('/local/course_calendar/index.php', []);
+        $base_url = new moodle_url('/local/course_calendar/course_calendar.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
@@ -187,22 +291,21 @@ try {
         $table = new html_table();
         $table->head = [
             get_string('stt', 'local_course_calendar'),
-            // get_string('course_avatar', 'local_course_calendar'),
             get_string('course_full_name', 'local_course_calendar'),
-            get_string('student_number', 'local_course_calendar'),
-            get_string('chapter_number', 'local_course_calendar'),
-            get_string('lesson_number', 'local_course_calendar'),
-            get_string('section_number', 'local_course_calendar'),
-            get_string('actions', 'local_course_calendar'),
+            get_string('teacher_full_name', 'local_course_calendar'),
+            get_string('start_time', 'local_course_calendar'),
+            get_string('end_time', 'local_course_calendar'),
+            get_string('address', 'local_course_calendar'),
+            
         ];
-        $table->align = ['center', 'left', 'center','center', 'center', 'center' , 'center'];
+        $table->align = ['center', 'left', 'center','center', 'center', 'center'];
         foreach ($courses as $course) {
             // add no. for the table.
             $stt = $stt + 1;
 
             // You might want to add a link to course's profile overview and course detail.
-            $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->id]);
-    
+            $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->courseid]);
+            $teacher_detail_url = new moodle_url('/user/profile.php', ['id' => $course->userid]);
             $edit_course_schedule_action = null;
             $view_course_detail_action = null;
             // If the user has permission to edit the course, add an edit link.
@@ -216,61 +319,19 @@ try {
 
             $view_course_detail_action = $OUTPUT->action_icon(
                 $course_detail_url,
-                new pix_icon('i/show', get_string('view_course_detail', 'local_course_calendar'))
+                new pix_icon('i/hide', get_string('view_course_detail', 'local_course_calendar'))
             );
-
-            // Count student number in this course.
-            $sql = "SELECT count(*)
-                    from {user} user
-                    join {role_assignments} ra on ra.userid = user.id
-                    join {role} role on role.id = ra.roleid
-                    join {context} context on context.id = ra.contextid
-                    join {course} course on course.id = context.instanceid
-                    where course.id != 1 and course.id = :courseid
-                            and role.shortname = 'student'
-                            and context.contextlevel = 50 
-                    ORDER BY course.id ASC";
-            
-            // get total lesson, chapter, section of this course.
-            $sql_total_lesson_of_course = "SELECT *
-                                            FROM {local_course_calendar_total_course_lesson} c
-                                            where c.courseid != 1 and c.courseid = :courseid
-                                            ORDER BY c.createtime DESC";
-
-            $params = ['courseid' => $course->id];
-            
-            $total_students = $DB->count_records_sql($sql, $params);
-            
-            // get record latest containing total lesson, chapter, section of this course.
-            $records = $DB->get_records_sql($sql_total_lesson_of_course, $params);
-            
-            $total_lesson_of_course = 0;
-            $total_chapter_of_course = 0;
-            $total_section_of_course = 0;
-            
-            foreach ($records as $record) {
-                // get total lesson for this course.
-                $total_lesson_of_course = $record->total_course_lesson;
-    
-                // get total chapter for this course.
-                $total_chapter_of_course = $record->total_course_chapter;
-                
-                // get total section for this course.
-                $total_section_of_course = $record->total_course_section;
-                
-                break; // We only need the first record.                
-            }
-
 
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 $stt,
-                html_writer::link($course_detail_url, format_string($course->fullname)),
-                $total_students,
-                $total_chapter_of_course,
-                $total_lesson_of_course,
-                $total_section_of_course,
+                html_writer::link($course_detail_url, format_string($course->course_fullname)),
+                html_writer::link($teacher_detail_url, $course->user_firstname . ' ' . $course->user_lastname),
+                date('d/m/Y H:i', $course->class_begin_time),
+                date('d/m/Y H:i', $course->class_end_time),
+                $course->room_building . '- Floor ' . $course->room_floor . '- Room ' . $course->room_number . ' - ' .
+                $course->ward_address . ', ' . $course->district_address . ', ' . $course->province_address . '<br>',
                 $view_course_detail_action . ' ' . $edit_course_schedule_action
             ];
         }

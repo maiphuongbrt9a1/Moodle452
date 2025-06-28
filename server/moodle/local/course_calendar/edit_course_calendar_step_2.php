@@ -30,6 +30,8 @@ try {
     require_login();
     require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
     $PAGE->requires->css('/local/course_calendar/style/style.css');
+    $PAGE->requires->js('/local/course_calendar/js/lib.js');
+
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
 
@@ -112,6 +114,7 @@ try {
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];
+    $courses = optional_param_array('selected_courses', [], PARAM_INT);
 
     // Get all teacher of central.
     if (empty($search_query)) {
@@ -279,7 +282,7 @@ try {
                     'type' => 'checkbox',
                     'value' => $teacher->id,
                     'class' => 'select-checkbox',
-                    'name' => 'selected_courses[]',
+                    'name' => 'selected_teachers[]',
                 ]),
                 $stt,
                 $teacher->id,
@@ -298,6 +301,17 @@ try {
             ];
         }
         echo html_writer::table($table);
+
+        if (!empty($courses)) {
+            // If courses are selected, add them as hidden inputs.
+            foreach ($courses as $courseid) {
+                echo html_writer::empty_tag('input', [
+                    'type' => 'hidden',
+                    'name' => 'selected_courses[]',
+                    'value' => $courseid,
+                ]);
+            }
+        }
 
         echo '<div class="d-flex justify-content-end align-items-center">';
             echo '<div>';

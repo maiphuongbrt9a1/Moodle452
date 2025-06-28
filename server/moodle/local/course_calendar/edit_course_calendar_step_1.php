@@ -29,6 +29,8 @@ try {
     // Yêu cầu người dùng đăng nhập
     require_login();
     require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
+    $PAGE->requires->css('/local/course_calendar/style/style.css');
+    $PAGE->requires->js('/local/course_calendar/js/lib.js');
 
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
@@ -204,20 +206,35 @@ try {
             // Get course category name.
             $course_category = $DB->get_record('course_categories', ['id' => $course->category]);
 
-            // // Get course creator's name.
-            
-            // $sql = "SELECT user.firstname, user.lastname
-            //         from {user} user
-            //         join {role_assignments} ra on ra.userid = user.id
-            //         join {role} role on role.id = ra.roleid
-            //         join {context} context on context.id = ra.contextid
-            //         join {course} course on course.id = context.instanceid
-            //         where course.id != 1 and course.id = :courseid
-            //                 and role.shortname = 'coursecreator'
-            //                 and context.contextlevel = 50 
-            //         ORDER BY course.id ASC";
-            // $params = ['courseid' => $course->id];
-            // $course_creator = $DB->get_records_sql($sql, $params);
+            // Get course creator's name.
+            $course_creators = [];
+            $course_creators_fullname = [];
+
+            $sql = "SELECT user.id, user.firstname, user.lastname , course.fullname
+                    from {user} user
+                    join {role_assignments} ra on ra.userid = user.id
+                    join {role} role on role.id = ra.roleid
+                    join {context} context on context.id = ra.contextid
+                    join {course} course on course.id = context.instanceid
+                    where course.id != 1 
+                        and course.id = :courseid
+                        and (role.shortname = 'coursecreator' OR role.shortname = 'manager' or role.shortname = 'editingteacher')
+                        and user.deleted = 0 
+                        and user.suspended = 0
+                        and context.contextlevel = 50 
+                    ORDER BY user.id ASC";
+            $params = ['courseid' => $course->id];
+            $course_creators = $DB->get_records_sql($sql, $params);
+
+            if (!empty($course_creators)) {    
+                foreach ($course_creators as $course_creator) {
+                    // add to show course_creator full name.
+                    $course_creator_profile_url = new moodle_url('/user/profile.php', ['id' => $course_creator->id]);
+                    $course_creator_fullname = html_writer::link($course_creator_profile_url, format_string($course_creator->firstname) . " " . format_string($course_creator->lastname));
+
+                    $course_creators_fullname[] = $course_creator_fullname;
+                }
+            }
 
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
@@ -233,8 +250,7 @@ try {
                 html_writer::link($course_detail_url, format_string($course->fullname)),
                 date('D, d-m-Y', $course->startdate),
                 date('D, d-m-Y', $course->enddate),
-                // format_string($course_creator->firstname) . ' ' . format_string($course_creator->lastname),
-                "Võ Mai Phương",
+                implode(', ',  $course_creators_fullname),
             ];
         }
         echo html_writer::table($table);

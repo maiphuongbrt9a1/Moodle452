@@ -30,6 +30,8 @@ try {
     require_login();
     require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
     $PAGE->requires->css('/local/course_calendar/style/style.css');
+    $PAGE->requires->js('/local/course_calendar/js/lib.js');
+
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
 
@@ -115,6 +117,8 @@ try {
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];
+    $courses = optional_param_array('selected_courses', [], PARAM_INT);
+    $teachers = optional_param_array('selected_teachers', [], PARAM_INT);
 
     // Get all time_address of central.
     if (empty($search_query)) {
@@ -184,7 +188,7 @@ try {
     } else {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
-        echo html_writer::start_tag('form', ['action' => 'edit_course_calendar_step_3.php', 'method' => 'get']);
+        echo html_writer::start_tag('form', ['action' => 'process_edit_course_calendar_after_step_3.php', 'method' => 'get']);
         
         
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', []);
@@ -220,9 +224,9 @@ try {
                 html_writer::empty_tag('input', [
                     'type' => 'checkbox',
                     // 'value' => [$time_address->course_schedule_id, $time_address->course_room_id],
-                    'value' => $time_address->course_schedule_id,
+                    'value' => $time_address->course_schedule_id . '|' . $time_address->course_room_id,
                     'class' => 'select-checkbox',
-                    'name' => 'selected_courses[]',
+                    'name' => 'selected_times_and_addresses[]',
                 ]),
                 $stt,
                 $time_address->room_building,
@@ -235,6 +239,28 @@ try {
             ];
         }
         echo html_writer::table($table);
+
+        if (!empty($courses)) { 
+            foreach ($courses as $courseid) {
+                // Add hidden input for each selected course.
+                echo html_writer::empty_tag('input', [
+                    'type' => 'hidden',
+                    'name' => 'selected_courses[]',
+                    'value' => $courseid,
+                ]);
+            }
+        }
+
+        if (!empty($teachers)) {
+            foreach ($teachers as $teacherid) {
+                // Add hidden input for each selected teacher.
+                echo html_writer::empty_tag('input', [
+                    'type' => 'hidden',
+                    'name' => 'selected_teachers[]',
+                    'value' => $teacherid,
+                ]);
+            }
+        }
 
         echo '<div class="d-flex justify-content-end align-items-center">';
             echo '<div>';
