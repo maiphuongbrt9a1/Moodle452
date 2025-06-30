@@ -21,6 +21,9 @@
  * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
+
+// Include necessary Moodle libraries.
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
@@ -56,6 +59,8 @@ try {
         $time_and_address = explode('|', $times_and_addresses[0]);
         $course_schedule_id = $time_and_address[0];
         $course_room_id = $time_and_address[1];
+
+        // check if course schedule already exists
     }
     
     echo $OUTPUT->footer();
