@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
 const TIME_ZONE = 'Asia/Ho_Chi_Minh'; // Define the timezone for the course calendar.
 
 // CÀI ĐẶT THÔNG TIN CẤU HÌNH CHO PLUGIN LOCAL COURSE CALENDAR
@@ -49,7 +48,7 @@ const TIME_ZONE = 'Asia/Ho_Chi_Minh'; // Define the timezone for the course cale
   * có 1h30 phút nghỉ trưa từ 12h trưa đến 13h30 phút chiều.
 
   * Tổng ngày t7 cn có tất cả 8 ca dạy
-  * ngày t2 - t6 có 3 ca dạy
+  * ngày t2 - t6 có 5 ca dạy
   */
 
 
@@ -293,6 +292,8 @@ const VP_SP2_MINOR_VIOLATION = 1;
 const VP_SP2_NO_VIOLATION = 0;  
 
 
+
+
 /**
  * Extend the settings navigation for course calendar.
  * @param settings_navigation $settingsnav The settings navigation object.
@@ -329,8 +330,25 @@ function local_course_calendar_extend_settings_navigation($settingsnav, $context
     }
 }
 
+/**
+ * Summary of create_calendar
+ * @param array $courses     // courses is array with format [courseid, courseid, courseid,....]
+ * @param array $teachers      // teachers is array with format [teacherid, teacherid, teacherid,....]
+ * @param array $time_and_addresses // room_time and room address is array with format 
+    * [
+    * 'room_time_id|room_address_id' , 
+    * 'room_time_id|room_address_id' ,
+    * 'room_time_id|room_address_id' ,
+    * 'room_time_id|room_address_id' ,
+    * 'room_time_id|room_address_id' ,...
+    * ]
+ * @return array
+ */
 function create_calendar(array $courses, array $teachers, array $time_and_addresses) : array {
-    
-    
+    // define date of week 
+    $dates = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    // define available class sesstions
+    $available_class_sesstions = [];
+
     return [];
 }

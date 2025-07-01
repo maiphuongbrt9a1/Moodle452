@@ -21,7 +21,6 @@
  * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 // Include necessary Moodle libraries.
 require_once(__DIR__ . '/../../config.php');
@@ -48,21 +47,39 @@ try {
     $PAGE->set_heading(get_string('teaching_schedule_assignment_processing_heading', 'local_course_calendar'));
 
     echo $OUTPUT->header();
+    // courses is array with format [courseid, courseid, courseid,....]
     $courses = required_param_array('selected_courses',  PARAM_INT);
+
+    // teachers is array with format [teacherid, teacherid, teacherid,....]
     $teachers = required_param_array('selected_teachers',  PARAM_INT);
+
+    // room_time and room address is array with format 
+    // [
+    // 'room_time_id|room_address_id' , 
+    // 'room_time_id|room_address_id' ,
+    // 'room_time_id|room_address_id' ,
+    // 'room_time_id|room_address_id' ,
+    // 'room_time_id|room_address_id' ,...
+    // ]
     $times_and_addresses = required_param_array('selected_times_and_addresses', PARAM_INT);
     // Xử lý dữ liệu từ bước trước
 
-    if ($courses->count() == 1 and $teachers->count() == 1 and $times_and_addresses->count() == 1) {
-        $courseid = $courses[0];
-        $teacherid = $teachers[0];
-        $time_and_address = explode('|', $times_and_addresses[0]);
-        $course_schedule_id = $time_and_address[0];
-        $course_room_id = $time_and_address[1];
+    // if ($courses->count() == 1 and $teachers->count() == 1 and $times_and_addresses->count() == 1) {
+    //     $courseid = $courses[0];
+    //     $teacherid = $teachers[0];
+    //     $time_and_address = explode('|', $times_and_addresses[0]);
+    //     $course_schedule_id = $time_and_address[0];
+    //     $course_room_id = $time_and_address[1];
 
-        // check if course schedule already exists
-    }
+    //     // check if course schedule already exists
+    // }
     
+    $calendar = create_calendar($courses, $teachers, $times_and_addresses);
+    
+    // fix me to insert calendar to database and notify to user.
+    $event = calendar_event::create(array() + [''=> $calendar->id]);
+    $DB->insert_record('course_section', $calendar);
+
     echo $OUTPUT->footer();
 
 } catch (Exception $e) {

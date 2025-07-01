@@ -21,7 +21,6 @@
  * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 // Include necessary Moodle libraries.
 
