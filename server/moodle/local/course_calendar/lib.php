@@ -22,7 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-const TIME_ZONE = 'Asia/Ho_Chi_Minh'; // Define the timezone for the course calendar.
+/**
+ * Summary of TIME_ZONE
+ * @var string Define the timezone for the course calendar. 'Asia/Ho_Chi_Minh'
+ */
+const TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
 // CÀI ĐẶT THÔNG TIN CẤU HÌNH CHO PLUGIN LOCAL COURSE CALENDAR
 // CÀI ĐẶT CÁC LUẬT RÀNG BUỘC CHO XỬ LÝ THỜI KHÓA BIỂU
@@ -52,16 +56,76 @@ const TIME_ZONE = 'Asia/Ho_Chi_Minh'; // Define the timezone for the course cale
   */
 
 
-const TIME_SLOT_DURATION = 45; // Thời gian mỗi tiết học là 45 phút
-const CLASS_DURATION = 90; // Thời gian mỗi ca học là 90 phút (2 tiết học x 45 phút)
+/**
+ * Summary of DATES
+ * @var array define date of week ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+ */
+const DATES= ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+
+/**
+ * Summary of AVAILABLE_CLASS_SESSIONS
+ * @var array define available class sesstions ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15']
+ */
+const AVAILABLE_CLASS_SESSIONS = ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15'];
+/**
+ * Summary of TIME_SLOT_DURATION
+ * @var int Thời gian mỗi tiết học là 45 phút
+ */
+const TIME_SLOT_DURATION = 45*60;
+
+/**
+ * Summary of CLASS_DURATION
+ * @var int Thời gian mỗi ca học là 90 phút (2 tiết học x 45 phút)
+ */
+const CLASS_DURATION = 90 * 60; 
+/**
+ * Summary of number_course_session_weekly
+ * @var int
+ */
+const NUMBER_COURSE_SESSION_WEEKLY = 2;
 
 // BÊN DƯỚI LÀ CÁC RÀNG BUỘC VỀ THỜI GIAN CỦA LỚP HỌC
-/*  HT1. Các lớp - môn học phải được dạy trọn vẹn
- trong một buổi của một ngày trong tuần (một Lớp
-Môn học không được cắt ra thành các tiết cuối buổi
- sáng và đầu buổi chiều hay cuối ngày này và đầu
-buổi sáng hôm sau).*/
+/**
+ * Summary of UT_HT1
+ * HT1. Các lớp - môn học phải được dạy trọn vẹn trong một buổi của một ngày trong tuần (một Lớp Môn học không được cắt ra thành các tiết cuối buổi sáng và đầu buổi chiều hay cuối ngày này và đầu buổi sáng hôm sau).
+ * @var int
+ */
 const UT_HT1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT1
+/**
+ * Summary of check_class_duration
+ * HT1. Các lớp - môn học phải được dạy trọn vẹn trong một buổi của một ngày trong tuần (một Lớp Môn học không được cắt ra thành các tiết cuối buổi sáng và đầu buổi chiều hay cuối ngày này và đầu buổi sáng hôm sau).
+ * @param mixed $class_start_time Start time of class
+ * @return boolean true if start time and end time are in one session (Morning session/ Afternoon session or evening session)
+ */
+function is_class_duration_in_one_session($class_start_time, $class_duration = CLASS_DURATION) {
+  $class_end_time = (int)$class_start_time + $class_duration;
+  
+  $class_start_time = date('H:i', $class_start_time);
+  $class_end_time = date('H:i', $class_end_time);
+  
+  $start_morning = date('H:i', strtotime('7:30'));
+  $end_morning = date('H:i', strtotime('12:00'));
+  
+  $start_afternoon = date('H:i', strtotime('13:30'));
+  $end_afternoon = date('H:i', strtotime('16:30'));
+
+  $start_everning = date('H:i', strtotime('17:30'));
+  $end_everning = date('H:i', strtotime('22:00'));
+
+  if ($class_start_time >= $start_morning and $class_end_time <= $end_morning) {
+    return true;
+  }
+  else if ($class_start_time >= $start_afternoon and $class_end_time <= $end_afternoon) {
+    return true;
+  }
+  else if ($class_start_time >= $start_everning and $class_end_time <= $end_everning) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
 /*
  *  HT2. Số lớp - môn học được quy định tránh
  không được xếp vào một số tiết học cụ thể vào trước 17h30 phút các ngày từ thứ 2 đến thứ 6 
@@ -69,8 +133,44 @@ const UT_HT1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT1
  t2 - t6 (17h30 - 22h)
 */
 const UT_HT2 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT2
+/**
+ * Summary of is_forbidden_session
+ * HT2. Số lớp - môn học được quy định tránh không được xếp vào một số tiết học cụ thể vào trước 17h30 phút các ngày từ thứ 2 đến thứ 6 và thời điểm kết thúc của môn học cuối cùng là vào 22h t2 - t6 (17h30 - 22h)
+ * @param mixed $class_start_time start time of class
+ * @param mixed $class_duration durating time of class
+ * @return boolean true if is forbidden class sesstion
+ */
+function is_forbidden_session ($class_start_time, $class_duration = CLASS_DURATION) {
+  $class_end_time = (int)$class_start_time + $class_duration;
+  
+  $class_start_time = date('H:i', $class_start_time);
+  $class_end_time = date('H:i', $class_end_time);
+
+  $start_everning = date('H:i', strtotime('17:30'));
+  $end_everning = date('H:i', strtotime('22:00'));
+
+  if (
+      date('D', $class_start_time) === 'Mon' 
+      or date('D', $class_start_time) === 'Tue'
+      or date('D', $class_start_time) === 'Wed'
+      or date('D', $class_start_time) === 'Thu'
+      or date('D', $class_start_time) === 'Fri'
+    ) {
+      if ($class_start_time >= $start_everning and $class_end_time <= $end_everning) {
+        return false;
+      }
+
+      return true;
+
+  }
+
+  return !is_class_duration_in_one_session($class_start_time, $class_duration);
+
+}
 
  /** 
+  * đã hoàn thành ở HT2.
+  * không cần kiểm tra lại.
  *  HT3. Số lớp - môn học được quy định được xếp vào một số tiết học cụ thể nào đó.
  * Đó là vào 7h30 sáng các ngày  thứ 7, chủ nhật và thời điểm kết thúc của môn học cuối cùng là 22h.
  * t7, cn (7h30 - 22h)
@@ -83,6 +183,31 @@ const UT_HT3 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT3
   * Các ngày nghỉ lễ này thường được quy định trong lịch học của trung tâm giáo dục hoặc trường học.
   */
 const UT_HT4 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT4
+/**
+ * Summary of is_holiday.
+ * HT4 Thời gian của một lớp học không được trùng vào thời gian nghỉ lễ lớn được quy định trong năm
+    * như Tết Nguyên Đán, Giỗ Tổ Hùng Vương, Quốc Khánh, v.v.
+  * Các ngày nghỉ lễ này thường được quy định trong lịch học của trung tâm giáo dục hoặc trường học.
+ * @param mixed $class_start_time class strat time
+ * @param mixed $class_duration class duration time
+ * @return bool true if this is holiday else false
+ */
+function is_holiday($class_start_time, $class_duration = CLASS_DURATION) {
+  $class_end_time = (int)$class_start_time + $class_duration;
+  global $DB;
+  $holiday_records = $DB->get_records('local_course_calendar_holiday');
+  if (empty($holiday_records)) {
+    return false;
+  }
+  else {
+    foreach ($holiday_records as $holiday) {
+      if (date('d-m-Y', $class_start_time) === date('d-m-Y', $holiday)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
   /**
    * HT5 Thời gian học của một lớp học không được vượt quá 1h30 phút liên tục.
@@ -90,19 +215,91 @@ const UT_HT4 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT4
    * Sau mỗi 1h30 phút học, cần có thời gian nghỉ ngơi hoặc chuyển sang môn học khác.
    */
 const UT_HT5 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT5
+/**
+ * Summary of is_class_overtime
+ * HT5 Thời gian học của một lớp học không được vượt quá 1h30 phút liên tục.
+ * Điều này có nghĩa là mỗi buổi học không được kéo dài quá 1h30 phút liên tục.
+ * Sau mỗi 1h30 phút học, cần có thời gian nghỉ ngơi hoặc chuyển sang môn học khác. 
+ * @param mixed $class_start_time class start time
+ * @param mixed $class_end_time class end time
+ * @param mixed $class_duration contraint class duration time ((class end time - class start time) <= class duration )
+ * @return boolean true if (class end time - class start time) >= class duration else false
+ */
+function is_class_overtime ($class_start_time, $class_end_time, $class_duration= CLASS_DURATION) {
+  if ((int)($class_end_time - $class_start_time) >= (int)$class_duration) {
+    return true;
+  }
 
+  return false;
+}
 /**
    * HT6 Phải tổ chức lớp học đủ số buổi trên tuần tuân theo quy tắc hợp đồng
    * vd môn A học 3 buổi trên 1 tuần thì mỗi tuần phải học đủ 3 buổi.
    * đối với các môn học 2 buổi trên tuần thì tương tự.
    */
 const UT_HT6 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT6
+/**
+ * Summary of check_number_of_course_session_weekly
+ * HT6 Phải tổ chức lớp học đủ số buổi trên tuần tuân theo quy tắc hợp đồng
+ * vd môn A học 3 buổi trên 1 tuần thì mỗi tuần phải học đủ 3 buổi.
+ * đối với các môn học 2 buổi trên tuần thì tương tự.
+ * @param mixed $calendar calendar need check 
+ * @param mixed $course_id_param course id need check enough session
+ * @param mixed $class_duration class duration of course
+ * @param mixed $number_course_session_weekly number course session must be taught by teacher on each week. 
+ * @return bool true if not enough number course sessions weekly else false.
+ */
+function is_not_enough_number_of_course_session_weekly($calendar, $course_id_param, $class_duration = CLASS_DURATION, $number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY) {
+  $number_course_sessions = 0;
+  //$calendar[room-ith][session-jth] = [courseid, teacherid];
+  $number_room = count($calendar);
+  $number_session = count($calendar[0]);
+
+  for($i=0; $i < $number_room; $i++) {
+    for ($j=0; $j < $number_session; $j++) {
+      if(!empty($calendar[$i][$j])) {
+        $courseid = $calendar[$i][$j][0];
+        $teacherid = $calendar[$i][$j][1];
+        if ($courseid == $course_id_param) {
+          $number_course_sessions++;
+          if (ceil($class_duration / TIME_SLOT_DURATION) > 1) {
+            $skip_session = ceil($class_duration / TIME_SLOT_DURATION) - 1;
+            $j += $skip_session;
+          }
+        }
+
+      }
+    }
+  }
+
+  if ($number_course_sessions == $number_course_session_weekly) {
+    return false;
+  }
+
+  return true;
+}
 
  // Các ràng buộc cứng về không gian của lớp học
  /**
   * HP1 Tại mỗi thời điểm một phòng học chỉ được sử dụng cho một lớp - môn học.
   */
 const UT_HP1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HP1
+// chưa xong đang tìm cách để so sánh cái Class-start-time truyền vào nó có trùng với cái session nào trong tkb và tại đó thì [courseid, teacherid] không rỗng
+function is_duplicate_course_at_same_room_at_same_time($calendar, $course_id_param, $class_start_time, $class_duration) {
+  $number_room = count($calendar);
+  $number_session = count($calendar[0]);
+  for($i= 0; $i < $number_room; $i++) {
+    for($j = 0; $j < $number_session; $j++) {
+      // chưa xong đang tìm cách để so sánh cái Class-start-time truyền vào nó có trùng với cái session nào trong tkb và tại đó thì [courseid, teacherid] không rỗng.
+      // vấn đề là cái number session này nó lại là số thứ tự tiết (tiết 1, tiết 2, tiết 3,,.....) nó không phải unixtimestamp không so sánh được với $class_start_time
+      if(!empty($calendar[$i][$j]) && ) {
+        
+      }
+    }
+  }
+  return false;
+}
+
 
   /**
    * HP2 sĩ số của một lớp - môn học không được vượt quá sĩ số tối đa của phòng học. mặc định là 25 học sinh một phòng học.
@@ -344,11 +541,103 @@ function local_course_calendar_extend_settings_navigation($settingsnav, $context
     * ]
  * @return array
  */
-function create_calendar(array $courses, array $teachers, array $time_and_addresses) : array {
-    // define date of week 
-    $dates = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    // define available class sesstions
-    $available_class_sesstions = [];
+function create_calendar(array $courses, array $teachers, array $times_and_addresses) : array {
+    // define global variable
+    global $CFG, $PAGE, $DB, $USER;
+    // 1 ngày có 16 tiết 7h30 đến 22h tức là 8 ca. 7 ngày một tuần -> tổng tiết = 7*16 = 112 tiết
+    // $calendar is 2-dimensional array. Tiết(session)(tiết 1 - tiết 112) - Phòng(room)
+    // $calendar[room-ith][session-jth] =  [courseid, teacherid]
+    // calendar format 
+    /**
+        * -----------------------------thứ 2-----------------------------------------Thứ3--------------------------------------Thứ4----------------------------Thứ5----------------------------Thứ6----------------------------Thứ7----------------------------cn----------------------
+        * --------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||Tiết 16----Tiết 17-..Tiết 30..tiet31||Tiết 32---------------------..tiet47||Tiết 48----..tiet63||Tiết 64--------------------..tiet79||Tiết 80--------------------..tiet95||tiết 96---------------------tiết 111
+*Room 101 [courseid,teacherid] [courseid,teacherid]...
+*Room 102 [courseid,teacherid] [courseid,teacherid]
+*Room 103 [courseid,teacherid] [courseid,teacherid]
+*Room 104 [courseid,teacherid] [courseid,teacherid]
+*Room 105 [courseid,teacherid] [courseid,teacherid]
+*Room 106 [courseid,teacherid] [courseid,teacherid]
+*Room 107 [courseid,teacherid] [courseid,teacherid]
+*Room 108 [courseid,teacherid] [courseid,teacherid]
+*Room 109 [courseid,teacherid] [courseid,teacherid]
+*Room 201 [courseid,teacherid] [courseid,teacherid]
+*Room 202 [courseid,teacherid] [courseid,teacherid]
+     */
+    $calendar = [];
 
-    return [];
+    // process address and time to create $time_and_addresses = [[room_time_id, room_address_id], [room_time_id, room_address_id], [room_time_id, room_address_id], ]
+    $times_and_addresses_after_process = [];
+    foreach ($times_and_addresses as $time_and_address) {
+      $time_and_address = explode('|', $time_and_address);
+      $times_and_addresses_after_process[] = $time_and_address;
+    }
+    // return result in times_and_addresses
+    $times_and_addresses = $times_and_addresses_after_process;
+
+    // define course with teacher. Teacher have major that can teach course.
+    // teacher major === course category.
+    // course-teacher is array with format [[courseid, teacherid], [courseid, teacherid], [courseid, teacherid], ....]
+    $course_with_teacher_informations = [];
+    foreach ($teachers as $teacher) {
+      $teacher_majors = [];
+      $teacher_major_ids = [];
+      
+      // get teacher major by course category.
+      $sql_get_teacher_major = "SELECT  distinct (course_categories.id) id, course_categories.name
+                              from mdl_user user
+                              join mdl_role_assignments ra on ra.userid = user.id
+                              join mdl_role role on role.id = ra.roleid
+                              join mdl_context context on context.id = ra.contextid
+                              join mdl_course course on course.id = context.instanceid
+                              join mdl_course_categories course_categories on course.category = course_categories.id
+                              where course.id != 1 and user.id = :teacher_id
+                                      and (role.shortname = 'teacher' or role.shortname = 'editingteacher')
+                                      and context.contextlevel = 50 
+                              ORDER BY user.id ASC";
+      $params = ['teacher_id' => $teacher];
+      $teacher_majors = $DB->get_records_sql($sql_get_teacher_major, $params);
+
+      if (!empty($teacher_majors)) { 
+          foreach ($teacher_majors as $major) {
+              $teacher_major_ids[] = $major->id;
+          }
+      }
+
+      // find course with course category === teacher major id
+      // scan courses
+      foreach ($courses as $course) {
+        // get course with courseid and get course category id
+        $course_record = $DB->get_record('course', ['id'=> $course], 'category');
+
+        // if course category === teacher major id then insert teacherid and courseid to $course_with_teacher_informations
+        if (!empty($course_record)) {
+          foreach ($teacher_major_ids as $teacher_major_id) {
+            if ($course_record->category == $teacher_major_id) {
+              // add course-teacher in $course_with_teacher_informations[]
+              $course_with_teacher_informations[] = [$course, $teacher];
+              break;
+            }
+          }
+        }
+      }
+    }
+    // init calendar - this is first calendar and it is result calendar.  
+    // please fix me to adapt calendar format 
+    // note $class_start_time and class_end_time are saved by unixtimestamp not tiết 1, tiết 2, tiết 3, tiết 4.
+    // 
+    foreach ($times_and_addresses as $time_and_address) {
+      $room_time_id = $time_and_address[0];
+      $room_address_id = $time_and_address[1];
+
+      foreach ($course_with_teacher_informations as $course_with_teacher) {
+        $courseid = $course_with_teacher[0];
+        $teacherid = $course_with_teacher[1];
+        
+        $temp = [$room_time_id, $room_address_id , $courseid, $teacherid];
+        $calendar[] = $temp;
+      }
+    }
+
+
+    return $calendar;
 }

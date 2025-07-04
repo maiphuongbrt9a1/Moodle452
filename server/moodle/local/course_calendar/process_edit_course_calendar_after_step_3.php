@@ -61,25 +61,18 @@ try {
     // 'room_time_id|room_address_id' ,
     // 'room_time_id|room_address_id' ,...
     // ]
-    $times_and_addresses = required_param_array('selected_times_and_addresses', PARAM_INT);
-    // Xử lý dữ liệu từ bước trước
-
-    // if ($courses->count() == 1 and $teachers->count() == 1 and $times_and_addresses->count() == 1) {
-    //     $courseid = $courses[0];
-    //     $teacherid = $teachers[0];
-    //     $time_and_address = explode('|', $times_and_addresses[0]);
-    //     $course_schedule_id = $time_and_address[0];
-    //     $course_room_id = $time_and_address[1];
-
-    //     // check if course schedule already exists
-    // }
+    $times_and_addresses = required_param_array('selected_times_and_addresses', PARAM_TEXT);
     
     $calendar = create_calendar($courses, $teachers, $times_and_addresses);
     
     // fix me to insert calendar to database and notify to user.
-    $event = calendar_event::create(array() + [''=> $calendar->id]);
-    $DB->insert_record('course_section', $calendar);
-
+    $holidays = $DB->get_records('local_course_calendar_holiday');
+    foreach ($holidays as $holiday) {
+        echo "<pre>";
+            var_dump(date('D, d-m-Y H:i', $holiday->holiday));
+            echo '<br>';
+        echo "</pre>";
+    }
     echo $OUTPUT->footer();
 
 } catch (Exception $e) {

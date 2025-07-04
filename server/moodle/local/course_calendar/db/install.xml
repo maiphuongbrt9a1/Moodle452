@@ -73,7 +73,7 @@
     </TABLE>
     <TABLE NAME="local_course_calendar_course_schedule" COMMENT="Save course schedule for each course section">
         <FIELDS>
-            <FIELDS NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
             <FIELD NAME="created_user_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
             <FIELD NAME="modified_user_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
             <FIELD NAME="createdtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -89,12 +89,32 @@
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             <KEY NAME="created_user_fk" TYPE="foreign" FIELDS="created_user_id" REFTABLE="user" REFFIELDS="id"/>
+            <KEY NAME="modified_user_fk" TYPE="foreign" FIELDS="modified_user_id" REFTABLE="user" REFFIELDS="id"/>
+        </KEYS>
+        <INDEXES>
+            <INDEX NAME="created_user_id_idx" UNIQUE="false" FIELDS="created_user_id"/>
+            <INDEX NAME="modified_user_id_idx" UNIQUE="false" FIELDS="modified_user_id"/>
+        </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_course_calendar_holiday" COMMENT="Save holiday of central">
+        <FIELDS>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+            <FIELD NAME="created_user_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            <FIELD NAME="modified_user_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+            <FIELD NAME="createdtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            <FIELD NAME="modifiedtime" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+            <FIELD NAME="holiday" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            
+        </FIELDS>
+        <KEYS>
+            <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             <KEY NAME="created_user_fk" TYPE="foreign" FIELDS="created_user_id" REFTABLE="user" REFFIELDS="id"/>
             <KEY NAME="modified_user_fk" TYPE="foreign" FIELDS="modified_user_id" REFTABLE="user" REFFIELDS="id"/>
         </KEYS>
         <INDEXES>
             <INDEX NAME="created_user_id_idx" UNIQUE="false" FIELDS="created_user_id"/>
             <INDEX NAME="modified_user_id_idx" UNIQUE="false" FIELDS="modified_user_id"/>
+            <INDEX NAME="holiday_idx" UNIQUE="true" FIELDS="holiday"/>
         </INDEXES>
     </TABLE>
   </TABLES>

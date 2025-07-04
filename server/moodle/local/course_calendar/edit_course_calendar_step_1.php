@@ -95,6 +95,8 @@ try {
     $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
     $search_context->btnclass = 'btn-primary';
 
+    $selected_courses_from_request = optional_param_array('selected_courses', [], PARAM_INT);
+
     // Renderer for template core
     $core_renderer = $PAGE->get_renderer('core');
 
@@ -178,6 +180,16 @@ try {
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
+        }
+
+        if (!empty($selected_courses_from_request)) {
+            foreach ($selected_courses_from_request as $courseid) {
+                echo html_writer::empty_tag('input', [
+                    'type' => 'hidden',
+                    'name' => 'selected_courses[]',
+                    'value' => $courseid,
+                ]);
+            }
         }
 
         // Display the list of children in a table.
