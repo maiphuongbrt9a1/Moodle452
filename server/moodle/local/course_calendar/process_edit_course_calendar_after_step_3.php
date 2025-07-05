@@ -64,15 +64,7 @@ try {
     $times_and_addresses = required_param_array('selected_times_and_addresses', PARAM_TEXT);
     
     $calendar = create_calendar($courses, $teachers, $times_and_addresses);
-    
-    // fix me to insert calendar to database and notify to user.
-    $holidays = $DB->get_records('local_course_calendar_holiday');
-    foreach ($holidays as $holiday) {
-        echo "<pre>";
-            var_dump(date('D, d-m-Y H:i', $holiday->holiday));
-            echo '<br>';
-        echo "</pre>";
-    }
+
     echo $OUTPUT->footer();
 
 } catch (Exception $e) {

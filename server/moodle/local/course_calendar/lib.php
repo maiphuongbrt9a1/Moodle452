@@ -27,6 +27,17 @@
  * @var string Define the timezone for the course calendar. 'Asia/Ho_Chi_Minh'
  */
 const TIME_ZONE = 'Asia/Ho_Chi_Minh';
+/**
+ * Summary of MAX_CALENDAR_NUMBER
+ * @var int Số lượng thời khóa biểu ban đầu của quần thể
+ */
+const MAX_CALENDAR_NUMBER = 50;
+
+/**
+ * Summary of MAX_STEP_OF_CROSSOVER_OPERATIONS
+ * @var int Số lượng bước lai ghép tối đa trong một thế hệ.
+ */
+const MAX_STEP_OF_CROSSOVER_OPERATIONS = 20;
 
 // CÀI ĐẶT THÔNG TIN CẤU HÌNH CHO PLUGIN LOCAL COURSE CALENDAR
 // CÀI ĐẶT CÁC LUẬT RÀNG BUỘC CHO XỬ LÝ THỜI KHÓA BIỂU
@@ -68,6 +79,33 @@ const DATES= ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
  * @var array define available class sesstions ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15']
  */
 const AVAILABLE_CLASS_SESSIONS = ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15'];
+/**
+ * STT Tiết | Khung giờ |         Buổi
+ * 0            7h30 - 8h15       Sáng
+ * 1            8:15 - 9:00       Sáng
+ * 2            9:00 - 9:45       Sáng
+ * 3            9:45 - 10:30       Sáng
+ * 4            10:30 - 11:15       Sáng
+ * 5            11:15 - 12:00       Sáng
+ * 6            13:30 - 14:15       Chiều
+ * 7            14:15 - 15:00       Chiều
+ * 8            15:00 - 15:45       Chiều
+ * 9            15:45 - 16:30       Chiều
+ * 10             17:30 - 18:15       Tối
+ * 11            18:15 - 19:00       Tối
+ * 12            19:00 - 19:45       Tối
+ * 13            19:45 - 20:30       Tối
+ * 14            20:30 - 21:15       Tối
+ * 15           21:15 - 22:00       Tối
+ */
+const STT_CLASS_SESSIONS = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+const START_MORNING = '7:30';
+const END_MORNING = '12:00';
+const START_AFTERNOON = '13:30';
+const END_AFTERNOON = '16:30';
+const START_EVENING = '17:30';
+const END_EVENING = '22:00';
+
 /**
  * Summary of TIME_SLOT_DURATION
  * @var int Thời gian mỗi tiết học là 45 phút
@@ -222,11 +260,11 @@ const UT_HT5 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT5
  * Sau mỗi 1h30 phút học, cần có thời gian nghỉ ngơi hoặc chuyển sang môn học khác. 
  * @param mixed $class_start_time class start time
  * @param mixed $class_end_time class end time
- * @param mixed $class_duration contraint class duration time ((class end time - class start time) <= class duration )
- * @return boolean true if (class end time - class start time) >= class duration else false
+ * @param mixed $system_class_duration contraint class duration time ((class end time - class start time) <= system class duration )
+ * @return boolean true if (class end time - class start time) >= system class duration else false
  */
-function is_class_overtime ($class_start_time, $class_end_time, $class_duration= CLASS_DURATION) {
-  if ((int)($class_end_time - $class_start_time) >= (int)$class_duration) {
+function is_class_overtime ($class_start_time, $class_end_time, $system_class_duration= CLASS_DURATION) {
+  if ((int)($class_end_time - $class_start_time) >= (int)$system_class_duration) {
     return true;
   }
 
@@ -286,17 +324,17 @@ function is_not_enough_number_of_course_session_weekly($calendar, $course_id_par
 const UT_HP1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HP1
 // chưa xong đang tìm cách để so sánh cái Class-start-time truyền vào nó có trùng với cái session nào trong tkb và tại đó thì [courseid, teacherid] không rỗng
 function is_duplicate_course_at_same_room_at_same_time($calendar, $course_id_param, $class_start_time, $class_duration) {
-  $number_room = count($calendar);
-  $number_session = count($calendar[0]);
-  for($i= 0; $i < $number_room; $i++) {
-    for($j = 0; $j < $number_session; $j++) {
-      // chưa xong đang tìm cách để so sánh cái Class-start-time truyền vào nó có trùng với cái session nào trong tkb và tại đó thì [courseid, teacherid] không rỗng.
-      // vấn đề là cái number session này nó lại là số thứ tự tiết (tiết 1, tiết 2, tiết 3,,.....) nó không phải unixtimestamp không so sánh được với $class_start_time
-      if(!empty($calendar[$i][$j]) && ) {
+  // $number_room = count($calendar);
+  // $number_session = count($calendar[0]);
+  // for($i= 0; $i < $number_room; $i++) {
+  //   for($j = 0; $j < $number_session; $j++) {
+  //     // chưa xong đang tìm cách để so sánh cái Class-start-time truyền vào nó có trùng với cái session nào trong tkb và tại đó thì [courseid, teacherid] không rỗng.
+  //     // vấn đề là cái number session này nó lại là số thứ tự tiết (tiết 1, tiết 2, tiết 3,,.....) nó không phải unixtimestamp không so sánh được với $class_start_time
+  //     if(!empty($calendar[$i][$j]) && ) {
         
-      }
-    }
-  }
+  //     }
+  //   }
+  // }
   return false;
 }
 
@@ -549,8 +587,8 @@ function create_calendar(array $courses, array $teachers, array $times_and_addre
     // $calendar[room-ith][session-jth] =  [courseid, teacherid]
     // calendar format 
     /**
-        * -----------------------------thứ 2-----------------------------------------Thứ3--------------------------------------Thứ4----------------------------Thứ5----------------------------Thứ6----------------------------Thứ7----------------------------cn----------------------
-        * --------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||Tiết 16----Tiết 17-..Tiết 30..tiet31||Tiết 32---------------------..tiet47||Tiết 48----..tiet63||Tiết 64--------------------..tiet79||Tiết 80--------------------..tiet95||tiết 96---------------------tiết 111
+        * -----------------------------thứ 2-----------------------------------------------------------Thứ3----------------------------------------------------------------------Thứ4------------------------------------------Thứ5-------------------------------------------------------------------------Thứ6-----------------------------------------------------------------Thứ7----------------------------------------------------------cn----------------------
+        * --------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||
 *Room 101 [courseid,teacherid] [courseid,teacherid]...
 *Room 102 [courseid,teacherid] [courseid,teacherid]
 *Room 103 [courseid,teacherid] [courseid,teacherid]
@@ -565,6 +603,8 @@ function create_calendar(array $courses, array $teachers, array $times_and_addre
      */
     $calendar = [];
 
+    // Consit of 50 calendar [[calendar1], [calendar2], [calendar3]......]
+    $fifty_best_calendars = [];
     // process address and time to create $time_and_addresses = [[room_time_id, room_address_id], [room_time_id, room_address_id], [room_time_id, room_address_id], ]
     $times_and_addresses_after_process = [];
     foreach ($times_and_addresses as $time_and_address) {
@@ -625,19 +665,35 @@ function create_calendar(array $courses, array $teachers, array $times_and_addre
     // please fix me to adapt calendar format 
     // note $class_start_time and class_end_time are saved by unixtimestamp not tiết 1, tiết 2, tiết 3, tiết 4.
     // 
+    $temp_calendar = [];
+    $temp_time_array = [];
+    $temp_address_array = [];
+
     foreach ($times_and_addresses as $time_and_address) {
       $room_time_id = $time_and_address[0];
       $room_address_id = $time_and_address[1];
+
+      $temp_address_array[] = $room_address_id;
+      $temp_time_array[] = $room_time_id;
 
       foreach ($course_with_teacher_informations as $course_with_teacher) {
         $courseid = $course_with_teacher[0];
         $teacherid = $course_with_teacher[1];
         
-        $temp = [$room_time_id, $room_address_id , $courseid, $teacherid];
-        $calendar[] = $temp;
+        $temp_calendar_element = [$room_time_id, $room_address_id , $courseid, $teacherid];
+        $temp_calendar[] = $temp_calendar_element;
       }
     }
 
+    foreach(DATES as $date) {
+      foreach(STT_CLASS_SESSIONS as $stt_class_session) {
+        
+      }
+    }
 
+    // Trả về calendar có điểm số vi phạm thấp nhất 
+    // mặc định thời khóa biểu đó là thời khóa biểu đầu tiên trong 50 thời khóa biểu tốt nhất được chọn ra
+    // $calendar = $fifty_best_calendars[0];
+    $calendar = $temp_calendar;
     return $calendar;
 }
