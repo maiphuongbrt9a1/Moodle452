@@ -80,23 +80,23 @@ const DATES= ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
  */
 const AVAILABLE_CLASS_SESSIONS = ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15'];
 /**
- * STT Tiết | Khung giờ |         Buổi
- * 0            7h30 - 8h15       Sáng
- * 1            8:15 - 9:00       Sáng
- * 2            9:00 - 9:45       Sáng
- * 3            9:45 - 10:30       Sáng
- * 4            10:30 - 11:15       Sáng
- * 5            11:15 - 12:00       Sáng
- * 6            13:30 - 14:15       Chiều
- * 7            14:15 - 15:00       Chiều
- * 8            15:00 - 15:45       Chiều
- * 9            15:45 - 16:30       Chiều
- * 10             17:30 - 18:15       Tối
- * 11            18:15 - 19:00       Tối
- * 12            19:00 - 19:45       Tối
- * 13            19:45 - 20:30       Tối
- * 14            20:30 - 21:15       Tối
- * 15           21:15 - 22:00       Tối
+ * STT Tiết | Khung giờ |         Buổi ||
+ *Tiết 0            7h30 - 8h15       Buổi Sáng ||
+ *Tiết 1            8:15 - 9:00       Buổi Sáng ||
+ *Tiết 2            9:00 - 9:45       Buổi Sáng ||
+ *Tiết 3            9:45 - 10:30       Buổi Sáng ||
+ *Tiết 4            10:30 - 11:15       Buổi Sáng ||
+ *Tiết 5            11:15 - 12:00       Buổi Sáng ||
+ *Tiết 6            13:30 - 14:15       Buổi Chiều ||
+ *Tiết 7            14:15 - 15:00       Buổi Chiều ||
+ *Tiết 8            15:00 - 15:45       Buổi Chiều ||
+ *Tiết 9            15:45 - 16:30       Buổi Chiều ||
+ *Tiết 10             17:30 - 18:15       Buổi Tối ||
+ *Tiết 11            18:15 - 19:00       Buổi Tối ||
+ *Tiết 12            19:00 - 19:45       Buổi Tối ||
+ *Tiết 13            19:45 - 20:30       Buổi Tối ||
+ *Tiết 14            20:30 - 21:15       Buổi Tối ||
+ *Tiết 15           21:15 - 22:00       Buổi Tối
  */
 const STT_CLASS_SESSIONS = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
 const START_MORNING = '7:30';
@@ -122,6 +122,92 @@ const CLASS_DURATION = 90 * 60;
  * @var int
  */
 const NUMBER_COURSE_SESSION_WEEKLY = 2;
+
+class course_session_information {
+  public $courseid;
+  public $course_name;
+  public $course_session_length;
+  public $course_session_start_time;
+  public $course_session_end_time;
+
+  public $editting_teacherid;
+  public $non_editting_teacherid;
+
+  public $date;
+  public $room;
+
+  public function __construct($courseid = null, 
+                              $course_name = null, 
+                              $course_session_length = null, 
+                              $course_session_start_time = null,
+                              $course_session_end_time = null, 
+                              $editting_teacherid = null,
+                              $non_editting_teacherid = null,
+                              $date = null,
+                              $room = null)
+  {
+    $this->courseid = $courseid;
+    $this->course_name = $course_name;
+    $this->course_session_length = $course_session_length;
+    $this->course_session_start_time = $course_session_start_time;
+    $this->course_session_end_time = $course_session_end_time;
+    $this->editting_teacherid = $editting_teacherid;
+    $this->non_editting_teacherid = $non_editting_teacherid;
+    $this->date = $date;
+    $this->room = $room;
+  }
+
+  public function set_value($courseid = null, 
+                              $course_name = null, 
+                              $course_session_length = null, 
+                              $course_session_start_time = null,
+                              $course_session_end_time = null, 
+                              $editting_teacherid = null,
+                              $non_editting_teacherid = null,
+                              $date = null,
+                              $room = null)
+  {
+    $this->courseid = $courseid;
+    $this->course_name = $course_name;
+    $this->course_session_length = $course_session_length;
+    $this->course_session_start_time = $course_session_start_time;
+    $this->course_session_end_time = $course_session_end_time;
+    $this->editting_teacherid = $editting_teacherid;
+    $this->non_editting_teacherid = $non_editting_teacherid;
+    $this->date = $date;
+    $this->room = $room;
+  }
+}
+
+function deep_clone_array($array) {
+  $clone = array();
+  $number_room = count($array);
+  $number_day = count(DATES);
+  $number_class_sessions = count(AVAILABLE_CLASS_SESSIONS);
+
+  for ($i=0; $i < $number_room; $i++) { 
+      $clone[] = [];
+      for ($j = 0; $j < $number_day; $j++) {
+        $clone[$i][] = [];
+        for ($k=0; $k < $number_class_sessions; $k++) { 
+          $clone[$i][$j][] = new course_session_information
+          (
+            $array[$i][$j][$k]->courseid,
+            $array[$i][$j][$k]->course_name,
+            $array[$i][$j][$k]->course_session_length,
+            $array[$i][$j][$k]->course_session_start_time,
+            $array[$i][$j][$k]->course_session_end_time,
+            $array[$i][$j][$k]->editting_teacherid,
+            $array[$i][$j][$k]->non_editting_teacherid,
+            $array[$i][$j][$k]->date,
+            $array[$i][$j][$k]->room
+          );
+          
+        }
+      }
+    }
+  return $clone;
+}
 
 // BÊN DƯỚI LÀ CÁC RÀNG BUỘC VỀ THỜI GIAN CỦA LỚP HỌC
 /**
@@ -291,7 +377,8 @@ function is_not_enough_number_of_course_session_weekly($calendar, $course_id_par
   $number_course_sessions = 0;
   //$calendar[room-ith][session-jth] = [courseid, teacherid];
   $number_room = count($calendar);
-  $number_session = count($calendar[0]);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
 
   for($i=0; $i < $number_room; $i++) {
     for ($j=0; $j < $number_session; $j++) {
@@ -579,7 +666,7 @@ function local_course_calendar_extend_settings_navigation($settingsnav, $context
     * ]
  * @return array
  */
-function create_calendar(array $courses, array $teachers, array $times_and_addresses) : array {
+function create_manual_calendar(array $courses, array $teachers, array $times_and_addresses) : array {
     // define global variable
     global $CFG, $PAGE, $DB, $USER;
     // 1 ngày có 16 tiết 7h30 đến 22h tức là 8 ca. 7 ngày một tuần -> tổng tiết = 7*16 = 112 tiết
@@ -589,17 +676,17 @@ function create_calendar(array $courses, array $teachers, array $times_and_addre
     /**
         * -----------------------------thứ 2-----------------------------------------------------------Thứ3----------------------------------------------------------------------Thứ4------------------------------------------Thứ5-------------------------------------------------------------------------Thứ6-----------------------------------------------------------------Thứ7----------------------------------------------------------cn----------------------
         * --------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||
-*Room 101 [courseid,teacherid] [courseid,teacherid]...
-*Room 102 [courseid,teacherid] [courseid,teacherid]
-*Room 103 [courseid,teacherid] [courseid,teacherid]
-*Room 104 [courseid,teacherid] [courseid,teacherid]
-*Room 105 [courseid,teacherid] [courseid,teacherid]
-*Room 106 [courseid,teacherid] [courseid,teacherid]
-*Room 107 [courseid,teacherid] [courseid,teacherid]
-*Room 108 [courseid,teacherid] [courseid,teacherid]
-*Room 109 [courseid,teacherid] [courseid,teacherid]
-*Room 201 [courseid,teacherid] [courseid,teacherid]
-*Room 202 [courseid,teacherid] [courseid,teacherid]
+*Room 101  courseid                       courseid
+*Room 102  courseid                       courseid
+*Room 103  courseid                       courseid
+*Room 104  courseid                       courseid
+*Room 105  courseid                       courseid
+*Room 106  courseid                       courseid
+*Room 107  courseid                       courseid
+*Room 108  courseid                       courseid
+*Room 109 courseid                        courseid
+*Room 201 courseid                        courseid
+*Room 202 courseid                       courseid
      */
     $calendar = [];
 
@@ -687,7 +774,7 @@ function create_calendar(array $courses, array $teachers, array $times_and_addre
 
     foreach(DATES as $date) {
       foreach(STT_CLASS_SESSIONS as $stt_class_session) {
-        
+
       }
     }
 
@@ -696,4 +783,104 @@ function create_calendar(array $courses, array $teachers, array $times_and_addre
     // $calendar = $fifty_best_calendars[0];
     $calendar = $temp_calendar;
     return $calendar;
+}
+/**
+ * Summary of create_automatic_calendar:
+ * Hàm này dùng để lên lịch tự động cho tất cả các khóa học chưa có lịch học.
+ * Luồng xử lý: Lấy ra tất cả các khóa học mà chưa có lịch học. Và xếp thời khóa biểu cho khóa học đó.
+ * Hàm này chỉ xếp thời khóa biểu cho course. Còn giảng viên khi tạo khóa học đã thêm vào giảng viên vào khóa học rồi thì giảng viên sẽ phải đi dạy theo thời khóa biểu này
+ * @return array $calendar là mảng chứa kết quả thời khóa biểu cần cấu trúc thời khóa biểu là $calendar[room][date][sesstion].
+ */
+
+function create_automatic_calendar () {
+  global $DB;
+  $courses_not_schedule_sql = "SELECT c.id courseid, c.category, c.shortname, c.startdate, c.enddate, c.visible
+                              FROM {local_course_calendar_course_section} cs
+                              RIGHT JOIN {course} c on cs.courseid = c.id
+                              WHERE cs.courseid is null and c.id != 1 and c.visible = 1 and c.enddate >= UNIX_TIMESTAMP(NOW())";
+  $params = [];
+  $courses_not_schedule = $DB->get_records_sql($courses_not_schedule_sql, $params);
+  $available_rooms = $DB->get_records('local_course_calendar_course_room');
+  
+  $courses_not_schedule_courseid_array = [];
+  foreach($courses_not_schedule as $course) {
+    $courses_not_schedule_courseid_array[] = $course->courseid;
+  }
+
+  $available_rooms_roomid_array = [];
+  foreach ($available_rooms as $room) {
+    $available_rooms_roomid_array[] = $room->id;
+  }
+
+  $number_courses_not_schedule = count($courses_not_schedule);
+  $number_room = count($available_rooms);
+  $number_class_sessions = count(STT_CLASS_SESSIONS);
+  $number_day = count(DATES);
+
+  $fifty_calendars = [];
+  $calendar = [];
+
+  for ($i=0; $i < $number_room; $i++) { 
+    $calendar[] = [];
+    for ($j = 0; $j < $number_day; $j++) {
+      $calendar[$i][] = [];
+      for ($k=0; $k < $number_class_sessions; $k++) { 
+        $calendar[$i][$j][] = new course_session_information();
+      }
+    }
+  }
+
+  // init 50 null calendar 
+  for ($i=0; $i < MAX_CALENDAR_NUMBER; $i++) { 
+    $fifty_calendars[] = deep_clone_array($calendar); 
+  }
+
+  // pass value for 50 random calendar
+  for($i = 0; $i < MAX_CALENDAR_NUMBER; $i++) {
+    $index = 0;
+    $used_room_day_session_array = [];
+    for($j = 0; $j < NUMBER_COURSE_SESSION_WEEKLY * $number_courses_not_schedule; $j++) {
+      // Đảm bảo rằng trong bất kỳ thời khóa biểu khởi tạo mặc định thì với mỗi môn học đều có NUMBER_COURSE_SESSION_WEEKLY.
+      // Đảm bảo bằng cách duyệt qua và thêm vào n lần khóa học vào thời khóa biểu với n = NUMBER_COURSE_SESSION_WEEKLY.
+      $courseid = $courses_not_schedule_courseid_array[$index];
+      if($index === $number_courses_not_schedule - 1) {
+        $index = 0;
+      } else {
+        $index++;
+      }
+
+      $random_room = random_int(0, $number_room - 1);
+      $random_day = random_int(0, $number_day - 1);
+      $random_session = random_int(0, $number_class_sessions - 1);
+      
+      if (!empty($used_room_day_session_array)) {
+        foreach ($used_room_day_session_array as $used) {
+          while ($used[0] === $random_room && $used[1] === $random_day && $used[2] === $random_session) {
+            $random_room = random_int(0, $number_room - 1);
+            $random_day = random_int(0, $number_day - 1);
+            $random_session = random_int(0, $number_class_sessions - 1);
+          }
+        }
+      }
+      ($fifty_calendars[$i][$random_room][$random_day][$random_session])->set_value(
+        $courses_not_schedule[$courseid]->courseid, 
+        $courses_not_schedule[$courseid]->shortname, 
+        CLASS_DURATION / TIME_SLOT_DURATION, 
+        $random_session,
+        $random_session + (CLASS_DURATION / TIME_SLOT_DURATION),
+        null, 
+        null,
+        $random_day,
+        $random_room
+      );
+      
+      $used_room_day_session_array[] = [$random_room, $random_day, $random_session];
+    }
+    
+  }
+
+  // gen algorithsm
+  // fix me again
+
+  return $fifty_calendars[0];
 }
