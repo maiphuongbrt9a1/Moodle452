@@ -670,23 +670,23 @@ function create_manual_calendar(array $courses, array $teachers, array $times_an
     // define global variable
     global $CFG, $PAGE, $DB, $USER;
     // 1 ngày có 16 tiết 7h30 đến 22h tức là 8 ca. 7 ngày một tuần -> tổng tiết = 7*16 = 112 tiết
-    // $calendar is 2-dimensional array. Tiết(session)(tiết 1 - tiết 112) - Phòng(room)
-    // $calendar[room-ith][session-jth] =  [courseid, teacherid]
+    // $calendar is 3-dimensional array. Phòng(room) - Thứ(date) - Tiết(session)(tiết 1 - tiết 112) 
+    // $calendar[room-ith][date][session-jth] =  new course_session_information();
     // calendar format 
     /**
         * -----------------------------thứ 2-----------------------------------------------------------Thứ3----------------------------------------------------------------------Thứ4------------------------------------------Thứ5-------------------------------------------------------------------------Thứ6-----------------------------------------------------------------Thứ7----------------------------------------------------------cn----------------------
         * --------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||
-*Room 101  courseid                       courseid
-*Room 102  courseid                       courseid
-*Room 103  courseid                       courseid
-*Room 104  courseid                       courseid
-*Room 105  courseid                       courseid
-*Room 106  courseid                       courseid
-*Room 107  courseid                       courseid
-*Room 108  courseid                       courseid
-*Room 109 courseid                        courseid
-*Room 201 courseid                        courseid
-*Room 202 courseid                       courseid
+*Room 101  course_session_information()                      course_session_information()
+*Room 102  course_session_information()                      course_session_information()
+*Room 103  course_session_information()                      course_session_information()
+*Room 104  course_session_information()                      course_session_information()
+*Room 105  course_session_information()                      course_session_information()
+*Room 106  course_session_information()                      course_session_information()
+*Room 107  course_session_information()                      course_session_information()
+*Room 108  course_session_information()                      course_session_information()
+*Room 109 course_session_information()                       course_session_information()
+*Room 201 course_session_information()                       course_session_information()
+*Room 202 course_session_information()                      course_session_information()
      */
     $calendar = [];
 
