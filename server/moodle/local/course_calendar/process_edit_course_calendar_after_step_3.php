@@ -160,10 +160,12 @@ for ($i = 0; $i < $number_room; $i++) {
             foreach ($calendar[$i][$j] as $k => $session_data) {
                 // Hiển thị nội dung buổi học.
                 // Bạn có thể format lại ở đây để hiển thị thông tin chi tiết hơn.
-
-                echo "<div>" ."Tiết ". $tiet . "</div>";
-                // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
-                echo "<div>" . $session_data->course_name . "</div>";
+                if (isset($session_data->courseid)) {
+                    echo "<div>" ."Tiết ". $tiet . "</div>";
+                    // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
+                    echo "<div>" . $session_data->course_name . "</div>";
+                    echo 'hello';
+                }
                 if ($k < $number_class_sessions - 1) {
                     echo "<hr style='border-top: 1px dashed #eee; margin: 5px 0;'>"; // Đường kẻ phân cách các buổi
                 }

@@ -69,7 +69,7 @@ const MAX_STEP_OF_CROSSOVER_OPERATIONS = 20;
 
 /**
  * Summary of DATES
- * @var array define date of week ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+ * @var array define date of week ['monday' = 0, 'tuesday' = 1, 'wednesday' = 2, 'thursday' = 3, 'friday' = 4, 'saturday' = 5, 'sunday' = 6]
  */
 const DATES= ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -313,11 +313,9 @@ const UT_HT4 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT4
     * như Tết Nguyên Đán, Giỗ Tổ Hùng Vương, Quốc Khánh, v.v.
   * Các ngày nghỉ lễ này thường được quy định trong lịch học của trung tâm giáo dục hoặc trường học.
  * @param mixed $class_start_time class strat time
- * @param mixed $class_duration class duration time
  * @return bool true if this is holiday else false
  */
-function is_holiday($class_start_time, $class_duration = CLASS_DURATION) {
-  $class_end_time = (int)$class_start_time + $class_duration;
+function is_holiday($class_start_time) {
   global $DB;
   $holiday_records = $DB->get_records('local_course_calendar_holiday');
   if (empty($holiday_records)) {
@@ -349,7 +347,7 @@ const UT_HT5 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT5
  * @param mixed $system_class_duration contraint class duration time ((class end time - class start time) <= system class duration )
  * @return boolean true if (class end time - class start time) >= system class duration else false
  */
-function is_class_overtime ($class_start_time, $class_end_time, $system_class_duration= CLASS_DURATION) {
+function is_class_overtime ($class_start_time, $class_end_time, $system_class_duration= CLASS_DURATION / TIME_SLOT_DURATION) {
   if ((int)($class_end_time - $class_start_time) >= (int)$system_class_duration) {
     return true;
   }
@@ -369,30 +367,24 @@ const UT_HT6 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT6
  * đối với các môn học 2 buổi trên tuần thì tương tự.
  * @param mixed $calendar calendar need check 
  * @param mixed $course_id_param course id need check enough session
- * @param mixed $class_duration class duration of course
  * @param mixed $number_course_session_weekly number course session must be taught by teacher on each week. 
  * @return bool true if not enough number course sessions weekly else false.
  */
-function is_not_enough_number_of_course_session_weekly($calendar, $course_id_param, $class_duration = CLASS_DURATION, $number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY) {
+function is_not_enough_number_of_course_session_weekly($calendar, $course_id_param, $number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY) {
   $number_course_sessions = 0;
-  //$calendar[room-ith][session-jth] = [courseid, teacherid];
+  //$calendar[room-ith][date-jth][session-kth] = course_session_information object;
   $number_room = count($calendar);
   $number_day = count(DATES);
   $number_session = count(AVAILABLE_CLASS_SESSIONS);
 
   for($i=0; $i < $number_room; $i++) {
-    for ($j=0; $j < $number_session; $j++) {
-      if(!empty($calendar[$i][$j])) {
-        $courseid = $calendar[$i][$j][0];
-        $teacherid = $calendar[$i][$j][1];
-        if ($courseid == $course_id_param) {
-          $number_course_sessions++;
-          if (ceil($class_duration / TIME_SLOT_DURATION) > 1) {
-            $skip_session = ceil($class_duration / TIME_SLOT_DURATION) - 1;
-            $j += $skip_session;
+    for ($j = 0; $j < $number_day; $j++) {
+      for ($k=0; $k < $number_session; $k++) {
+        if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+          if ($course_id_param == $calendar[$i][$j][$k]->courseid) {
+            $number_course_sessions++;
           }
         }
-
       }
     }
   }
@@ -403,25 +395,69 @@ function is_not_enough_number_of_course_session_weekly($calendar, $course_id_par
 
   return true;
 }
+      /**
+       * Summary of UT_HT7
+       * @var int Không cho phép việc một course triển khai khóa học cả hai buổi một ngày
+       */
+const UT_HT7 = 1000000000;
+function is_study_double_session_of_same_course_on_one_day ($calendar, $courseid) {
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+
+  for ($i=0; $i < $number_room; $i++) { 
+    for ($j=0; $j < $number_day; $j++) { 
+      for ($k=0; $k < $number_session; $k++) { 
+        for ($m=$k + 1; $m < $number_session; $m++) { 
+          if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)
+              && !empty($calendar[$i][$j][$m]) && isset($calendar[$i][$j][$m]->courseid)) {
+            if( $calendar[$i][$j][$k]->courseid == $calendar[$i][$j][$m]->courseid) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
 
  // Các ràng buộc cứng về không gian của lớp học
  /**
   * HP1 Tại mỗi thời điểm một phòng học chỉ được sử dụng cho một lớp - môn học.
   */
 const UT_HP1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HP1
-// chưa xong đang tìm cách để so sánh cái Class-start-time truyền vào nó có trùng với cái session nào trong tkb và tại đó thì [courseid, teacherid] không rỗng
-function is_duplicate_course_at_same_room_at_same_time($calendar, $course_id_param, $class_start_time, $class_duration) {
-  // $number_room = count($calendar);
-  // $number_session = count($calendar[0]);
-  // for($i= 0; $i < $number_room; $i++) {
-  //   for($j = 0; $j < $number_session; $j++) {
-  //     // chưa xong đang tìm cách để so sánh cái Class-start-time truyền vào nó có trùng với cái session nào trong tkb và tại đó thì [courseid, teacherid] không rỗng.
-  //     // vấn đề là cái number session này nó lại là số thứ tự tiết (tiết 1, tiết 2, tiết 3,,.....) nó không phải unixtimestamp không so sánh được với $class_start_time
-  //     if(!empty($calendar[$i][$j]) && ) {
-        
-  //     }
-  //   }
-  // }
+/**
+ * Summary of is_duplicate_course_at_same_room_at_same_time
+ * @param mixed $calendar calendar format is $calendar[ith-room][jth-date][kth-session] = object course_session_information
+ * @param mixed $roomid
+ * @param mixed $date
+ * @param mixed $class_start_time
+ * @return bool
+ */
+function is_duplicate_course_at_same_room_at_same_time($calendar, $roomid, $date, $class_start_time) {
+  $course_session_information = $calendar[$roomid][$date][$class_start_time];
+
+  // ngay tại ô room - date - class_start_time đã có course
+  if (!empty($course_session_information) && isset($course_session_information->courseid)) {
+    return true;
+  }
+  
+  // ngay tại ô room - date - class_start_time không có course 
+  // nhưng ô liền trước nó có course và class_duration của course session đó là 2
+  if (!empty($course_session_information) && isset($calendar[$roomid][$date][$class_start_time - 1]->courseid)
+    && $calendar[$roomid][$date][$class_start_time - 1]->course_session_length == 2) {
+      return true;
+  }
+
+  // ngay tại ô room - date - class_start_time không có course 
+  // nhưng ô liền trước nó 2 ô có course và class_duration của course session đó là 3
+  if (!empty($course_session_information) && isset($calendar[$roomid][$date][$class_start_time - 2]->courseid)
+    && $calendar[$roomid][$date][$class_start_time - 2]->course_session_length == 3) {
+      return true;
+  }
+
   return false;
 }
 
@@ -429,6 +465,7 @@ function is_duplicate_course_at_same_room_at_same_time($calendar, $course_id_par
   /**
    * HP2 sĩ số của một lớp - môn học không được vượt quá sĩ số tối đa của phòng học. mặc định là 25 học sinh một phòng học.
    */
+const MAX_STUDENT_OF_COURSE = 25;
 const UT_HP2 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HP2
 
 // Các ràng buộc cứng về giảng viên của lớp học
@@ -458,24 +495,165 @@ const UT_HG3 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HG3
 
 // Các ràng buộc mềm về thời gian của lớp học
 /**
- * ST1: Thời khóa biểu của một sinh viên (hay một
- * lớp cứng) nên hạn chế các ngày học cả 2 buổi sáng
- * và chiều;
+ * ST1: Thời khóa biểu của một sinh viên nên hạn chế các ngày học cả 2 buổi (sáng tới chiều)
   */
 const UT_ST1 = 1000; // ĐIỂM ƯU TIÊN cho ràng buộc ST1
 
 // ĐÁNH HỆ SỐ CHO VI PHẠM
-// học cả hai buổi sáng chiều t7 - cn và có nhiều hơn một buổi chiều của ngày (trong t2-t6)
+      /**
+       * Summary of VP_ST1_GRAVE_VIOLATION
+       * học cả hai buổi sáng chiều t7 và có nhiều hơn một buổi chiều của ngày (trong t2-t6)
+       * hoặc học cả hai buổi sáng chiều cn và có nhiều hơn một buổi chiều của ngày (trong t2-t6)
+       * @var int
+       */
 const VP_ST1_GRAVE_VIOLATION = 4;
-// học cả hai buổi sáng chiều t7 - cn 
+// học cả hai buổi sáng chiều t7 
+// hoặc
+// học cả hai buổi sáng chiều cn 
 const VP_ST1_SERIOUS_VIOLATION = 3;
-// học cả hai buổi sáng chiều t7 hoặc sáng chiều cn
+
 const VP_ST1_MODERATE_VIOLATION = 2;
 // học cả chiều t7 và sáng cn
 const VP_ST1_MINOR_VIOLATION = 1;
 // không có vi phạm
 const VP_ST1_NO_VIOLATION = 0;
+/**
+ * Summary of check_student_study_all_day
+ * @param mixed $calendar
+ * @return int return violation score for rule ST1: Thời khóa biểu của một sinh viên nên hạn chế các ngày học cả 2 buổi (sáng tới chiều)
+ */
+function check_student_study_all_day ($calendar) {
+  global $DB;
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+  $total_score_violation = 0;
 
+  $users_join_course_sql = "SELECT
+                          user.id userid, 
+                          user.firstname user_firstname, 
+                          user.lastname user_lastname
+                        FROM {user} user 
+                        join {role_assignments} ra on ra.userid = user.id
+                        join {role} r on r.id = ra.roleid
+                        join {context} ctx on ctx.id = ra.contextid
+                        join {course} c on c.id = ctx.instanceid 
+                        WHERE c.id != 1 
+                              and ctx.contextlevel = 50  
+                        GROUP BY user.id  
+                        ORDER BY 
+                                user.id,
+                                user.firstname, 
+                                user.lastname ASC";
+  $params = [];
+  $users = $DB->get_records_sql($users_join_course_sql, $params);
+
+  if (empty($users)){
+    return $total_score_violation;
+  }
+
+  foreach($users as $user) {
+    $course_sql = "SELECT
+                        user.id userid, 
+                        user.firstname user_firstname, 
+                        user.lastname user_lastname, 
+                        c.id courseid, 
+                        c.fullname course_fullname
+                    FROM mdl_user user 
+                    join mdl_role_assignments ra on ra.userid = user.id
+                    join mdl_role r on r.id = ra.roleid
+                    join mdl_context ctx on ctx.id = ra.contextid
+                    join mdl_course c on c.id = ctx.instanceid 
+                    WHERE c.id != 1 
+                        and ctx.contextlevel = 50   and user.id = :userid
+
+                    ORDER BY 
+                            c.id, 
+                            user.id,
+                            user.firstname, 
+                            user.lastname ASC";
+    $params = ['userid' => $user->userid];
+    $courses = $DB->get_records_sql($course_sql, $params);
+    
+    $user_study_sesstion_on_t2_t6 = 0;
+    $is_study_saturday_morning = false;
+    $is_study_saturday_afternoon = false;
+    $is_study_sunday_morning = false;
+    $is_study_sunday_afternoon = false;
+
+    foreach($courses as $course) {
+      // Scan T2 -> T6 find tìm buổi học của người dùng này nếu có.
+      // nếu tìm được một buổi học trong khoảng t2 -> t6 thì ghi nhận tổng số buổi học đó
+      for ($i=0; $i < $number_room; $i++) { 
+        // tìm trong khoảng t2 đến t6 chỉ gồm 5 ngày.
+        for ($j=0; $j < $number_day - 2; $j++) { 
+          for ($k=0; $k < $number_session; $k++) { 
+            if(!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+              if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+                $user_study_sesstion_on_t2_t6++;
+              }
+            }
+          }
+        } 
+      }
+      // Kiểm tra xem người này có học cả buổi sáng và buổi chiều của ngày t7 hoặc cn
+      // Kiểm tra cho buổi sáng.
+      for ($i=0; $i < $number_room; $i++) { 
+        // tìm trong khoảng t7 đến cn chỉ gồm 2 ngày.
+        for ($j= $number_day - 2; $j < $number_day; $j++) { 
+          for ($k=0; $k < STT_CLASS_SESSIONS[6]; $k++) { 
+            if(!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+              if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+                if($j == 5) {
+                  $is_study_saturday_morning = true;
+                }
+                else {
+                  $is_study_sunday_morning = true;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Kiểm tra cho buổi chiều.
+      for ($i=0; $i < $number_room; $i++) { 
+        // tìm trong khoảng t7 đến cn chỉ gồm 2 ngày.
+        for ($j= $number_day - 2; $j < $number_day; $j++) { 
+          for ($k=STT_CLASS_SESSIONS[6]; $k < STT_CLASS_SESSIONS[10]; $k++) { 
+            if(!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+              if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+                if($j == 5) {
+                  $is_study_saturday_afternoon = true;
+                }
+                else {
+                  $is_study_sunday_afternoon = true;
+                }
+              }
+            }
+          }
+        } 
+      }
+      // kiểm tra đk học cả hai buổi sáng chiều ngày t7 / cn và có thêm nhiều hơn 1 buổi các ngày t2 - t6
+      if (($is_study_saturday_morning && $is_study_saturday_afternoon && $user_study_sesstion_on_t2_t6 >= 1) 
+          || ($is_study_sunday_morning && $is_study_sunday_afternoon && $user_study_sesstion_on_t2_t6 >= 1)) {
+        $total_score_violation += VP_SP1_GRAVE_VIOLATION * UT_ST1;
+      }
+      else if (($is_study_saturday_morning && $is_study_saturday_afternoon) 
+          || ($is_study_sunday_morning && $is_study_sunday_afternoon)) {
+        $total_score_violation += VP_ST1_SERIOUS_VIOLATION * UT_ST1;
+      }
+      else if ($is_study_saturday_afternoon && $is_study_sunday_morning) {
+        $total_score_violation += VP_ST1_MINOR_VIOLATION * UT_ST1;
+      }
+      else {
+        $total_score_violation += VP_ST1_NO_VIOLATION * UT_ST1;
+      }
+    }
+  }
+
+  return $total_score_violation;
+}
   /**
    * ST2: Thời khóa biểu của một sinh viên (hay một lớp cứng) các tiết học của một buổi học phải được sắp xếp liên tục
    * hạn chế việc có các tiết học trống trong một buổi học.
@@ -489,11 +667,26 @@ const VP_ST2_GRAVE_VIOLATION = 4;
 const VP_ST2_SERIOUS_VIOLATION = 3;
 // ở giữa có 2 tiết trống 
 const VP_ST2_MODERATE_VIOLATION = 2;
-// ở giữa có 1 tiết trống 
+ 
 const VP_ST2_MINOR_VIOLATION = 1;
 // không có vi phạm 
 const VP_ST2_NO_VIOLATION = 0;
 
+function check_class_session_continuously($calendar) {
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+
+  $number_empty_place_greate_than_3 = 0;
+  $number_empty_place_equal_3 = 0;
+  $number_empty_place_equal_2 = 0;
+
+  $total_score_violation = 0;
+
+  
+
+  return $total_score_violation;
+}
    /**
     * ST3: Các lớp học- môn học được xếp sao cho 
     * buổi học mà giảng viên trợ giảng lên lớp học - môn học là ít nhất nhưng số tiết dạy là nhiều nhất
