@@ -24,20 +24,30 @@
 
 /**
  * Summary of TIME_ZONE
- * @var string Define the timezone for the course calendar. 'Asia/Ho_Chi_Minh'
+ * Define the timezone for the course calendar. 'Asia/Ho_Chi_Minh'
+ * @var string 
  */
 const TIME_ZONE = 'Asia/Ho_Chi_Minh';
 /**
  * Summary of MAX_CALENDAR_NUMBER
- * @var int Số lượng thời khóa biểu ban đầu của quần thể
+ * Số lượng thời khóa biểu ban đầu của quần thể
+ * @var int 
  */
 const MAX_CALENDAR_NUMBER = 50;
 
 /**
  * Summary of MAX_STEP_OF_CROSSOVER_OPERATIONS
- * @var int Số lượng bước lai ghép tối đa trong một thế hệ.
+ * Số lượng lần lai ghép tối đa trong một thế hệ.
+ * @var int 
  */
-const MAX_STEP_OF_CROSSOVER_OPERATIONS = 20;
+const MAX_NUMBER_OF_CROSSOVER_OPERATIONS_IN_ONE_GENERATION = 20;
+
+/**
+ * Summary of MAX_NUMBER_OF_GENERATION
+ * Số lượng thế hệ tối đa có thể lai ghép
+ * @var int
+ */
+const MAX_NUMBER_OF_GENERATION = 3;
 
 // CÀI ĐẶT THÔNG TIN CẤU HÌNH CHO PLUGIN LOCAL COURSE CALENDAR
 // CÀI ĐẶT CÁC LUẬT RÀNG BUỘC CHO XỬ LÝ THỜI KHÓA BIỂU
@@ -381,17 +391,17 @@ const UT_HT4 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT4
  */
 function is_holiday($date)
 {
-  global $DB;
-  $holiday_records = $DB->get_records('local_course_calendar_holiday');
-  if (empty($holiday_records)) {
-    return false;
-  } else {
-    foreach ($holiday_records as $holiday) {
-      if (date('d-m-Y', $date) === date('d-m-Y', $holiday)) {
-        return true;
-      }
-    }
-  }
+  // global $DB;
+  // $holiday_records = $DB->get_records('local_course_calendar_holiday');
+  // if (empty($holiday_records)) {
+  //   return false;
+  // } else {
+  //   foreach ($holiday_records as $holiday) {
+  //     if (date('d-m-Y', $date) === date('d-m-Y', $holiday)) {
+  //       return true;
+  //     }
+  //   }
+  // }
   return false;
 }
 
@@ -650,6 +660,7 @@ function check_student_study_all_day($calendar)
   $total_score_violation = 0;
 
   $users_join_course_sql = "SELECT
+                          CONCAT(user.id, c.id) id,
                           user.id userid, 
                           user.firstname user_firstname, 
                           user.lastname user_lastname
@@ -675,6 +686,7 @@ function check_student_study_all_day($calendar)
 
   foreach ($users as $user) {
     $course_sql = "SELECT
+                        CONCAT(user.id, c.id) id,
                         user.id userid, 
                         user.firstname user_firstname, 
                         user.lastname user_lastname, 
@@ -875,6 +887,7 @@ function check_largest_teaching_hours($calendar)
   $total_score_violation = 0;
 
   $users_join_course_sql = "SELECT
+                          CONCAT(user.id, r.id , c.id) id,
                           user.id userid, 
                           user.firstname user_firstname, 
                           user.lastname user_lastname
@@ -900,6 +913,7 @@ function check_largest_teaching_hours($calendar)
 
   foreach ($users as $user) {
     $course_sql = "SELECT
+                        CONCAT(user.id, r.id, c.id) id,
                         user.id userid, 
                         user.firstname user_firstname, 
                         user.lastname user_lastname, 
@@ -1251,7 +1265,7 @@ const VP_SP2_MODERATE_VIOLATION = 2;
 const VP_SP2_MINOR_VIOLATION = 1;
 // sĩ số lớn hơn 2/3 sức chứa của phòng.
 const VP_SP2_NO_VIOLATION = 0;
-function evaluate_function($calendar, $stt_calendar)
+function evaluate_function($calendar, $calendar_index)
 {
   $total_score_violation = 0;
   $number_room = count($calendar);
@@ -1263,27 +1277,295 @@ function evaluate_function($calendar, $stt_calendar)
       for ($k = 0; $k < $number_session; $k++) {
         $course_session_information = $calendar[$i][$j][$k];
         if (!empty($course_session_information) and isset($course_session_information->courseid)) {
-          $total_score_violation += check_class_duration_in_one_session($course_session_information->course_session_start_time, $course_session_information->course_session_length)
-            + check_forbidden_session($course_session_information->date, $course_session_information->course_session_start_time, $course_session_information->course_session_length)
-            + check_holiday($course_session_information->date)
-            + check_class_overtime($course_session_information->date, $course_session_information->course_session_end_time)
-            + check_not_enough_number_of_course_session_weekly($calendar, $course_session_information->courseid)
-            + check_study_double_session_of_same_course_on_one_day($calendar, $course_session_information->courseid)
-            + check_duplicate_course_at_same_room_at_same_time($calendar, $course_session_information->random_room_stt, $course_session_information->date, $course_session_information->course_session_start_time)
-            + check_student_study_all_day($calendar)
-            + check_class_session_continuously($calendar)
-            + check_largest_teaching_hours($calendar)
-            + check_priority_order_of_class_session($calendar)
-            + check_time_gap_between_class_session($calendar)
-            + check_room_gap_between_class_session($calendar);
+          $total_score_violation += check_class_duration_in_one_session($course_session_information->course_session_start_time, $course_session_information->course_session_length);
+          $total_score_violation += check_forbidden_session($course_session_information->date, $course_session_information->course_session_start_time, $course_session_information->course_session_length);
+          $total_score_violation += check_holiday($course_session_information->date);
+          $total_score_violation += check_class_overtime($course_session_information->date, $course_session_information->course_session_end_time);
+          $total_score_violation += check_not_enough_number_of_course_session_weekly($calendar, $course_session_information->courseid);
+          $total_score_violation += check_study_double_session_of_same_course_on_one_day($calendar, $course_session_information->courseid);
+          $total_score_violation += check_duplicate_course_at_same_room_at_same_time($calendar, $course_session_information->random_room_stt, $course_session_information->date, $course_session_information->course_session_start_time);
+          $total_score_violation += check_student_study_all_day($calendar);
+          $total_score_violation += check_class_session_continuously($calendar);
+          $total_score_violation += check_largest_teaching_hours($calendar);
+          $total_score_violation += check_priority_order_of_class_session($calendar);
+          $total_score_violation += check_time_gap_between_class_session($calendar);
+          $total_score_violation += check_room_gap_between_class_session($calendar);
         }
       }
     }
   }
-  return [$total_score_violation, $stt_calendar];
+  return ['total_score_violation' => $total_score_violation, 'calendar_index' => $calendar_index];
+}
+
+function hybridization_method_by_day($father_calendar, $mother_calendar, $random_alpha_gen_index)
+{
+  $number_room = count($father_calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+  $children_calendar = [];
+
+  // tạo con bên tay phải trước 
+  // con bên tay phải được định nghĩa là con mà tại vị trí gen alpha dùng để ghép và bên phải của alpha là gen của mẹ
+  // ràng buộc là vị trí alpha [1, day_number - 1] để đảm bảo luôn luôn có ít nhất 1 gen là của cha hoặc của mẹ
+  if ($random_alpha_gen_index >= 1) {
+    $s1_right_hand_side_child_calendar = deep_copy_calendar_array($father_calendar);
+    for ($i = 0; $i < $number_room; $i++) {
+      for ($j = $random_alpha_gen_index; $j < $number_day; $j++) {
+        for ($k = 0; $k < $number_session; $k++) {
+          $s1_right_hand_side_child_calendar[$i][$j][$k] = new course_session_information(
+            $mother_calendar[$i][$j][$k]->courseid,
+            $mother_calendar[$i][$j][$k]->course_name,
+            $mother_calendar[$i][$j][$k]->course_session_length,
+            $mother_calendar[$i][$j][$k]->course_session_start_time,
+            $mother_calendar[$i][$j][$k]->course_session_end_time,
+            $mother_calendar[$i][$j][$k]->editting_teacherid,
+            $mother_calendar[$i][$j][$k]->non_editting_teacherid,
+            $mother_calendar[$i][$j][$k]->date,
+            $mother_calendar[$i][$j][$k]->random_room_stt,
+            $mother_calendar[$i][$j][$k]->room,
+            $mother_calendar[$i][$j][$k]->floor,
+            $mother_calendar[$i][$j][$k]->building,
+            $mother_calendar[$i][$j][$k]->ward,
+            $mother_calendar[$i][$j][$k]->district,
+            $mother_calendar[$i][$j][$k]->province
+          );
+        }
+      }
+    }
+
+    $children_calendar[] = $s1_right_hand_side_child_calendar;
+  }
+
+  // tạo con bên tay trái
+  // con bên tay trái được định nghĩa là con mà tại vị trí gen alpha - 1 dùng để ghép và bên trái của alpha - 1 là gen của mẹ
+  // ràng buộc là vị trí của gen alpha [0, day_number - 2] để đảm bảo luôn luôn có ít nhất 1 gen là của cha hoặc của mẹ.
+  if ($random_alpha_gen_index <= $number_day - 2) {
+    $s2_left_hand_side_child_calendar = deep_copy_calendar_array($father_calendar);
+    for ($i = 0; $i < $number_room; $i++) {
+      for ($j = 0; $j <= $random_alpha_gen_index; $j++) {
+        for ($k = 0; $k < $number_session; $k++) {
+          $s2_left_hand_side_child_calendar[$i][$j][$k] = new course_session_information(
+            $mother_calendar[$i][$j][$k]->courseid,
+            $mother_calendar[$i][$j][$k]->course_name,
+            $mother_calendar[$i][$j][$k]->course_session_length,
+            $mother_calendar[$i][$j][$k]->course_session_start_time,
+            $mother_calendar[$i][$j][$k]->course_session_end_time,
+            $mother_calendar[$i][$j][$k]->editting_teacherid,
+            $mother_calendar[$i][$j][$k]->non_editting_teacherid,
+            $mother_calendar[$i][$j][$k]->date,
+            $mother_calendar[$i][$j][$k]->random_room_stt,
+            $mother_calendar[$i][$j][$k]->room,
+            $mother_calendar[$i][$j][$k]->floor,
+            $mother_calendar[$i][$j][$k]->building,
+            $mother_calendar[$i][$j][$k]->ward,
+            $mother_calendar[$i][$j][$k]->district,
+            $mother_calendar[$i][$j][$k]->province
+          );
+        }
+      }
+    }
+
+    $children_calendar[] = $s2_left_hand_side_child_calendar;
+  }
+
+  return $children_calendar;
+}
+
+function hybridization_method_by_session($father_calendar, $mother_calendar, $random_alpha_gen_index)
+{
+  $children_calendar = [];
+  $number_room = count($father_calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+
+  // tạo con bên tay phải trước 
+  // con bên tay phải được định nghĩa là con mà tại vị trí gen alpha dùng để ghép và bên phải của alpha là gen của mẹ
+  // ràng buộc là vị trí alpha [1, session_number - 1] để đảm bảo luôn luôn có ít nhất 1 gen là của cha hoặc của mẹ
+  if ($random_alpha_gen_index >= 1) {
+    $s1_right_hand_side_child_calendar = deep_copy_calendar_array($father_calendar);
+    for ($i = 0; $i < $number_room; $i++) {
+      for ($j = 0; $j < $number_day; $j++) {
+        for ($k = $random_alpha_gen_index; $k < $number_session; $k++) {
+          $s1_right_hand_side_child_calendar[$i][$j][$k] = new course_session_information(
+            $mother_calendar[$i][$j][$k]->courseid,
+            $mother_calendar[$i][$j][$k]->course_name,
+            $mother_calendar[$i][$j][$k]->course_session_length,
+            $mother_calendar[$i][$j][$k]->course_session_start_time,
+            $mother_calendar[$i][$j][$k]->course_session_end_time,
+            $mother_calendar[$i][$j][$k]->editting_teacherid,
+            $mother_calendar[$i][$j][$k]->non_editting_teacherid,
+            $mother_calendar[$i][$j][$k]->date,
+            $mother_calendar[$i][$j][$k]->random_room_stt,
+            $mother_calendar[$i][$j][$k]->room,
+            $mother_calendar[$i][$j][$k]->floor,
+            $mother_calendar[$i][$j][$k]->building,
+            $mother_calendar[$i][$j][$k]->ward,
+            $mother_calendar[$i][$j][$k]->district,
+            $mother_calendar[$i][$j][$k]->province
+          );
+        }
+      }
+    }
+
+    $children_calendar[] = $s1_right_hand_side_child_calendar;
+  }
+
+  // tạo con bên tay trái
+  // con bên tay trái được định nghĩa là con mà tại vị trí gen alpha - 1 dùng để ghép và bên trái của alpha - 1 là gen của mẹ
+  // ràng buộc là vị trí của gen alpha [0, session_number - 2] để đảm bảo luôn luôn có ít nhất 1 gen là của cha hoặc của mẹ.
+  if ($random_alpha_gen_index <= $number_day - 2) {
+    $s2_left_hand_side_child_calendar = deep_copy_calendar_array($father_calendar);
+    for ($i = 0; $i < $number_room; $i++) {
+      for ($j = 0; $j < $number_day; $j++) {
+        for ($k = 0; $k <= $random_alpha_gen_index; $k++) {
+          $s2_left_hand_side_child_calendar[$i][$j][$k] = new course_session_information(
+            $mother_calendar[$i][$j][$k]->courseid,
+            $mother_calendar[$i][$j][$k]->course_name,
+            $mother_calendar[$i][$j][$k]->course_session_length,
+            $mother_calendar[$i][$j][$k]->course_session_start_time,
+            $mother_calendar[$i][$j][$k]->course_session_end_time,
+            $mother_calendar[$i][$j][$k]->editting_teacherid,
+            $mother_calendar[$i][$j][$k]->non_editting_teacherid,
+            $mother_calendar[$i][$j][$k]->date,
+            $mother_calendar[$i][$j][$k]->random_room_stt,
+            $mother_calendar[$i][$j][$k]->room,
+            $mother_calendar[$i][$j][$k]->floor,
+            $mother_calendar[$i][$j][$k]->building,
+            $mother_calendar[$i][$j][$k]->ward,
+            $mother_calendar[$i][$j][$k]->district,
+            $mother_calendar[$i][$j][$k]->province
+          );
+        }
+      }
+    }
+
+    $children_calendar[] = $s2_left_hand_side_child_calendar;
+  }
+
+  return $children_calendar;
+}
+
+function hybridization_method_by_room($father_calendar, $mother_calendar, $random_alpha_gen_index)
+{
+  $children_calendar = [];
+  $number_room = count($father_calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+
+  // tạo con bên tay phải trước 
+  // con bên tay phải được định nghĩa là con mà tại vị trí gen alpha dùng để ghép và bên phải của alpha là gen của mẹ
+  // ràng buộc là vị trí alpha [1, session_number - 1] để đảm bảo luôn luôn có ít nhất 1 gen là của cha hoặc của mẹ
+  if ($random_alpha_gen_index >= 1) {
+    $s1_right_hand_side_child_calendar = deep_copy_calendar_array($father_calendar);
+    for ($i = $random_alpha_gen_index; $i < $number_room; $i++) {
+      for ($j = 0; $j < $number_day; $j++) {
+        for ($k = 0; $k < $number_session; $k++) {
+          $s1_right_hand_side_child_calendar[$i][$j][$k] = new course_session_information(
+            $mother_calendar[$i][$j][$k]->courseid,
+            $mother_calendar[$i][$j][$k]->course_name,
+            $mother_calendar[$i][$j][$k]->course_session_length,
+            $mother_calendar[$i][$j][$k]->course_session_start_time,
+            $mother_calendar[$i][$j][$k]->course_session_end_time,
+            $mother_calendar[$i][$j][$k]->editting_teacherid,
+            $mother_calendar[$i][$j][$k]->non_editting_teacherid,
+            $mother_calendar[$i][$j][$k]->date,
+            $mother_calendar[$i][$j][$k]->random_room_stt,
+            $mother_calendar[$i][$j][$k]->room,
+            $mother_calendar[$i][$j][$k]->floor,
+            $mother_calendar[$i][$j][$k]->building,
+            $mother_calendar[$i][$j][$k]->ward,
+            $mother_calendar[$i][$j][$k]->district,
+            $mother_calendar[$i][$j][$k]->province
+          );
+        }
+      }
+    }
+
+    $children_calendar[] = $s1_right_hand_side_child_calendar;
+  }
+
+  // tạo con bên tay trái
+  // con bên tay trái được định nghĩa là con mà tại vị trí gen alpha - 1 dùng để ghép và bên trái của alpha - 1 là gen của mẹ
+  // ràng buộc là vị trí của gen alpha [0, session_number - 2] để đảm bảo luôn luôn có ít nhất 1 gen là của cha hoặc của mẹ.
+  if ($random_alpha_gen_index <= $number_day - 2) {
+    $s2_left_hand_side_child_calendar = deep_copy_calendar_array($father_calendar);
+    for ($i = 0; $i <= $random_alpha_gen_index; $i++) {
+      for ($j = 0; $j < $number_day; $j++) {
+        for ($k = 0; $k < $number_session; $k++) {
+          $s2_left_hand_side_child_calendar[$i][$j][$k] = new course_session_information(
+            $mother_calendar[$i][$j][$k]->courseid,
+            $mother_calendar[$i][$j][$k]->course_name,
+            $mother_calendar[$i][$j][$k]->course_session_length,
+            $mother_calendar[$i][$j][$k]->course_session_start_time,
+            $mother_calendar[$i][$j][$k]->course_session_end_time,
+            $mother_calendar[$i][$j][$k]->editting_teacherid,
+            $mother_calendar[$i][$j][$k]->non_editting_teacherid,
+            $mother_calendar[$i][$j][$k]->date,
+            $mother_calendar[$i][$j][$k]->random_room_stt,
+            $mother_calendar[$i][$j][$k]->room,
+            $mother_calendar[$i][$j][$k]->floor,
+            $mother_calendar[$i][$j][$k]->building,
+            $mother_calendar[$i][$j][$k]->ward,
+            $mother_calendar[$i][$j][$k]->district,
+            $mother_calendar[$i][$j][$k]->province
+          );
+        }
+      }
+    }
+
+    $children_calendar[] = $s2_left_hand_side_child_calendar;
+  }
+
+  return $children_calendar;
+}
+
+function select_good_individuals_in_the_calendar_community($calendar_community, $max_number_of_individuals = MAX_CALENDAR_NUMBER)
+{
+  $good_individuals = [];
+  // Sau mỗi thế hệ lai tạo tiến hành đánh giá lại điểm của mỗi cá thể trong quần thể các thời khóa biểu
+  // Sau đó sort lại mảng calendar_score_violation_array theo thứ tự tăng dần điểm của điểm vi phạm được biểu thị ở cột 'total-score-violation'
+  // Sau đó thực hiện việc chọn lọc chỉ lấy 50 cá thể có điểm nhỏ nhất theo thứ tự index 0 ->49 và xóa các phần tử calendar phía sau index 49.
+
+  $calendar_number = count($calendar_community);
+  $calendar_score_violation_array = [];
+  // đánh giá điểm vi phạm của mỗi calendar trong thế hệ hiện tại.
+  for ($k = 0; $k < $calendar_number; $k++) {
+    $calendar_score_violation_array[] = evaluate_function($calendar_community[$k], $k);
+  }
+
+  // sắp xếp lại mảng $calendar_score_violation_array
+  array_multisort(array_column($calendar_score_violation_array, 'total_score_violation'), SORT_ASC, SORT_REGULAR, $calendar_score_violation_array);
+
+  for ($i = 0; $i < $max_number_of_individuals; $i++) {
+    $calendar_index = $calendar_score_violation_array[$i]['calendar_index'];
+    $good_individuals[] = deep_copy_calendar_array($calendar_community[$calendar_index]);
+  }
+  return $good_individuals;
 }
 function genetic_algorithm($initial_calendar_community)
 {
+  for ($i = 0; $i < MAX_NUMBER_OF_GENERATION; $i++) {
+    $calendar_number = count($initial_calendar_community);
+    for ($j = 0; $j < MAX_NUMBER_OF_CROSSOVER_OPERATIONS_IN_ONE_GENERATION; $j++) {
+      $random_father_calendar_index = random_int(0, $calendar_number - 1);
+      $random_mother_calendar_index = random_int(0, $calendar_number - 1);
+      $random_hybridization_method = random_int(0, 2);
+      $random_alpha_gen_index = 0;
+
+      if ($random_hybridization_method == 0) {
+        $random_alpha_gen_index = random_int(0, count(DATES) - 1);
+        $initial_calendar_community += hybridization_method_by_day($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
+      } elseif ($random_hybridization_method == 1) {
+        $random_alpha_gen_index = random_int(0, count(AVAILABLE_CLASS_SESSIONS) - 1);
+        $initial_calendar_community += hybridization_method_by_session($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
+      } else {
+        $random_alpha_gen_index = random_int(0, count($initial_calendar_community[0]) - 1);
+        $initial_calendar_community += hybridization_method_by_room($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
+      }
+    }
+
+    $initial_calendar_community = select_good_individuals_in_the_calendar_community($initial_calendar_community);
+  }
 
   return $initial_calendar_community;
 }
