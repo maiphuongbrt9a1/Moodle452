@@ -26,16 +26,16 @@
 require('../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
-require_once($CFG->dirroot .'/local/course_calendar/classes/form/edit_total_lesson_for_course.php');
+require_once($CFG->dirroot . '/local/course_calendar/classes/form/edit_total_lesson_for_course.php');
 
 try {
     require_login();
-    
+
     $courseid = optional_param('courseid', 1, PARAM_INT);
     if ($courseid <= 1) {
-        throw new \moodle_exception('invalidcourseid '. $courseid, 'local_course_calendar');
+        throw new \moodle_exception('invalidcourseid ' . $courseid, 'local_course_calendar');
     }
-    
+
     require_capability('local/course_calendar:edit_total_lesson_for_course', context_course::instance($courseid));
     $PAGE->set_context(context_course::instance($courseid));
     $PAGE->set_url(new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', ['courseid' => $courseid]));
@@ -47,29 +47,29 @@ try {
     // Instantiate the myform form from within the plugin.
     $mform = new \local_course_calendar\form\edit_total_lesson_for_course_form();
     $toform = '';
-    
+
     // Form processing and displaying is done here.
     if ($mform->is_cancelled()) {
         // If there is a cancel element on the form, and it was pressed,
         // then the `is_cancelled()` function will return true.
         // You can handle the cancel operation here.
-        redirect( new moodle_url('/course/view.php', ['id' => $courseid]), 'Cancelled edit total lesson information for course.', 0, \core\output\notification::NOTIFY_ERROR);
+        redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Cancelled edit total lesson information for course.', 0, \core\output\notification::NOTIFY_ERROR);
     } else if ($fromform = $mform->get_data()) {
-        
+
         global $PAGE, $OUTPUT, $DB, $USER;
         $courseid = $fromform->courseid;
-        
+
         if ($courseid <= 1) {
-            throw new \moodle_exception('invalidcourseid '. $courseid, 'local_course_calendar');
+            throw new \moodle_exception('invalidcourseid ' . $courseid, 'local_course_calendar');
         }
-         
+
         // When the form is submitted, and the data is successfully validated,
         // the `get_data()` function will return the data posted in the form.
-        
+
         // find children information from user table in system.
         // if have student information then insert information to children_and_parent_information table
         // if not information about student then return add new child fail because don't have this account in system
-        
+
         // Check and search student information 
         // prepare search condition
         $total_lesson_for_course = $fromform->total_lesson_for_course;
@@ -89,12 +89,12 @@ try {
                     )";
 
         $course = $DB->get_record_sql($sql, $params);
-        
+
         if (!$course) {
-            
+
             redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Error: This course with course ID: ' . $courseid_search_query . ' was not found.', 0, \core\output\notification::NOTIFY_ERROR);
         } else {
-            
+
             // If have information about student. Add this information to children_and_parent_information table
             $data = new stdClass();
             $data->courseid = $courseid;
@@ -105,12 +105,12 @@ try {
             $data->modified_user_id = $USER->id;
             $data->createtime = time();
             $data->lastmodifytime = time();
-    
+
             if ($DB->insert_record('local_course_calendar_total_course_lesson', $data)) {
-                redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Add new total lesson number for course with course ID: '. $courseid_search_query .' successfully', 0, \core\output\notification::NOTIFY_SUCCESS);
+                redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Add new total lesson number for course with course ID: ' . $courseid_search_query . ' successfully', 0, \core\output\notification::NOTIFY_SUCCESS);
 
             } else {
-                redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Error: Add new total lesson number for course with course ID: '. $courseid_search_query .' failed', 0, \core\output\notification::NOTIFY_ERROR);
+                redirect(new moodle_url('/course/view.php', ['id' => $courseid]), 'Error: Add new total lesson number for course with course ID: ' . $courseid_search_query . ' failed', 0, \core\output\notification::NOTIFY_ERROR);
             }
         }
 
@@ -125,15 +125,15 @@ try {
     }
 
     echo $OUTPUT->header();
-    
+
     $mform->display();
-    
+
     echo $OUTPUT->footer();
-    
+
 } catch (Exception $e) {
     echo "<pre>";
-        var_dump($e->getTrace());
+    var_dump($e->getTrace());
     echo "</pre>";
-    
+
     throw new \moodle_exception('error', 'local_course_calendar', '', null, $e->getMessage());
 }

@@ -55,30 +55,32 @@ const MAX_STEP_OF_CROSSOVER_OPERATIONS = 20;
  * mức độ vừa (moderate violation) hệ số 2, mức độ nhẹ (minor violation) hệ số 1 và không vi phạm hệ số là 0. 
  */
 
- /**
-  * giờ học buổi sáng chỉ áp dụng cho ngày t7, cn bắt đầu từ 7h30 sáng đến 12h trưa (gồm 3 ca 1h30 phút)
-  * buổi chiều bắt đầu từ 1h30 chiều đến 4h30 chiều (gồm 2 ca 1h30 phút)
-  * buổi tối bắt đầu lúc 5h30 chiều đến 22h tối (gồm 3 ca 1h30 phút)
-  * Có một tiếng nghỉ 4h30 đến 5h30 cho giảng viên nghỉ ăn tối
-  * có 1h30 phút nghỉ trưa từ 12h trưa đến 13h30 phút chiều.
+/**
+ * giờ học buổi sáng chỉ áp dụng cho ngày t7, cn bắt đầu từ 7h30 sáng đến 12h trưa (gồm 3 ca 1h30 phút)
+ * buổi chiều bắt đầu từ 1h30 chiều đến 4h30 chiều (gồm 2 ca 1h30 phút)
+ * buổi tối bắt đầu lúc 5h30 chiều đến 22h tối (gồm 3 ca 1h30 phút)
+ * Có một tiếng nghỉ 4h30 đến 5h30 cho giảng viên nghỉ ăn tối
+ * có 1h30 phút nghỉ trưa từ 12h trưa đến 13h30 phút chiều.
 
-  * Tổng ngày t7 cn có tất cả 8 ca dạy
-  * ngày t2 - t6 có 5 ca dạy
-  */
+ * Tổng ngày t7 cn có tất cả 8 ca dạy
+ * ngày t2 - t6 có 5 ca dạy
+ */
 
 
 /**
  * Summary of DATES
- * @var array define date of week ['monday' = 0, 'tuesday' = 1, 'wednesday' = 2, 'thursday' = 3, 'friday' = 4, 'saturday' = 5, 'sunday' = 6]
+ * define date of week ['monday' = 0, 'tuesday' = 1, 'wednesday' = 2, 'thursday' = 3, 'friday' = 4, 'saturday' = 5, 'sunday' = 6]
+ * @var array 
  */
-const DATES= ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DATES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 
 /**
  * Summary of AVAILABLE_CLASS_SESSIONS
- * @var array define available class sesstions ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15']
+ * define available class sesstions ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15']
+ * @var array 
  */
-const AVAILABLE_CLASS_SESSIONS = ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15'];
+const AVAILABLE_CLASS_SESSIONS = ['7:30', '8:15', '9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15'];
 /**
  * STT Tiết | Khung giờ |         Buổi ||
  *Tiết 0            7h30 - 8h15       Buổi Sáng ||
@@ -98,32 +100,35 @@ const AVAILABLE_CLASS_SESSIONS = ['7:30','8:15','9:00', '9:45', '10:30', '11:15'
  *Tiết 14            20:30 - 21:15       Buổi Tối ||
  *Tiết 15           21:15 - 22:00       Buổi Tối
  */
-const STT_CLASS_SESSIONS = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
-const START_MORNING = '7:30';
-const END_MORNING = '12:00';
-const START_AFTERNOON = '13:30';
-const END_AFTERNOON = '16:30';
-const START_EVENING = '17:30';
-const END_EVENING = '22:00';
+const STT_CLASS_SESSIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+const START_MORNING = STT_CLASS_SESSIONS[0];
+const END_MORNING = STT_CLASS_SESSIONS[6];
+const START_AFTERNOON = STT_CLASS_SESSIONS[6];
+const END_AFTERNOON = STT_CLASS_SESSIONS[10];
+const START_EVENING = STT_CLASS_SESSIONS[10];
+const END_EVENING = STT_CLASS_SESSIONS[15];
 
 /**
  * Summary of TIME_SLOT_DURATION
- * @var int Thời gian mỗi tiết học là 45 phút
+ * Thời gian mỗi tiết học là 45 phút
+ * @var int 
  */
-const TIME_SLOT_DURATION = 45*60;
+const TIME_SLOT_DURATION = 45 * 60;
 
 /**
  * Summary of CLASS_DURATION
- * @var int Thời gian mỗi ca học là 90 phút (2 tiết học x 45 phút)
+ * Thời gian mỗi ca học là 90 phút (2 tiết học x 45 phút)
+ * @var int 
  */
-const CLASS_DURATION = 90 * 60; 
+const CLASS_DURATION = 90 * 60;
 /**
  * Summary of number_course_session_weekly
  * @var int
  */
 const NUMBER_COURSE_SESSION_WEEKLY = 2;
 
-class course_session_information {
+class course_session_information
+{
   public $courseid;
   public $course_name;
   public $course_session_length;
@@ -132,20 +137,37 @@ class course_session_information {
 
   public $editting_teacherid;
   public $non_editting_teacherid;
-
   public $date;
+  public $random_room_stt;
   public $room;
 
-  public function __construct($courseid = null, 
-                              $course_name = null, 
-                              $course_session_length = null, 
-                              $course_session_start_time = null,
-                              $course_session_end_time = null, 
-                              $editting_teacherid = null,
-                              $non_editting_teacherid = null,
-                              $date = null,
-                              $room = null)
-  {
+  public $floor;
+
+  public $building;
+
+  public $ward;
+
+  public $district;
+
+  public $province;
+
+  public function __construct(
+    $courseid = null,
+    $course_name = null,
+    $course_session_length = null,
+    $course_session_start_time = null,
+    $course_session_end_time = null,
+    $editting_teacherid = null,
+    $non_editting_teacherid = null,
+    $date = null,
+    $random_room_stt = null,
+    $room = null,
+    $floor = null,
+    $building = null,
+    $ward = null,
+    $district = null,
+    $province = null
+  ) {
     $this->courseid = $courseid;
     $this->course_name = $course_name;
     $this->course_session_length = $course_session_length;
@@ -154,19 +176,32 @@ class course_session_information {
     $this->editting_teacherid = $editting_teacherid;
     $this->non_editting_teacherid = $non_editting_teacherid;
     $this->date = $date;
+    $this->random_room_stt = $random_room_stt;
     $this->room = $room;
+    $this->floor = $floor;
+    $this->building = $building;
+    $this->ward = $ward;
+    $this->district = $district;
+    $this->province = $province;
   }
 
-  public function set_value($courseid = null, 
-                              $course_name = null, 
-                              $course_session_length = null, 
-                              $course_session_start_time = null,
-                              $course_session_end_time = null, 
-                              $editting_teacherid = null,
-                              $non_editting_teacherid = null,
-                              $date = null,
-                              $room = null)
-  {
+  public function set_value(
+    $courseid = null,
+    $course_name = null,
+    $course_session_length = null,
+    $course_session_start_time = null,
+    $course_session_end_time = null,
+    $editting_teacherid = null,
+    $non_editting_teacherid = null,
+    $date = null,
+    $random_room_stt = null,
+    $room = null,
+    $floor = null,
+    $building = null,
+    $ward = null,
+    $district = null,
+    $province = null
+  ) {
     $this->courseid = $courseid;
     $this->course_name = $course_name;
     $this->course_session_length = $course_session_length;
@@ -175,37 +210,50 @@ class course_session_information {
     $this->editting_teacherid = $editting_teacherid;
     $this->non_editting_teacherid = $non_editting_teacherid;
     $this->date = $date;
+    $this->random_room_stt = $random_room_stt;
     $this->room = $room;
+    $this->floor = $floor;
+    $this->building = $building;
+    $this->ward = $ward;
+    $this->district = $district;
+    $this->province = $province;
   }
 }
 
-function deep_clone_array($array) {
+function deep_copy_calendar_array($calendar_array)
+{
   $clone = array();
-  $number_room = count($array);
+  $number_room = count($calendar_array);
   $number_day = count(DATES);
   $number_class_sessions = count(AVAILABLE_CLASS_SESSIONS);
 
-  for ($i=0; $i < $number_room; $i++) { 
-      $clone[] = [];
-      for ($j = 0; $j < $number_day; $j++) {
-        $clone[$i][] = [];
-        for ($k=0; $k < $number_class_sessions; $k++) { 
-          $clone[$i][$j][] = new course_session_information
-          (
-            $array[$i][$j][$k]->courseid,
-            $array[$i][$j][$k]->course_name,
-            $array[$i][$j][$k]->course_session_length,
-            $array[$i][$j][$k]->course_session_start_time,
-            $array[$i][$j][$k]->course_session_end_time,
-            $array[$i][$j][$k]->editting_teacherid,
-            $array[$i][$j][$k]->non_editting_teacherid,
-            $array[$i][$j][$k]->date,
-            $array[$i][$j][$k]->room
-          );
-          
-        }
+  for ($i = 0; $i < $number_room; $i++) {
+    $clone[] = [];
+    for ($j = 0; $j < $number_day; $j++) {
+      $clone[$i][] = [];
+      for ($k = 0; $k < $number_class_sessions; $k++) {
+        $clone[$i][$j][] = new course_session_information
+        (
+          $calendar_array[$i][$j][$k]->courseid,
+          $calendar_array[$i][$j][$k]->course_name,
+          $calendar_array[$i][$j][$k]->course_session_length,
+          $calendar_array[$i][$j][$k]->course_session_start_time,
+          $calendar_array[$i][$j][$k]->course_session_end_time,
+          $calendar_array[$i][$j][$k]->editting_teacherid,
+          $calendar_array[$i][$j][$k]->non_editting_teacherid,
+          $calendar_array[$i][$j][$k]->date,
+          $calendar_array[$i][$j][$k]->random_room_stt,
+          $calendar_array[$i][$j][$k]->room,
+          $calendar_array[$i][$j][$k]->floor,
+          $calendar_array[$i][$j][$k]->building,
+          $calendar_array[$i][$j][$k]->ward,
+          $calendar_array[$i][$j][$k]->district,
+          $calendar_array[$i][$j][$k]->province
+        );
+
       }
     }
+  }
   return $clone;
 }
 
@@ -222,33 +270,40 @@ const UT_HT1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT1
  * @param mixed $class_start_time Start time of class
  * @return boolean true if start time and end time are in one session (Morning session/ Afternoon session or evening session)
  */
-function is_class_duration_in_one_session($class_start_time, $class_duration = CLASS_DURATION) {
-  $class_end_time = (int)$class_start_time + $class_duration;
-  
-  $class_start_time = date('H:i', $class_start_time);
-  $class_end_time = date('H:i', $class_end_time);
-  
-  $start_morning = date('H:i', strtotime('7:30'));
-  $end_morning = date('H:i', strtotime('12:00'));
-  
-  $start_afternoon = date('H:i', strtotime('13:30'));
-  $end_afternoon = date('H:i', strtotime('16:30'));
+function is_class_duration_in_one_session($class_start_time, $class_duration = CLASS_DURATION / TIME_SLOT_DURATION)
+{
+  $class_end_time = (int) $class_start_time + $class_duration;
 
-  $start_everning = date('H:i', strtotime('17:30'));
-  $end_everning = date('H:i', strtotime('22:00'));
+  $start_morning = START_MORNING;
+  $end_morning = END_MORNING;
 
-  if ($class_start_time >= $start_morning and $class_end_time <= $end_morning) {
+  $start_afternoon = START_AFTERNOON;
+  $end_afternoon = END_AFTERNOON;
+
+  $start_everning = START_EVENING;
+  $end_everning = END_EVENING;
+
+  if ($class_start_time >= $start_morning and $class_end_time < $end_morning) {
     return true;
-  }
-  else if ($class_start_time >= $start_afternoon and $class_end_time <= $end_afternoon) {
+  } else if ($class_start_time >= $start_afternoon and $class_end_time < $end_afternoon) {
     return true;
-  }
-  else if ($class_start_time >= $start_everning and $class_end_time <= $end_everning) {
+  } else if ($class_start_time >= $start_everning and $class_end_time <= $end_everning) {
     return true;
-  }
-  else {
+  } else {
     return false;
   }
+}
+
+function check_class_duration_in_one_session($class_start_time, $class_duration = CLASS_DURATION / TIME_SLOT_DURATION)
+{
+  $total_score_violation = 0;
+  if (is_class_duration_in_one_session($class_start_time, $class_duration)) {
+    return 0;
+  } else {
+    $total_score_violation += UT_HT1;
+  }
+
+  return $total_score_violation;
 }
 /*
  *  HT2. Số lớp - môn học được quy định tránh
@@ -264,27 +319,27 @@ const UT_HT2 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT2
  * @param mixed $class_duration durating time of class
  * @return boolean true if is forbidden class sesstion
  */
-function is_forbidden_session ($class_start_time, $class_duration = CLASS_DURATION) {
-  $class_end_time = (int)$class_start_time + $class_duration;
-  
-  $class_start_time = date('H:i', $class_start_time);
-  $class_end_time = date('H:i', $class_end_time);
+function is_forbidden_session($date, $class_start_time, $class_duration = CLASS_DURATION / TIME_SLOT_DURATION)
+{
+  $class_end_time = (int) $class_start_time + $class_duration;
 
-  $start_everning = date('H:i', strtotime('17:30'));
-  $end_everning = date('H:i', strtotime('22:00'));
+  $start_everning = START_EVENING;
+  $end_everning = END_EVENING;
 
+  // ngày được xếp thep thứ tự từ 0->6 [0: mon, 1: tue, 2:wed, 3:thu, 4: fri, 5: sat, 6:sun]
   if (
-      date('D', $class_start_time) === 'Mon' 
-      or date('D', $class_start_time) === 'Tue'
-      or date('D', $class_start_time) === 'Wed'
-      or date('D', $class_start_time) === 'Thu'
-      or date('D', $class_start_time) === 'Fri'
-    ) {
-      if ($class_start_time >= $start_everning and $class_end_time <= $end_everning) {
-        return false;
-      }
+    $date === 0
+    or $date === 1
+    or $date === 2
+    or $date === 3
+    or $date === 4
 
-      return true;
+  ) {
+    if ($class_start_time >= $start_everning and $class_end_time <= $end_everning) {
+      return false;
+    }
+
+    return true;
 
   }
 
@@ -292,38 +347,47 @@ function is_forbidden_session ($class_start_time, $class_duration = CLASS_DURATI
 
 }
 
- /** 
-  * đã hoàn thành ở HT2.
-  * không cần kiểm tra lại.
+function check_forbidden_session($date, $class_start_time, $class_duration = CLASS_DURATION / TIME_SLOT_DURATION)
+{
+  $total_score_violation = 0;
+  if (is_forbidden_session($date, $class_start_time, $class_duration)) {
+    $total_score_violation += UT_HT2;
+  }
+
+  return $total_score_violation;
+}
+/** 
+ * đã hoàn thành ở HT2.
+ * không cần kiểm tra lại.
  *  HT3. Số lớp - môn học được quy định được xếp vào một số tiết học cụ thể nào đó.
  * Đó là vào 7h30 sáng các ngày  thứ 7, chủ nhật và thời điểm kết thúc của môn học cuối cùng là 22h.
  * t7, cn (7h30 - 22h)
  */
 const UT_HT3 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT3
 
- /**
-  * HT4 Thời gian của một lớp học không được trùng vào thời gian nghỉ lễ lớn được quy định trong năm
-    * như Tết Nguyên Đán, Giỗ Tổ Hùng Vương, Quốc Khánh, v.v.
-  * Các ngày nghỉ lễ này thường được quy định trong lịch học của trung tâm giáo dục hoặc trường học.
-  */
+/**
+ * HT4 Thời gian của một lớp học không được trùng vào thời gian nghỉ lễ lớn được quy định trong năm
+ * như Tết Nguyên Đán, Giỗ Tổ Hùng Vương, Quốc Khánh, v.v.
+ * Các ngày nghỉ lễ này thường được quy định trong lịch học của trung tâm giáo dục hoặc trường học.
+ */
 const UT_HT4 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT4
 /**
  * Summary of is_holiday.
  * HT4 Thời gian của một lớp học không được trùng vào thời gian nghỉ lễ lớn được quy định trong năm
-    * như Tết Nguyên Đán, Giỗ Tổ Hùng Vương, Quốc Khánh, v.v.
-  * Các ngày nghỉ lễ này thường được quy định trong lịch học của trung tâm giáo dục hoặc trường học.
- * @param mixed $class_start_time class strat time
+ * như Tết Nguyên Đán, Giỗ Tổ Hùng Vương, Quốc Khánh, v.v.
+ * Các ngày nghỉ lễ này thường được quy định trong lịch học của trung tâm giáo dục hoặc trường học.
+ * @param mixed $date class date
  * @return bool true if this is holiday else false
  */
-function is_holiday($class_start_time) {
+function is_holiday($date)
+{
   global $DB;
   $holiday_records = $DB->get_records('local_course_calendar_holiday');
   if (empty($holiday_records)) {
     return false;
-  }
-  else {
+  } else {
     foreach ($holiday_records as $holiday) {
-      if (date('d-m-Y', $class_start_time) === date('d-m-Y', $holiday)) {
+      if (date('d-m-Y', $date) === date('d-m-Y', $holiday)) {
         return true;
       }
     }
@@ -331,11 +395,19 @@ function is_holiday($class_start_time) {
   return false;
 }
 
-  /**
-   * HT5 Thời gian học của một lớp học không được vượt quá 1h30 phút liên tục.
-   * Điều này có nghĩa là mỗi buổi học không được kéo dài quá 1h30 phút liên tục.
-   * Sau mỗi 1h30 phút học, cần có thời gian nghỉ ngơi hoặc chuyển sang môn học khác.
-   */
+function check_holiday($date)
+{
+  if (is_holiday($date)) {
+    return UT_HT4;
+  }
+
+  return 0;
+}
+/**
+ * HT5 Thời gian học của một lớp học không được vượt quá 1h30 phút liên tục.
+ * Điều này có nghĩa là mỗi buổi học không được kéo dài quá 1h30 phút liên tục.
+ * Sau mỗi 1h30 phút học, cần có thời gian nghỉ ngơi hoặc chuyển sang môn học khác.
+ */
 const UT_HT5 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT5
 /**
  * Summary of is_class_overtime
@@ -347,18 +419,28 @@ const UT_HT5 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT5
  * @param mixed $system_class_duration contraint class duration time ((class end time - class start time) <= system class duration )
  * @return boolean true if (class end time - class start time) >= system class duration else false
  */
-function is_class_overtime ($class_start_time, $class_end_time, $system_class_duration= CLASS_DURATION / TIME_SLOT_DURATION) {
-  if ((int)($class_end_time - $class_start_time) >= (int)$system_class_duration) {
+function is_class_overtime($class_start_time, $class_end_time, $system_class_duration = CLASS_DURATION / TIME_SLOT_DURATION)
+{
+  if ((int) ($class_end_time - $class_start_time + 1) > (int) $system_class_duration) {
     return true;
   }
 
   return false;
 }
+
+function check_class_overtime($class_start_time, $class_end_time, $system_class_duration = CLASS_DURATION / TIME_SLOT_DURATION)
+{
+  if (is_class_overtime($class_start_time, $class_end_time, $system_class_duration)) {
+    return UT_HT5;
+  }
+
+  return 0;
+}
 /**
-   * HT6 Phải tổ chức lớp học đủ số buổi trên tuần tuân theo quy tắc hợp đồng
-   * vd môn A học 3 buổi trên 1 tuần thì mỗi tuần phải học đủ 3 buổi.
-   * đối với các môn học 2 buổi trên tuần thì tương tự.
-   */
+ * HT6 Phải tổ chức lớp học đủ số buổi trên tuần tuân theo quy tắc hợp đồng
+ * vd môn A học 3 buổi trên 1 tuần thì mỗi tuần phải học đủ 3 buổi.
+ * đối với các môn học 2 buổi trên tuần thì tương tự.
+ */
 const UT_HT6 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT6
 /**
  * Summary of check_number_of_course_session_weekly
@@ -370,16 +452,17 @@ const UT_HT6 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT6
  * @param mixed $number_course_session_weekly number course session must be taught by teacher on each week. 
  * @return bool true if not enough number course sessions weekly else false.
  */
-function is_not_enough_number_of_course_session_weekly($calendar, $course_id_param, $number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY) {
+function is_not_enough_number_of_course_session_weekly($calendar, $course_id_param, $number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY)
+{
   $number_course_sessions = 0;
   //$calendar[room-ith][date-jth][session-kth] = course_session_information object;
   $number_room = count($calendar);
   $number_day = count(DATES);
   $number_session = count(AVAILABLE_CLASS_SESSIONS);
 
-  for($i=0; $i < $number_room; $i++) {
+  for ($i = 0; $i < $number_room; $i++) {
     for ($j = 0; $j < $number_day; $j++) {
-      for ($k=0; $k < $number_session; $k++) {
+      for ($k = 0; $k < $number_session; $k++) {
         if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
           if ($course_id_param == $calendar[$i][$j][$k]->courseid) {
             $number_course_sessions++;
@@ -395,23 +478,37 @@ function is_not_enough_number_of_course_session_weekly($calendar, $course_id_par
 
   return true;
 }
-      /**
-       * Summary of UT_HT7
-       * @var int Không cho phép việc một course triển khai khóa học cả hai buổi một ngày
-       */
+
+function check_not_enough_number_of_course_session_weekly($calendar, $course_id_param, $number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY)
+{
+  if (is_not_enough_number_of_course_session_weekly($calendar, $course_id_param, $number_course_session_weekly)) {
+    return UT_HT6;
+  }
+
+  return 0;
+}
+
+
+/**
+ * Summary of UT_HT7
+ * @var int Không cho phép việc một course triển khai khóa học cả hai buổi một ngày
+ */
 const UT_HT7 = 1000000000;
-function is_study_double_session_of_same_course_on_one_day ($calendar, $courseid) {
+function is_study_double_session_of_same_course_on_one_day($calendar, $courseid)
+{
   $number_room = count($calendar);
   $number_day = count(DATES);
   $number_session = count(AVAILABLE_CLASS_SESSIONS);
 
-  for ($i=0; $i < $number_room; $i++) { 
-    for ($j=0; $j < $number_day; $j++) { 
-      for ($k=0; $k < $number_session; $k++) { 
-        for ($m=$k + 1; $m < $number_session; $m++) { 
-          if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)
-              && !empty($calendar[$i][$j][$m]) && isset($calendar[$i][$j][$m]->courseid)) {
-            if( $calendar[$i][$j][$k]->courseid == $calendar[$i][$j][$m]->courseid) {
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day; $j++) {
+      for ($k = 0; $k < $number_session; $k++) {
+        for ($m = $k + 1; $m < $number_session; $m++) {
+          if (
+            !empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)
+            && !empty($calendar[$i][$j][$m]) && isset($calendar[$i][$j][$m]->courseid)
+          ) {
+            if ($calendar[$i][$j][$k]->courseid == $calendar[$i][$j][$m]->courseid) {
               return true;
             }
           }
@@ -423,48 +520,70 @@ function is_study_double_session_of_same_course_on_one_day ($calendar, $courseid
   return false;
 }
 
- // Các ràng buộc cứng về không gian của lớp học
- /**
-  * HP1 Tại mỗi thời điểm một phòng học chỉ được sử dụng cho một lớp - môn học.
-  */
+function check_study_double_session_of_same_course_on_one_day($calendar, $courseid)
+{
+  if (is_study_double_session_of_same_course_on_one_day($calendar, $courseid)) {
+    return UT_HT7;
+  }
+
+  return 0;
+}
+
+// Các ràng buộc cứng về không gian của lớp học
+/**
+ * HP1 Tại mỗi thời điểm một phòng học chỉ được sử dụng cho một lớp - môn học.
+ */
 const UT_HP1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HP1
 /**
  * Summary of is_duplicate_course_at_same_room_at_same_time
  * @param mixed $calendar calendar format is $calendar[ith-room][jth-date][kth-session] = object course_session_information
- * @param mixed $roomid
+ * @param mixed $room
  * @param mixed $date
  * @param mixed $class_start_time
  * @return bool
  */
-function is_duplicate_course_at_same_room_at_same_time($calendar, $roomid, $date, $class_start_time) {
-  $course_session_information = $calendar[$roomid][$date][$class_start_time];
+function is_duplicate_course_at_same_room_at_same_time($calendar, $room, $date, $class_start_time)
+{
+  $course_session_information = $calendar[$room][$date][$class_start_time];
 
   // ngay tại ô room - date - class_start_time đã có course
   if (!empty($course_session_information) && isset($course_session_information->courseid)) {
     return true;
   }
-  
+
   // ngay tại ô room - date - class_start_time không có course 
   // nhưng ô liền trước nó có course và class_duration của course session đó là 2
-  if (!empty($course_session_information) && isset($calendar[$roomid][$date][$class_start_time - 1]->courseid)
-    && $calendar[$roomid][$date][$class_start_time - 1]->course_session_length == 2) {
-      return true;
+  if (
+    !empty($course_session_information) && isset($calendar[$room][$date][$class_start_time - 1]->courseid)
+    && $calendar[$room][$date][$class_start_time - 1]->course_session_length == 2
+  ) {
+    return true;
   }
 
   // ngay tại ô room - date - class_start_time không có course 
   // nhưng ô liền trước nó 2 ô có course và class_duration của course session đó là 3
-  if (!empty($course_session_information) && isset($calendar[$roomid][$date][$class_start_time - 2]->courseid)
-    && $calendar[$roomid][$date][$class_start_time - 2]->course_session_length == 3) {
-      return true;
+  if (
+    !empty($course_session_information) && isset($calendar[$room][$date][$class_start_time - 2]->courseid)
+    && $calendar[$room][$date][$class_start_time - 2]->course_session_length == 3
+  ) {
+    return true;
   }
 
   return false;
 }
 
+function check_duplicate_course_at_same_room_at_same_time($calendar, $room, $date, $class_start_time)
+{
+  if (is_duplicate_course_at_same_room_at_same_time($calendar, $room, $date, $class_start_time)) {
+    return UT_HP1;
+  }
 
-  /**
-   * HP2 sĩ số của một lớp - môn học không được vượt quá sĩ số tối đa của phòng học. mặc định là 25 học sinh một phòng học.
-   */
+  return 0;
+}
+
+/**
+ * HP2 sĩ số của một lớp - môn học không được vượt quá sĩ số tối đa của phòng học. mặc định là 25 học sinh một phòng học.
+ */
 const MAX_STUDENT_OF_COURSE = 25;
 const UT_HP2 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HP2
 
@@ -480,12 +599,12 @@ const UT_HP2 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HP2
  */
 const UT_HG1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HG1
 
- /*
-* HG2: GIẢNG VIÊN DẠY MÔN NÀO THÌ PHẢI CÓ CHUYÊN MÔN ĐÓ
-* Mặc định chuyên môn giảng dạy của giảng viên là tên của loại danh mục khóa học mà giảng viên giảng dạy
-* Vd môn kỹ thuật lập trình, công nghệ phần mềm, quản trị quy trình phát triển phần mềm, v.v. đều thuộc danh mục công nghệ thông tin
-* vậy các giảng viên giảng dạy các môn học này đều có chuyên môn là công nghệ thông tin.
-*/
+/*
+ * HG2: GIẢNG VIÊN DẠY MÔN NÀO THÌ PHẢI CÓ CHUYÊN MÔN ĐÓ
+ * Mặc định chuyên môn giảng dạy của giảng viên là tên của loại danh mục khóa học mà giảng viên giảng dạy
+ * Vd môn kỹ thuật lập trình, công nghệ phần mềm, quản trị quy trình phát triển phần mềm, v.v. đều thuộc danh mục công nghệ thông tin
+ * vậy các giảng viên giảng dạy các môn học này đều có chuyên môn là công nghệ thông tin.
+ */
 const UT_HG2 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HG2
 
 /**
@@ -496,16 +615,16 @@ const UT_HG3 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HG3
 // Các ràng buộc mềm về thời gian của lớp học
 /**
  * ST1: Thời khóa biểu của một sinh viên nên hạn chế các ngày học cả 2 buổi (sáng tới chiều)
-  */
+ */
 const UT_ST1 = 1000; // ĐIỂM ƯU TIÊN cho ràng buộc ST1
 
 // ĐÁNH HỆ SỐ CHO VI PHẠM
-      /**
-       * Summary of VP_ST1_GRAVE_VIOLATION
-       * học cả hai buổi sáng chiều t7 và có nhiều hơn một buổi chiều của ngày (trong t2-t6)
-       * hoặc học cả hai buổi sáng chiều cn và có nhiều hơn một buổi chiều của ngày (trong t2-t6)
-       * @var int
-       */
+/**
+ * Summary of VP_ST1_GRAVE_VIOLATION
+ * học cả hai buổi sáng chiều t7 và có nhiều hơn một buổi chiều của ngày (trong t2-t6)
+ * hoặc học cả hai buổi sáng chiều cn và có nhiều hơn một buổi chiều của ngày (trong t2-t6)
+ * @var int
+ */
 const VP_ST1_GRAVE_VIOLATION = 4;
 // học cả hai buổi sáng chiều t7 
 // hoặc
@@ -522,7 +641,8 @@ const VP_ST1_NO_VIOLATION = 0;
  * @param mixed $calendar
  * @return int return violation score for rule ST1: Thời khóa biểu của một sinh viên nên hạn chế các ngày học cả 2 buổi (sáng tới chiều)
  */
-function check_student_study_all_day ($calendar) {
+function check_student_study_all_day($calendar)
+{
   global $DB;
   $number_room = count($calendar);
   $number_day = count(DATES);
@@ -539,7 +659,8 @@ function check_student_study_all_day ($calendar) {
                         join {context} ctx on ctx.id = ra.contextid
                         join {course} c on c.id = ctx.instanceid 
                         WHERE c.id != 1 
-                              and ctx.contextlevel = 50  
+                              and ctx.contextlevel = 50
+                              and r.shortname = 'student'
                         GROUP BY user.id  
                         ORDER BY 
                                 user.id,
@@ -548,11 +669,11 @@ function check_student_study_all_day ($calendar) {
   $params = [];
   $users = $DB->get_records_sql($users_join_course_sql, $params);
 
-  if (empty($users)){
+  if (empty($users)) {
     return $total_score_violation;
   }
 
-  foreach($users as $user) {
+  foreach ($users as $user) {
     $course_sql = "SELECT
                         user.id userid, 
                         user.firstname user_firstname, 
@@ -565,7 +686,9 @@ function check_student_study_all_day ($calendar) {
                     join mdl_context ctx on ctx.id = ra.contextid
                     join mdl_course c on c.id = ctx.instanceid 
                     WHERE c.id != 1 
-                        and ctx.contextlevel = 50   and user.id = :userid
+                        and ctx.contextlevel = 50
+                        and r.shortname = 'student'
+                        and user.id = :userid
 
                     ORDER BY 
                             c.id, 
@@ -574,40 +697,39 @@ function check_student_study_all_day ($calendar) {
                             user.lastname ASC";
     $params = ['userid' => $user->userid];
     $courses = $DB->get_records_sql($course_sql, $params);
-    
+
     $user_study_sesstion_on_t2_t6 = 0;
     $is_study_saturday_morning = false;
     $is_study_saturday_afternoon = false;
     $is_study_sunday_morning = false;
     $is_study_sunday_afternoon = false;
 
-    foreach($courses as $course) {
+    foreach ($courses as $course) {
       // Scan T2 -> T6 find tìm buổi học của người dùng này nếu có.
       // nếu tìm được một buổi học trong khoảng t2 -> t6 thì ghi nhận tổng số buổi học đó
-      for ($i=0; $i < $number_room; $i++) { 
+      for ($i = 0; $i < $number_room; $i++) {
         // tìm trong khoảng t2 đến t6 chỉ gồm 5 ngày.
-        for ($j=0; $j < $number_day - 2; $j++) { 
-          for ($k=0; $k < $number_session; $k++) { 
-            if(!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+        for ($j = 0; $j < $number_day - 2; $j++) {
+          for ($k = 0; $k < $number_session; $k++) {
+            if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
               if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
                 $user_study_sesstion_on_t2_t6++;
               }
             }
           }
-        } 
+        }
       }
       // Kiểm tra xem người này có học cả buổi sáng và buổi chiều của ngày t7 hoặc cn
       // Kiểm tra cho buổi sáng.
-      for ($i=0; $i < $number_room; $i++) { 
+      for ($i = 0; $i < $number_room; $i++) {
         // tìm trong khoảng t7 đến cn chỉ gồm 2 ngày.
-        for ($j= $number_day - 2; $j < $number_day; $j++) { 
-          for ($k=0; $k < STT_CLASS_SESSIONS[6]; $k++) { 
-            if(!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+        for ($j = $number_day - 2; $j < $number_day; $j++) {
+          for ($k = 0; $k < STT_CLASS_SESSIONS[6]; $k++) {
+            if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
               if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
-                if($j == 5) {
+                if ($j == 5) {
                   $is_study_saturday_morning = true;
-                }
-                else {
+                } else {
                   $is_study_sunday_morning = true;
                 }
               }
@@ -617,36 +739,36 @@ function check_student_study_all_day ($calendar) {
       }
 
       // Kiểm tra cho buổi chiều.
-      for ($i=0; $i < $number_room; $i++) { 
+      for ($i = 0; $i < $number_room; $i++) {
         // tìm trong khoảng t7 đến cn chỉ gồm 2 ngày.
-        for ($j= $number_day - 2; $j < $number_day; $j++) { 
-          for ($k=STT_CLASS_SESSIONS[6]; $k < STT_CLASS_SESSIONS[10]; $k++) { 
-            if(!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+        for ($j = $number_day - 2; $j < $number_day; $j++) {
+          for ($k = STT_CLASS_SESSIONS[6]; $k < STT_CLASS_SESSIONS[10]; $k++) {
+            if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
               if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
-                if($j == 5) {
+                if ($j == 5) {
                   $is_study_saturday_afternoon = true;
-                }
-                else {
+                } else {
                   $is_study_sunday_afternoon = true;
                 }
               }
             }
           }
-        } 
+        }
       }
       // kiểm tra đk học cả hai buổi sáng chiều ngày t7 / cn và có thêm nhiều hơn 1 buổi các ngày t2 - t6
-      if (($is_study_saturday_morning && $is_study_saturday_afternoon && $user_study_sesstion_on_t2_t6 >= 1) 
-          || ($is_study_sunday_morning && $is_study_sunday_afternoon && $user_study_sesstion_on_t2_t6 >= 1)) {
+      if (
+        ($is_study_saturday_morning && $is_study_saturday_afternoon && $user_study_sesstion_on_t2_t6 >= 1)
+        || ($is_study_sunday_morning && $is_study_sunday_afternoon && $user_study_sesstion_on_t2_t6 >= 1)
+      ) {
         $total_score_violation += VP_SP1_GRAVE_VIOLATION * UT_ST1;
-      }
-      else if (($is_study_saturday_morning && $is_study_saturday_afternoon) 
-          || ($is_study_sunday_morning && $is_study_sunday_afternoon)) {
+      } else if (
+        ($is_study_saturday_morning && $is_study_saturday_afternoon)
+        || ($is_study_sunday_morning && $is_study_sunday_afternoon)
+      ) {
         $total_score_violation += VP_ST1_SERIOUS_VIOLATION * UT_ST1;
-      }
-      else if ($is_study_saturday_afternoon && $is_study_sunday_morning) {
+      } else if ($is_study_saturday_afternoon && $is_study_sunday_morning) {
         $total_score_violation += VP_ST1_MINOR_VIOLATION * UT_ST1;
-      }
-      else {
+      } else {
         $total_score_violation += VP_ST1_NO_VIOLATION * UT_ST1;
       }
     }
@@ -654,10 +776,10 @@ function check_student_study_all_day ($calendar) {
 
   return $total_score_violation;
 }
-  /**
-   * ST2: Thời khóa biểu của một sinh viên (hay một lớp cứng) các tiết học của một buổi học phải được sắp xếp liên tục
-   * hạn chế việc có các tiết học trống trong một buổi học.
-   */
+/**
+ * ST2: Thời khóa biểu của một sinh viên (hay một lớp cứng) các tiết học của một buổi học phải được sắp xếp liên tục
+ * hạn chế việc có các tiết học trống trong một buổi học.
+ */
 const UT_ST2 = 100000; // ĐIỂM ƯU TIÊN cho ràng buộc ST2
 
 // ĐÁNH HỆ SỐ CHO VI PHẠM
@@ -667,12 +789,13 @@ const VP_ST2_GRAVE_VIOLATION = 4;
 const VP_ST2_SERIOUS_VIOLATION = 3;
 // ở giữa có 2 tiết trống 
 const VP_ST2_MODERATE_VIOLATION = 2;
- 
+
 const VP_ST2_MINOR_VIOLATION = 1;
 // không có vi phạm 
 const VP_ST2_NO_VIOLATION = 0;
 
-function check_class_session_continuously($calendar) {
+function check_class_session_continuously($calendar)
+{
   $number_room = count($calendar);
   $number_day = count(DATES);
   $number_session = count(AVAILABLE_CLASS_SESSIONS);
@@ -683,37 +806,193 @@ function check_class_session_continuously($calendar) {
 
   $total_score_violation = 0;
 
-  
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day; $j++) {
+      $count_temp = 0;
+      for ($k = 0; $k < $number_session; $k++) {
+        if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+          $skip_step = $calendar[$i][$j][$k]->course_session_length;
+          // bỏ qua các ô liên tiếp là chỗ chứa cho course có độ dài hiện tại
+          // độ dài buổi học của khóa học là 2 thì chỉ cần bỏ qua 1 ô tính từ ô hiện tại
+          // độ dài buổi học của khóa học là 3 thì chỉ cần bỏ qua 2 ô tính từ ô hiện tại
+          $k += $skip_step - 1;
+
+          if ($count_temp > 3) {
+            $number_empty_place_greate_than_3++;
+          } else if ($count_temp == 3) {
+            $number_empty_place_equal_3++;
+          } elseif ($count_temp == 2) {
+            $number_empty_place_equal_2++;
+          }
+
+          $count_temp = 0;
+          continue;
+        }
+
+        // sau khi bỏ qua các ô là ô khóa học và vòng lặp vẫn còn chạy vào đây tức là ô hiện tại đang duyệt là một ô trống
+        // và ô trống này là thực chất nó không có course session nào và cũng không bị chiếm chỗ bởi độ dài của course session
+        // bắt đầu đếm số ô trống tiết
+        // đếm đến khi chạm một ô khóa học mới thì ngừng và kiểm tra xem số ô trống đang là loại nào (2, 3, > 3 ô liên tục)
+        $count_temp++;
+      }
+    }
+  }
+
+  if ($number_empty_place_greate_than_3 == 0 && $number_empty_place_equal_3 == 0 && $number_empty_place_equal_2 == 0) {
+    return UT_ST2 * VP_ST2_NO_VIOLATION;
+  }
+
+  $total_score_violation = ($number_empty_place_greate_than_3 * VP_ST2_GRAVE_VIOLATION + $number_empty_place_equal_3 * VP_ST2_SERIOUS_VIOLATION + $number_empty_place_equal_2 * VP_ST2_MODERATE_VIOLATION) * UT_ST2;
 
   return $total_score_violation;
 }
-   /**
-    * ST3: Các lớp học- môn học được xếp sao cho 
-    * buổi học mà giảng viên trợ giảng lên lớp học - môn học là ít nhất nhưng số tiết dạy là nhiều nhất
-    * vd vào ngày thứ 7 giảng viên có 3 ca học (6 tiết học) thì nếu xếp lịch học 3 ca này sẽ cần nằm gọn trong một buổi sáng 
-    * hoặc buổi chiều của ngày thứ 7.
-    * để cho buổi học cần lên giảng dạy là 1 buổi ít nhất nhưng dạy được cả ba ca là nhiều nhất
-    */
+/**
+ * ST3: Các lớp học- môn học được xếp sao cho 
+ * buổi học mà giảng viên trợ giảng lên lớp học - môn học là ít nhất nhưng số tiết dạy là nhiều nhất
+ * vd vào ngày thứ 7 giảng viên có 3 ca học (6 tiết học) thì nếu xếp lịch học 3 ca này sẽ cần nằm gọn trong một buổi sáng 
+ * hoặc buổi chiều của ngày thứ 7.
+ * để cho buổi học cần lên giảng dạy là 1 buổi ít nhất nhưng dạy được cả ba ca là nhiều nhất
+ */
 const UT_ST3 = 100000; // ĐIỂM ƯU TIÊN cho ràng buộc ST3
 
 // ĐÁNH HỆ SỐ CHO VI PHẠM
 // giảng viên chỉ đi dạy có 1 ca trên buổi (1h30 phút cho một buổi)
 const VP_ST3_GRAVE_VIOLATION = 4;
-// giảng viên đi dạy có 3 ca trên buổi nhưng có tiết trống xen giữa (3ca = 3*1h30phut = 4h30phut / 2 buổi )
+// giảng viên đi dạy có 2 ca trên buổi nhưng có tiết trống xen giữa (2ca = 2*1h30phut = 3h00phut / buổi )
 const VP_ST3_SERIOUS_VIOLATION = 3;
 // giảng viên đi dạy có 2 ca và không có tiết trống xen giữa
 const VP_ST3_MODERATE_VIOLATION = 2;
-// giảng viên đi dạy 3 ca 1 buổi không có tiết trống xen giữa
 const VP_ST3_MINOR_VIOLATION = 1;
-// không có vi phạm (giảng viên dạy trên 3 ca và buổi là liên tục sáng/ chiều, chiều/tối)
+// giảng viên đi dạy 3 ca 1 buổi không có tiết trống xen giữa
 const VP_ST3_NO_VIOLATION = 0;
 
+function check_largest_teaching_hours($calendar)
+{
+  global $DB;
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+  $total_score_violation = 0;
+
+  $users_join_course_sql = "SELECT
+                          user.id userid, 
+                          user.firstname user_firstname, 
+                          user.lastname user_lastname
+                        FROM {user} user 
+                        join {role_assignments} ra on ra.userid = user.id
+                        join {role} r on r.id = ra.roleid
+                        join {context} ctx on ctx.id = ra.contextid
+                        join {course} c on c.id = ctx.instanceid 
+                        WHERE c.id != 1 
+                              and ctx.contextlevel = 50
+                              and r.shortname = 'editingteacher' or r.shortname = 'teacher'
+                        GROUP BY user.id  
+                        ORDER BY 
+                                user.id,
+                                user.firstname, 
+                                user.lastname ASC";
+  $params = [];
+  $users = $DB->get_records_sql($users_join_course_sql, $params);
+
+  if (empty($users)) {
+    return $total_score_violation;
+  }
+
+  foreach ($users as $user) {
+    $course_sql = "SELECT
+                        user.id userid, 
+                        user.firstname user_firstname, 
+                        user.lastname user_lastname, 
+                        c.id courseid, 
+                        c.fullname course_fullname
+                    FROM mdl_user user 
+                    join mdl_role_assignments ra on ra.userid = user.id
+                    join mdl_role r on r.id = ra.roleid
+                    join mdl_context ctx on ctx.id = ra.contextid
+                    join mdl_course c on c.id = ctx.instanceid 
+                    WHERE c.id != 1 
+                        and ctx.contextlevel = 50
+                        and r.shortname = 'editingteacher' or r.shortname = 'teacher'
+                        and user.id = :userid
+
+                    ORDER BY 
+                            c.id, 
+                            user.id,
+                            user.firstname, 
+                            user.lastname ASC";
+    $params = ['userid' => $user->userid];
+    $courses = $DB->get_records_sql($course_sql, $params);
+
+    for ($i = 0; $i < $number_room; $i++) {
+      for ($j = 0; $j < $number_day; $j++) {
+        // mảng $stt_class_session lưu lại vị trí tiết học mà người giảng viên giảng dạy trong ngày hôm đó
+        $stt_class_session = [];
+        // kiểm tra cho buổi sáng người giảng viên này dạy bao nhiêu ca dạy (1 ca dạy = 2 tiết học liên tục = 2 * 45 phút = 1h30 phút)
+        $number_class_session_in_morning = 0;
+        for ($k = 0; $k < STT_CLASS_SESSIONS[6]; $k++) {
+          foreach ($courses as $course) {
+            if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+              $number_class_session_in_morning++;
+              $stt_class_session[] = $k;
+            }
+          }
+        }
+        // kiểm tra cho buổi chiều người giảng viên này dạy bao nhiêu ca dạy (1 ca dạy = 2 tiết học liên tục = 2 * 45 phút = 1h30 phút)
+        $number_class_session_in_afternoon = 0;
+        for ($k = STT_CLASS_SESSIONS[6]; $k < STT_CLASS_SESSIONS[10]; $k++) {
+          foreach ($courses as $course) {
+            if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+              $number_class_session_in_afternoon++;
+              $stt_class_session[] = $k;
+
+            }
+          }
+        }
+        // kiểm tra cho buổi tối người giảng viên này dạy bao nhiêu ca dạy (1 ca dạy = 2 tiết học liên tục = 2 * 45 phút = 1h30 phút)
+        $number_class_session_in_evening = 0;
+        for ($k = STT_CLASS_SESSIONS[10]; $k <= STT_CLASS_SESSIONS[15]; $k++) {
+          foreach ($courses as $course) {
+            if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+              $number_class_session_in_evening++;
+              $stt_class_session[] = $k;
+
+            }
+          }
+        }
+
+        // kiểm tra các điều kiện ràng buộc.
+        if ($number_class_session_in_morning == 1 or $number_class_session_in_afternoon == 1 or $number_class_session_in_evening == 1) {
+          $total_score_violation += VP_ST3_GRAVE_VIOLATION * UT_ST3;
+        } elseif ($number_class_session_in_morning == 2 or $number_class_session_in_afternoon == 2 or $number_class_session_in_evening == 2) {
+          $number_class_session = count($stt_class_session);
+          $is_continuous_class_session = true;
+          for ($m = 0; $m < $number_class_session - 1; $m++) {
+            if ($stt_class_session[$m] + $calendar[$i][$j][$stt_class_session[$m]]->course_session_length != $stt_class_session[$m + 1]) {
+              $is_continuous_class_session = false;
+              break;
+            }
+          }
+
+          if ($is_continuous_class_session) {
+            $total_score_violation += VP_ST3_MODERATE_VIOLATION * UT_ST3;
+          } else {
+            $total_score_violation += VP_ST3_SERIOUS_VIOLATION * UT_ST3;
+          }
+        } else {
+          $total_score_violation += VP_ST3_NO_VIOLATION * UT_ST3;
+        }
+      }
+    }
+  }
+
+  return $total_score_violation;
+}
 /**
  * ST4: Các môn học - lớp học - giảng viên cần ưu tiên xếp lịch học vào các buổi tối ngày t7 - cn 
  * ưu tiên 2 là tối các ngày trong tuần t2 - t6.
  * ưu tiên thì xếp vào sáng t7, cn
  * ưu tiên 4: Xếp vào chiều t2 - t6
-*/
+ */
 /**
   * giờ học buổi sáng chỉ áp dụng cho ngày t7, cn bắt đầu từ 7h30 sáng đến 12h trưa (gồm 3 ca 1h30 phút)
   * buổi chiều bắt đầu từ 1h30 chiều đến 4h30 chiều (gồm 2 ca 1h30 phút)
@@ -728,7 +1007,7 @@ const VP_ST3_NO_VIOLATION = 0;
 const UT_ST4 = 100000; // ĐIỂM ƯU TIÊN cho ràng buộc ST4
 
 // ĐÁNH HỆ SỐ CHO VI PHẠM
-// được xếp vào chiều t2 - t6
+// được xếp vào sáng hay chiều t2 - t6
 const VP_ST4_GRAVE_VIOLATION = 4;
 // xếp lịch vào sáng t7
 const VP_ST4_SERIOUS_VIOLATION = 3;
@@ -738,6 +1017,54 @@ const VP_ST4_MODERATE_VIOLATION = 2;
 const VP_ST4_MINOR_VIOLATION = 1;
 // được xếp vào chiều hoặc tối t7 hoặc cn
 const VP_ST4_NO_VIOLATION = 0;
+
+function check_priority_order_of_class_session($calendar)
+{
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+  $total_score_violation = 0;
+
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day; $j++) {
+      for ($k = 0; $k < $number_session; $k++) {
+        if ($number_session >= STT_CLASS_SESSIONS[10]) {
+          // nếu là tối thứ 7 hoặc chủ nhật
+          // 5 và 6 là index của ngày bên trong biến const DATES
+          if ($number_day == 5 or $number_day == 6) {
+            $total_score_violation += VP_ST4_NO_VIOLATION * UT_ST4;
+          } else {
+            // nếu là tối của các ngày từ 2 đến 6
+            $total_score_violation += VP_ST4_MINOR_VIOLATION * UT_ST4;
+          }
+
+        } elseif ($number_session >= STT_CLASS_SESSIONS[6]) {
+          // NẾU là chiều của t7 hay chủ nhật
+          if ($number_day == 5 or $number_day == 6) {
+            $total_score_violation += VP_ST4_NO_VIOLATION * UT_ST4;
+          } else {
+            // nếu là chiều của ngày t2 đến t6
+            $total_score_violation += VP_ST4_GRAVE_VIOLATION * UT_ST4;
+          }
+        } else {
+          // NẾU đây là buổi sáng
+          // kiểm tra ngày chủ nhật
+          if ($number_day == 6) {
+            $total_score_violation += VP_ST4_MODERATE_VIOLATION * UT_ST4;
+          }
+          // nếu là ngày t7
+          elseif ($number_day == 5) {
+            $total_score_violation += VP_ST4_SERIOUS_VIOLATION * UT_ST4;
+          } else {
+            $total_score_violation += VP_ST4_GRAVE_VIOLATION * UT_ST4;
+          }
+        }
+      }
+    }
+  }
+
+  return $total_score_violation;
+}
 
 /**
  * ST5: Các lớp học - môn học cần ưu tiên xếp lịch học vào các chiều các ngày từ thứ 2 đến thứ 6.
@@ -751,7 +1078,7 @@ const VP_ST4_NO_VIOLATION = 0;
  * Điều này giúp sinh viên có thời gian nghỉ ngơi và ôn tập giữa các buổi học.
  */
 
-const UT_ST6 = 1000; // ĐIỂM ƯU TIÊN cho ràng buộc ST6
+const UT_ST6 = 100000; // ĐIỂM ƯU TIÊN cho ràng buộc ST6
 
 // ĐÁNH HỆ SỐ CHO VI PHẠM
 // có hơn 3 môn học vào các ngày liên tiếp
@@ -765,33 +1092,152 @@ const VP_ST6_MINOR_VIOLATION = 1;
 // Không có môn nào học liên tiếp nhau trong tuần
 const VP_ST6_NO_VIOLATION = 0;
 
- // Các ràng buộc mềm về không gian của lớp học
- /**
-  * SP1: Các lớp học - môn học của một buổi học của một sinh viên, giảng viên cần được xếp vào các phòng học gần nhau
-  * Điều này giúp sinh viên và giảng viên có thể di chuyển dễ dàng giữa các phòng học trong cùng một buổi học.
-  * Ví dụ: nếu một sinh viên có hai lớp học trong cùng một buổi sáng, thì các lớp học này nên được xếp vào các phòng học gần nhau.
-  * Và cơ sở học của môn A là CS1 thì cơ sở học của môn B cũng nên là CS1 tại cùng một thời điểm.
-  */
-const UT_SP1 = 10000; // ĐIỂM ƯU TIÊN cho ràng buộc SP1
+function check_time_gap_between_class_session($calendar)
+{
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+  $total_score_violation = 0;
+  $number_course_study_on_continuous_day = 0;
+
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day - 1; $j++) {
+      for ($k = 0; $k < $number_session; $k++) {
+        for ($m = 0; $m < $number_session; $m++) {
+          if ($calendar[$i][$j][$k]->courseid == $calendar[$i][$j + 1][$m]->courseid) {
+            $number_course_study_on_continuous_day++;
+          }
+        }
+      }
+    }
+  }
+
+  if ($number_course_study_on_continuous_day > 3) {
+    $total_score_violation += VP_ST6_GRAVE_VIOLATION * UT_ST6;
+  } elseif ($number_course_study_on_continuous_day == 3) {
+    $total_score_violation += VP_ST6_SERIOUS_VIOLATION * UT_ST6;
+
+  } elseif ($number_course_study_on_continuous_day == 2) {
+    $total_score_violation += VP_ST6_MODERATE_VIOLATION * UT_ST6;
+
+  } elseif ($number_course_study_on_continuous_day == 1) {
+    $total_score_violation += VP_ST6_MINOR_VIOLATION * UT_ST6;
+  } else {
+    $total_score_violation += VP_ST6_NO_VIOLATION * UT_ST6;
+  }
+
+  return $total_score_violation;
+}
+// Các ràng buộc mềm về không gian của lớp học
+/**
+ * SP1: Các lớp học - môn học của một buổi học của một sinh viên, giảng viên cần được xếp vào các phòng học gần nhau
+ * Điều này giúp sinh viên và giảng viên có thể di chuyển dễ dàng giữa các phòng học trong cùng một buổi học.
+ * Ví dụ: nếu một sinh viên có hai lớp học trong cùng một buổi sáng, thì các lớp học này nên được xếp vào các phòng học gần nhau.
+ * Và cơ sở học của môn A là CS1 thì cơ sở học của môn B cũng nên là CS1 tại cùng một thời điểm.
+ */
+const UT_SP1 = 100000; // ĐIỂM ƯU TIÊN cho ràng buộc SP1
 
 // ĐÁNH HỆ SỐ CHO VI PHẠM
 // CÁC LỚP HỌC ở hai cơ sở phường xã quận huyện tỉnh khác nhau
 const VP_SP1_GRAVE_VIOLATION = 4;
-// các phòng học thuộc cùng 1 cơ sở nhưng cách nhau trên hai tòa nhà 
+
+// các phòng cùng 1 cơ sở nhưng hai tòa nhà khác nhau
 const VP_SP1_SERIOUS_VIOLATION = 3;
-// các phòng cùng 1 cơ sở cách nhau một tòa nhà
+
 const VP_SP1_MODERATE_VIOLATION = 2;
-// các phòng ở cùng 1 cơ sở nhưng cách nhau 2 tầng
+// các phòng ở cùng 1 cơ sở nhưng cách nhau từ 2 tầng
 const VP_SP1_MINOR_VIOLATION = 1;
 // cùng 1 cơ sở cùng tầng hoặc ở trên 1 tầng.
 const VP_SP1_NO_VIOLATION = 0;
+function is_gap_floor_greate_than_2($class1_information, $class2_information)
+{
+  if (!isset($class1_information->floor) or !isset($class2_information->floor)) {
+    return false;
+  }
 
-  /**
-   * SP2: Các phòng học cần được sử dụng hiệu quả, tránh tình trạng phòng học trống trong cùng một thời điểm.
-   * Điều này có nghĩa là nếu một phòng học đang được sử dụng cho một lớp học thì đảm bảo số lượng sinh viên ở trong phòng học đó 
-   * phải lớn hơn 2/3 sức chứa của phòng học đó.
-   * Nếu không thì nên chuyển lớp học đó sang phòng học khác có sức chứa phù hợp
-   */
+  if (abs($class1_information->floor - $class2_information->floor) >= 2) {
+    return true;
+  }
+
+  return false;
+}
+function is_same_building($class1_information, $class2_information)
+{
+  if (!isset($class1_information->building) or !isset($class2_information->building)) {
+    return false;
+  }
+
+  if (strtolower($class1_information->building) == strtolower($class2_information->building)) {
+    return true;
+  }
+
+  return false;
+}
+
+function is_same_teaching_facility_address($class1_information, $class2_information)
+{
+  if (!isset($class1_information->province) or !isset($class2_information->province)) {
+    return false;
+  }
+
+  if (!isset($class1_information->district) or !isset($class2_information->district)) {
+    return false;
+  }
+
+  if (!isset($class1_information->ward) or !isset($class2_information->ward)) {
+    return false;
+  }
+
+  if (
+    strtolower($class1_information->province) == strtolower($class2_information->province)
+    and strtolower($class1_information->district) == strtolower($class2_information->district)
+    and strtolower($class1_information->ward) == strtolower($class2_information->ward)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+function check_room_gap_between_class_session($calendar)
+{
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+  $total_score_violation = 0;
+
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day; $j++) {
+      for ($k = 0; $k < $number_session - 1; $k++) {
+        if (!empty($calendar[$i][$j][$k]) and !empty($calendar[$i][$j][$k + 1])) {
+          if (!is_same_teaching_facility_address($calendar[$i][$j][$k], $calendar[$i][$j][$k + 1])) {
+            $total_score_violation += VP_SP1_GRAVE_VIOLATION * UT_SP1;
+          }
+
+          if (!is_same_building($calendar[$i][$j][$k], $calendar[$i][$j][$k + 1])) {
+            $total_score_violation += VP_SP1_SERIOUS_VIOLATION * UT_SP1;
+          }
+
+          if (is_gap_floor_greate_than_2($calendar[$i][$j][$k], $calendar[$i][$j][$k + 1])) {
+            $total_score_violation += VP_SP1_MINOR_VIOLATION * UT_SP1;
+          } else {
+            $total_score_violation += VP_SP1_NO_VIOLATION * UT_SP1;
+
+          }
+
+        }
+      }
+    }
+  }
+
+  return $total_score_violation;
+}
+
+/**
+ * SP2: Các phòng học cần được sử dụng hiệu quả, tránh tình trạng phòng học trống trong cùng một thời điểm.
+ * Điều này có nghĩa là nếu một phòng học đang được sử dụng cho một lớp học thì đảm bảo số lượng sinh viên ở trong phòng học đó 
+ * phải lớn hơn 2/3 sức chứa của phòng học đó.
+ * Nếu không thì nên chuyển lớp học đó sang phòng học khác có sức chứa phù hợp
+ */
 const UT_SP2 = 100; // ĐIỂM ƯU TIÊN cho ràng buộc SP2
 
 // ĐÁNH HỆ SỐ CHO VI PHẠM
@@ -804,45 +1250,80 @@ const VP_SP2_MODERATE_VIOLATION = 2;
 // sĩ số bằng 2/3 sức chứa của phòng
 const VP_SP2_MINOR_VIOLATION = 1;
 // sĩ số lớn hơn 2/3 sức chứa của phòng.
-const VP_SP2_NO_VIOLATION = 0;  
+const VP_SP2_NO_VIOLATION = 0;
+function evaluate_function($calendar, $stt_calendar)
+{
+  $total_score_violation = 0;
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
 
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day; $j++) {
+      for ($k = 0; $k < $number_session; $k++) {
+        $course_session_information = $calendar[$i][$j][$k];
+        if (!empty($course_session_information) and isset($course_session_information->courseid)) {
+          $total_score_violation += check_class_duration_in_one_session($course_session_information->course_session_start_time, $course_session_information->course_session_length)
+            + check_forbidden_session($course_session_information->date, $course_session_information->course_session_start_time, $course_session_information->course_session_length)
+            + check_holiday($course_session_information->date)
+            + check_class_overtime($course_session_information->date, $course_session_information->course_session_end_time)
+            + check_not_enough_number_of_course_session_weekly($calendar, $course_session_information->courseid)
+            + check_study_double_session_of_same_course_on_one_day($calendar, $course_session_information->courseid)
+            + check_duplicate_course_at_same_room_at_same_time($calendar, $course_session_information->random_room_stt, $course_session_information->date, $course_session_information->course_session_start_time)
+            + check_student_study_all_day($calendar)
+            + check_class_session_continuously($calendar)
+            + check_largest_teaching_hours($calendar)
+            + check_priority_order_of_class_session($calendar)
+            + check_time_gap_between_class_session($calendar)
+            + check_room_gap_between_class_session($calendar);
+        }
+      }
+    }
+  }
+  return [$total_score_violation, $stt_calendar];
+}
+function genetic_algorithm($initial_calendar_community)
+{
 
+  return $initial_calendar_community;
+}
 
 
 /**
  * Extend the settings navigation for course calendar.
  * @param settings_navigation $settingsnav The settings navigation object.
  * @param context $context The context of the current page.
- */ 
-function local_course_calendar_extend_settings_navigation($settingsnav, $context) {
-    global $CFG, $PAGE;
+ */
+function local_course_calendar_extend_settings_navigation($settingsnav, $context)
+{
+  global $CFG, $PAGE;
 
-    // Only add this settings item on non-site course pages.
-    if (!$PAGE->course or $PAGE->course->id == 1) {
-        return;
-    }
+  // Only add this settings item on non-site course pages.
+  if (!$PAGE->course or $PAGE->course->id == 1) {
+    return;
+  }
 
-    // Only let users with the appropriate capability see this settings item.
-    if (!has_capability('local/course_calendar:edit_total_lesson_for_course', context_course::instance($PAGE->course->id))) {
-        return;
-    }
+  // Only let users with the appropriate capability see this settings item.
+  if (!has_capability('local/course_calendar:edit_total_lesson_for_course', context_course::instance($PAGE->course->id))) {
+    return;
+  }
 
-    if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
-        $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
-        $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
-        $foonode = navigation_node::create(
-            $strfoo,
-            $url,
-            navigation_node::NODETYPE_LEAF,
-            get_string('edit_total_lesson_for_course', 'local_course_calendar'),
-            'edit_total_lesson_for_course',
-            new pix_icon('i/edit', $strfoo)
-        );
-        if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
-            $foonode->make_active();
-        }
-        $settingnode->add_node($foonode);
+  if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
+    $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
+    $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
+    $foonode = navigation_node::create(
+      $strfoo,
+      $url,
+      navigation_node::NODETYPE_LEAF,
+      get_string('edit_total_lesson_for_course', 'local_course_calendar'),
+      'edit_total_lesson_for_course',
+      new pix_icon('i/edit', $strfoo)
+    );
+    if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
+      $foonode->make_active();
     }
+    $settingnode->add_node($foonode);
+  }
 }
 
 /**
@@ -850,60 +1331,61 @@ function local_course_calendar_extend_settings_navigation($settingsnav, $context
  * @param array $courses     // courses is array with format [courseid, courseid, courseid,....]
  * @param array $teachers      // teachers is array with format [teacherid, teacherid, teacherid,....]
  * @param array $time_and_addresses // room_time and room address is array with format 
-    * [
-    * 'room_time_id|room_address_id' , 
-    * 'room_time_id|room_address_id' ,
-    * 'room_time_id|room_address_id' ,
-    * 'room_time_id|room_address_id' ,
-    * 'room_time_id|room_address_id' ,...
-    * ]
+ * [
+ * 'room_time_id|room_address_id' , 
+ * 'room_time_id|room_address_id' ,
+ * 'room_time_id|room_address_id' ,
+ * 'room_time_id|room_address_id' ,
+ * 'room_time_id|room_address_id' ,...
+ * ]
  * @return array
  */
-function create_manual_calendar(array $courses, array $teachers, array $times_and_addresses) : array {
-    // define global variable
-    global $CFG, $PAGE, $DB, $USER;
-    // 1 ngày có 16 tiết 7h30 đến 22h tức là 8 ca. 7 ngày một tuần -> tổng tiết = 7*16 = 112 tiết
-    // $calendar is 3-dimensional array. Phòng(room) - Thứ(date) - Tiết(session)(tiết 1 - tiết 112) 
-    // $calendar[room-ith][date][session-jth] =  new course_session_information();
-    // calendar format 
-    /**
-        * -----------------------------thứ 2-----------------------------------------------------------Thứ3----------------------------------------------------------------------Thứ4------------------------------------------Thứ5-------------------------------------------------------------------------Thứ6-----------------------------------------------------------------Thứ7----------------------------------------------------------cn----------------------
-        * --------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||
-*Room 101  course_session_information()                      course_session_information()
-*Room 102  course_session_information()                      course_session_information()
-*Room 103  course_session_information()                      course_session_information()
-*Room 104  course_session_information()                      course_session_information()
-*Room 105  course_session_information()                      course_session_information()
-*Room 106  course_session_information()                      course_session_information()
-*Room 107  course_session_information()                      course_session_information()
-*Room 108  course_session_information()                      course_session_information()
-*Room 109 course_session_information()                       course_session_information()
-*Room 201 course_session_information()                       course_session_information()
-*Room 202 course_session_information()                      course_session_information()
-     */
-    $calendar = [];
+function create_manual_calendar(array $courses, array $teachers, array $times_and_addresses): array
+{
+  // define global variable
+  global $CFG, $PAGE, $DB, $USER;
+  // 1 ngày có 16 tiết 7h30 đến 22h tức là 8 ca. 7 ngày một tuần -> tổng tiết = 7*16 = 112 tiết
+  // $calendar is 3-dimensional array. Phòng(room) - Thứ(date) - Tiết(session)(tiết 1 - tiết 112) 
+  // $calendar[room-ith][date][session-jth] =  new course_session_information();
+  // calendar format 
+  /**
+   * -----------------------------thứ 2-----------------------------------------------------------Thứ3----------------------------------------------------------------------Thứ4------------------------------------------Thứ5-------------------------------------------------------------------------Thứ6-----------------------------------------------------------------Thứ7----------------------------------------------------------cn----------------------
+   * --------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||
+   *Room 101  course_session_information()                      course_session_information()
+   *Room 102  course_session_information()                      course_session_information()
+   *Room 103  course_session_information()                      course_session_information()
+   *Room 104  course_session_information()                      course_session_information()
+   *Room 105  course_session_information()                      course_session_information()
+   *Room 106  course_session_information()                      course_session_information()
+   *Room 107  course_session_information()                      course_session_information()
+   *Room 108  course_session_information()                      course_session_information()
+   *Room 109 course_session_information()                       course_session_information()
+   *Room 201 course_session_information()                       course_session_information()
+   *Room 202 course_session_information()                      course_session_information()
+   */
+  $calendar = [];
 
-    // Consit of 50 calendar [[calendar1], [calendar2], [calendar3]......]
-    $fifty_best_calendars = [];
-    // process address and time to create $time_and_addresses = [[room_time_id, room_address_id], [room_time_id, room_address_id], [room_time_id, room_address_id], ]
-    $times_and_addresses_after_process = [];
-    foreach ($times_and_addresses as $time_and_address) {
-      $time_and_address = explode('|', $time_and_address);
-      $times_and_addresses_after_process[] = $time_and_address;
-    }
-    // return result in times_and_addresses
-    $times_and_addresses = $times_and_addresses_after_process;
+  // Consit of 50 calendar [[calendar1], [calendar2], [calendar3]......]
+  $fifty_best_calendars = [];
+  // process address and time to create $time_and_addresses = [[room_time_id, room_address_id], [room_time_id, room_address_id], [room_time_id, room_address_id], ]
+  $times_and_addresses_after_process = [];
+  foreach ($times_and_addresses as $time_and_address) {
+    $time_and_address = explode('|', $time_and_address);
+    $times_and_addresses_after_process[] = $time_and_address;
+  }
+  // return result in times_and_addresses
+  $times_and_addresses = $times_and_addresses_after_process;
 
-    // define course with teacher. Teacher have major that can teach course.
-    // teacher major === course category.
-    // course-teacher is array with format [[courseid, teacherid], [courseid, teacherid], [courseid, teacherid], ....]
-    $course_with_teacher_informations = [];
-    foreach ($teachers as $teacher) {
-      $teacher_majors = [];
-      $teacher_major_ids = [];
-      
-      // get teacher major by course category.
-      $sql_get_teacher_major = "SELECT  distinct (course_categories.id) id, course_categories.name
+  // define course with teacher. Teacher have major that can teach course.
+  // teacher major === course category.
+  // course-teacher is array with format [[courseid, teacherid], [courseid, teacherid], [courseid, teacherid], ....]
+  $course_with_teacher_informations = [];
+  foreach ($teachers as $teacher) {
+    $teacher_majors = [];
+    $teacher_major_ids = [];
+
+    // get teacher major by course category.
+    $sql_get_teacher_major = "SELECT  distinct (course_categories.id) id, course_categories.name
                               from mdl_user user
                               join mdl_role_assignments ra on ra.userid = user.id
                               join mdl_role role on role.id = ra.roleid
@@ -914,68 +1396,68 @@ function create_manual_calendar(array $courses, array $teachers, array $times_an
                                       and (role.shortname = 'teacher' or role.shortname = 'editingteacher')
                                       and context.contextlevel = 50 
                               ORDER BY user.id ASC";
-      $params = ['teacher_id' => $teacher];
-      $teacher_majors = $DB->get_records_sql($sql_get_teacher_major, $params);
+    $params = ['teacher_id' => $teacher];
+    $teacher_majors = $DB->get_records_sql($sql_get_teacher_major, $params);
 
-      if (!empty($teacher_majors)) { 
-          foreach ($teacher_majors as $major) {
-              $teacher_major_ids[] = $major->id;
-          }
+    if (!empty($teacher_majors)) {
+      foreach ($teacher_majors as $major) {
+        $teacher_major_ids[] = $major->id;
       }
+    }
 
-      // find course with course category === teacher major id
-      // scan courses
-      foreach ($courses as $course) {
-        // get course with courseid and get course category id
-        $course_record = $DB->get_record('course', ['id'=> $course], 'category');
+    // find course with course category === teacher major id
+    // scan courses
+    foreach ($courses as $course) {
+      // get course with courseid and get course category id
+      $course_record = $DB->get_record('course', ['id' => $course], 'category');
 
-        // if course category === teacher major id then insert teacherid and courseid to $course_with_teacher_informations
-        if (!empty($course_record)) {
-          foreach ($teacher_major_ids as $teacher_major_id) {
-            if ($course_record->category == $teacher_major_id) {
-              // add course-teacher in $course_with_teacher_informations[]
-              $course_with_teacher_informations[] = [$course, $teacher];
-              break;
-            }
+      // if course category === teacher major id then insert teacherid and courseid to $course_with_teacher_informations
+      if (!empty($course_record)) {
+        foreach ($teacher_major_ids as $teacher_major_id) {
+          if ($course_record->category == $teacher_major_id) {
+            // add course-teacher in $course_with_teacher_informations[]
+            $course_with_teacher_informations[] = [$course, $teacher];
+            break;
           }
         }
       }
     }
-    // init calendar - this is first calendar and it is result calendar.  
-    // please fix me to adapt calendar format 
-    // note $class_start_time and class_end_time are saved by unixtimestamp not tiết 1, tiết 2, tiết 3, tiết 4.
-    // 
-    $temp_calendar = [];
-    $temp_time_array = [];
-    $temp_address_array = [];
+  }
+  // init calendar - this is first calendar and it is result calendar.  
+  // please fix me to adapt calendar format 
+  // note $class_start_time and class_end_time are saved by unixtimestamp not tiết 1, tiết 2, tiết 3, tiết 4.
+  // 
+  $temp_calendar = [];
+  $temp_time_array = [];
+  $temp_address_array = [];
 
-    foreach ($times_and_addresses as $time_and_address) {
-      $room_time_id = $time_and_address[0];
-      $room_address_id = $time_and_address[1];
+  foreach ($times_and_addresses as $time_and_address) {
+    $room_time_id = $time_and_address[0];
+    $room_address_id = $time_and_address[1];
 
-      $temp_address_array[] = $room_address_id;
-      $temp_time_array[] = $room_time_id;
+    $temp_address_array[] = $room_address_id;
+    $temp_time_array[] = $room_time_id;
 
-      foreach ($course_with_teacher_informations as $course_with_teacher) {
-        $courseid = $course_with_teacher[0];
-        $teacherid = $course_with_teacher[1];
-        
-        $temp_calendar_element = [$room_time_id, $room_address_id , $courseid, $teacherid];
-        $temp_calendar[] = $temp_calendar_element;
-      }
+    foreach ($course_with_teacher_informations as $course_with_teacher) {
+      $courseid = $course_with_teacher[0];
+      $teacherid = $course_with_teacher[1];
+
+      $temp_calendar_element = [$room_time_id, $room_address_id, $courseid, $teacherid];
+      $temp_calendar[] = $temp_calendar_element;
     }
+  }
 
-    foreach(DATES as $date) {
-      foreach(STT_CLASS_SESSIONS as $stt_class_session) {
+  foreach (DATES as $date) {
+    foreach (STT_CLASS_SESSIONS as $stt_class_session) {
 
-      }
     }
+  }
 
-    // Trả về calendar có điểm số vi phạm thấp nhất 
-    // mặc định thời khóa biểu đó là thời khóa biểu đầu tiên trong 50 thời khóa biểu tốt nhất được chọn ra
-    // $calendar = $fifty_best_calendars[0];
-    $calendar = $temp_calendar;
-    return $calendar;
+  // Trả về calendar có điểm số vi phạm thấp nhất 
+  // mặc định thời khóa biểu đó là thời khóa biểu đầu tiên trong 50 thời khóa biểu tốt nhất được chọn ra
+  // $calendar = $fifty_best_calendars[0];
+  $calendar = $temp_calendar;
+  return $calendar;
 }
 /**
  * Summary of create_automatic_calendar:
@@ -985,7 +1467,8 @@ function create_manual_calendar(array $courses, array $teachers, array $times_an
  * @return array $calendar là mảng chứa kết quả thời khóa biểu cần cấu trúc thời khóa biểu là $calendar[room][date][sesstion].
  */
 
-function create_automatic_calendar () {
+function create_automatic_calendar()
+{
   global $DB;
   $courses_not_schedule_sql = "SELECT c.id courseid, c.category, c.shortname, c.startdate, c.enddate, c.visible
                               FROM {local_course_calendar_course_section} cs
@@ -994,9 +1477,9 @@ function create_automatic_calendar () {
   $params = [];
   $courses_not_schedule = $DB->get_records_sql($courses_not_schedule_sql, $params);
   $available_rooms = $DB->get_records('local_course_calendar_course_room');
-  
+
   $courses_not_schedule_courseid_array = [];
-  foreach($courses_not_schedule as $course) {
+  foreach ($courses_not_schedule as $course) {
     $courses_not_schedule_courseid_array[] = $course->courseid;
   }
 
@@ -1010,33 +1493,33 @@ function create_automatic_calendar () {
   $number_class_sessions = count(STT_CLASS_SESSIONS);
   $number_day = count(DATES);
 
-  $fifty_calendars = [];
+  $initial_calendar_community = [];
   $calendar = [];
 
-  for ($i=0; $i < $number_room; $i++) { 
+  for ($i = 0; $i < $number_room; $i++) {
     $calendar[] = [];
     for ($j = 0; $j < $number_day; $j++) {
       $calendar[$i][] = [];
-      for ($k=0; $k < $number_class_sessions; $k++) { 
+      for ($k = 0; $k < $number_class_sessions; $k++) {
         $calendar[$i][$j][] = new course_session_information();
       }
     }
   }
 
   // init 50 null calendar 
-  for ($i=0; $i < MAX_CALENDAR_NUMBER; $i++) { 
-    $fifty_calendars[] = deep_clone_array($calendar); 
+  for ($i = 0; $i < MAX_CALENDAR_NUMBER; $i++) {
+    $initial_calendar_community[] = deep_copy_calendar_array($calendar);
   }
 
   // pass value for 50 random calendar
-  for($i = 0; $i < MAX_CALENDAR_NUMBER; $i++) {
+  for ($i = 0; $i < MAX_CALENDAR_NUMBER; $i++) {
     $index = 0;
     $used_room_day_session_array = [];
-    for($j = 0; $j < NUMBER_COURSE_SESSION_WEEKLY * $number_courses_not_schedule; $j++) {
+    for ($j = 0; $j < NUMBER_COURSE_SESSION_WEEKLY * $number_courses_not_schedule; $j++) {
       // Đảm bảo rằng trong bất kỳ thời khóa biểu khởi tạo mặc định thì với mỗi môn học đều có NUMBER_COURSE_SESSION_WEEKLY.
       // Đảm bảo bằng cách duyệt qua và thêm vào n lần khóa học vào thời khóa biểu với n = NUMBER_COURSE_SESSION_WEEKLY.
       $courseid = $courses_not_schedule_courseid_array[$index];
-      if($index === $number_courses_not_schedule - 1) {
+      if ($index === $number_courses_not_schedule - 1) {
         $index = 0;
       } else {
         $index++;
@@ -1045,7 +1528,7 @@ function create_automatic_calendar () {
       $random_room = random_int(0, $number_room - 1);
       $random_day = random_int(0, $number_day - 1);
       $random_session = random_int(0, $number_class_sessions - 1);
-      
+
       if (!empty($used_room_day_session_array)) {
         foreach ($used_room_day_session_array as $used) {
           while ($used[0] === $random_room && $used[1] === $random_day && $used[2] === $random_session) {
@@ -1055,25 +1538,33 @@ function create_automatic_calendar () {
           }
         }
       }
-      ($fifty_calendars[$i][$random_room][$random_day][$random_session])->set_value(
-        $courses_not_schedule[$courseid]->courseid, 
-        $courses_not_schedule[$courseid]->shortname, 
-        CLASS_DURATION / TIME_SLOT_DURATION, 
+      // liên kết physical room with số thứ tự của random room 
+      $roomid = $available_rooms_roomid_array[$random_room];
+
+      ($initial_calendar_community[$i][$random_room][$random_day][$random_session])->set_value(
+        $courses_not_schedule[$courseid]->courseid,
+        $courses_not_schedule[$courseid]->shortname,
+        CLASS_DURATION / TIME_SLOT_DURATION,
         $random_session,
         $random_session + (CLASS_DURATION / TIME_SLOT_DURATION),
-        null, 
+        null,
         null,
         $random_day,
-        $random_room
+        $random_room,
+        (int) $available_rooms[$roomid]->room_number,
+        (int) $available_rooms[$roomid]->room_floor,
+        $available_rooms[$roomid]->room_building,
+        $available_rooms[$roomid]->ward_address,
+        $available_rooms[$roomid]->district_address,
+        $available_rooms[$roomid]->province_address,
       );
-      
+
       $used_room_day_session_array[] = [$random_room, $random_day, $random_session];
     }
-    
+
   }
 
-  // gen algorithsm
-  // fix me again
+  $initial_calendar_community = genetic_algorithm($initial_calendar_community);
 
-  return $fifty_calendars[0];
+  return $initial_calendar_community[0];
 }
