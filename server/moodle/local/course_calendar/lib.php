@@ -40,14 +40,14 @@ const MAX_CALENDAR_NUMBER = 50;
  * Số lượng lần lai ghép tối đa trong một thế hệ.
  * @var int 
  */
-const MAX_NUMBER_OF_CROSSOVER_OPERATIONS_IN_ONE_GENERATION = 20;
+const MAX_NUMBER_OF_CROSSOVER_OPERATIONS_IN_ONE_GENERATION = 640000;
 
 /**
  * Summary of MAX_NUMBER_OF_GENERATION
  * Số lượng thế hệ tối đa có thể lai ghép
  * @var int
  */
-const MAX_NUMBER_OF_GENERATION = 3;
+const MAX_NUMBER_OF_GENERATION = 640000;
 
 // CÀI ĐẶT THÔNG TIN CẤU HÌNH CHO PLUGIN LOCAL COURSE CALENDAR
 // CÀI ĐẶT CÁC LUẬT RÀNG BUỘC CHO XỬ LÝ THỜI KHÓA BIỂU
@@ -1277,23 +1277,58 @@ function evaluate_function($calendar, $calendar_index)
       for ($k = 0; $k < $number_session; $k++) {
         $course_session_information = $calendar[$i][$j][$k];
         if (!empty($course_session_information) and isset($course_session_information->courseid)) {
-          $total_score_violation += check_class_duration_in_one_session($course_session_information->course_session_start_time, $course_session_information->course_session_length);
-          $total_score_violation += check_forbidden_session($course_session_information->date, $course_session_information->course_session_start_time, $course_session_information->course_session_length);
+          $total_score_violation += check_class_duration_in_one_session(
+            $course_session_information->course_session_start_time,
+            $course_session_information->course_session_length
+          );
+
+          $total_score_violation += check_forbidden_session(
+            $course_session_information->date,
+            $course_session_information->course_session_start_time,
+            $course_session_information->course_session_length
+          );
+
           $total_score_violation += check_holiday($course_session_information->date);
-          $total_score_violation += check_class_overtime($course_session_information->date, $course_session_information->course_session_end_time);
-          $total_score_violation += check_not_enough_number_of_course_session_weekly($calendar, $course_session_information->courseid);
-          $total_score_violation += check_study_double_session_of_same_course_on_one_day($calendar, $course_session_information->courseid);
-          $total_score_violation += check_duplicate_course_at_same_room_at_same_time($calendar, $course_session_information->random_room_stt, $course_session_information->date, $course_session_information->course_session_start_time);
-          $total_score_violation += check_student_study_all_day($calendar);
-          $total_score_violation += check_class_session_continuously($calendar);
-          $total_score_violation += check_largest_teaching_hours($calendar);
-          $total_score_violation += check_priority_order_of_class_session($calendar);
-          $total_score_violation += check_time_gap_between_class_session($calendar);
-          $total_score_violation += check_room_gap_between_class_session($calendar);
+
+          $total_score_violation += check_class_overtime(
+            $course_session_information->date,
+            $course_session_information->course_session_end_time
+          );
+
+          $total_score_violation += check_not_enough_number_of_course_session_weekly(
+            $calendar,
+            $course_session_information->courseid
+          );
+
+          $total_score_violation += check_study_double_session_of_same_course_on_one_day(
+            $calendar,
+            $course_session_information->courseid
+          );
+
+          $total_score_violation += check_duplicate_course_at_same_room_at_same_time(
+            $calendar,
+            $course_session_information->random_room_stt,
+            $course_session_information->date,
+            $course_session_information->course_session_start_time
+          );
+
         }
       }
     }
   }
+
+  $total_score_violation += check_student_study_all_day($calendar);
+
+  $total_score_violation += check_class_session_continuously($calendar);
+
+  $total_score_violation += check_largest_teaching_hours($calendar);
+
+  $total_score_violation += check_priority_order_of_class_session($calendar);
+
+  $total_score_violation += check_time_gap_between_class_session($calendar);
+
+  $total_score_violation += check_room_gap_between_class_session($calendar);
+
   return ['total_score_violation' => $total_score_violation, 'calendar_index' => $calendar_index];
 }
 
@@ -1549,19 +1584,19 @@ function genetic_algorithm($initial_calendar_community)
     for ($j = 0; $j < MAX_NUMBER_OF_CROSSOVER_OPERATIONS_IN_ONE_GENERATION; $j++) {
       $random_father_calendar_index = random_int(0, $calendar_number - 1);
       $random_mother_calendar_index = random_int(0, $calendar_number - 1);
-      $random_hybridization_method = random_int(0, 2);
+      // $random_hybridization_method = random_int(0, 2);
       $random_alpha_gen_index = 0;
 
-      if ($random_hybridization_method == 0) {
-        $random_alpha_gen_index = random_int(0, count(DATES) - 1);
-        $initial_calendar_community += hybridization_method_by_day($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
-      } elseif ($random_hybridization_method == 1) {
-        $random_alpha_gen_index = random_int(0, count(AVAILABLE_CLASS_SESSIONS) - 1);
-        $initial_calendar_community += hybridization_method_by_session($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
-      } else {
-        $random_alpha_gen_index = random_int(0, count($initial_calendar_community[0]) - 1);
-        $initial_calendar_community += hybridization_method_by_room($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
-      }
+      // if ($random_hybridization_method == 0) {
+      $random_alpha_gen_index = random_int(0, count(DATES) - 1);
+      $initial_calendar_community += hybridization_method_by_day($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
+      // } elseif ($random_hybridization_method == 1) {
+      $random_alpha_gen_index = random_int(0, count(AVAILABLE_CLASS_SESSIONS) - 1);
+      $initial_calendar_community += hybridization_method_by_session($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
+      // } else {
+      $random_alpha_gen_index = random_int(0, count($initial_calendar_community[0]) - 1);
+      $initial_calendar_community += hybridization_method_by_room($initial_calendar_community[$random_father_calendar_index], $initial_calendar_community[$random_mother_calendar_index], $random_alpha_gen_index);
+      // }
     }
 
     $initial_calendar_community = select_good_individuals_in_the_calendar_community($initial_calendar_community);
@@ -1823,7 +1858,7 @@ function create_automatic_calendar()
       // liên kết physical room with số thứ tự của random room 
       $roomid = $available_rooms_roomid_array[$random_room];
 
-      ($initial_calendar_community[$i][$random_room][$random_day][$random_session])->set_value(
+      $initial_calendar_community[$i][$random_room][$random_day][$random_session] = new course_session_information(
         $courses_not_schedule[$courseid]->courseid,
         $courses_not_schedule[$courseid]->shortname,
         CLASS_DURATION / TIME_SLOT_DURATION,
@@ -1833,8 +1868,8 @@ function create_automatic_calendar()
         null,
         $random_day,
         $random_room,
-        (int) $available_rooms[$roomid]->room_number,
-        (int) $available_rooms[$roomid]->room_floor,
+        $available_rooms[$roomid]->room_number,
+        $available_rooms[$roomid]->room_floor,
         $available_rooms[$roomid]->room_building,
         $available_rooms[$roomid]->ward_address,
         $available_rooms[$roomid]->district_address,
