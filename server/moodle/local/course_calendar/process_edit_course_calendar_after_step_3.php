@@ -64,7 +64,7 @@ try {
     $times_and_addresses = required_param_array('selected_times_and_addresses', PARAM_TEXT);
 
     // $calendar = create_manual_calendar($courses, $teachers, $times_and_addresses);
-    $calendar = create_automatic_calendar();
+    $calendar = create_automatic_calendar_by_genetic_algorithm();
 
     $available_rooms = $DB->get_records('local_course_calendar_course_room');
 
@@ -155,7 +155,7 @@ try {
         for ($j = 0; $j < $number_day; $j++) {
             echo "<td>";
             // Duyệt qua các buổi học trong ngày và phòng hiện tại
-            if (!empty($calendar[$i][$j])) {
+            if (!empty($calendar) and !empty($calendar[$i][$j])) {
                 $tiet = 1;
                 foreach ($calendar[$i][$j] as $k => $session_data) {
                     // Hiển thị nội dung buổi học.
