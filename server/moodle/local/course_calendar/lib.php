@@ -33,7 +33,7 @@ const TIME_ZONE = 'Asia/Ho_Chi_Minh';
  * Số lượng thời khóa biểu ban đầu của quần thể
  * @var int 
  */
-const MAX_CALENDAR_NUMBER = 500;
+const MAX_CALENDAR_NUMBER = 1000;
 
 /**
  * Summary of MAX_STEP_OF_CROSSOVER_OPERATIONS
@@ -227,6 +227,96 @@ class course_session_information
     $this->ward = $ward;
     $this->district = $district;
     $this->province = $province;
+  }
+}
+
+class time_slot
+{
+  public $room;
+  public $date;
+  public $session;
+  public $course_session_information;
+  public $time_slot_index;
+
+  public $is_occupied;
+  public $is_occupied_by_course_in_prev_time_slot;
+
+  public function __construct(
+    $room = null,
+    $date = null,
+    $session = null,
+    $course_session_information = null,
+    $time_slot_index = null,
+    $is_occupied = null,
+    $is_occupied_by_course_in_prev_time_slot = null
+  ) {
+    $this->room = $room;
+    $this->date = $date;
+    $this->session = $session;
+    $this->course_session_information = $course_session_information;
+    $this->time_slot_index = $time_slot_index;
+    $this->is_occupied = $is_occupied;
+    $this->is_occupied_by_course_in_prev_time_slot = $is_occupied_by_course_in_prev_time_slot;
+  }
+
+  public function set_value(
+    $room = null,
+    $date = null,
+    $session = null,
+    $course_session_information = null,
+    $time_slot_index = null,
+    $is_occupied = null,
+    $is_occupied_by_course_in_prev_time_slot = null
+  ) {
+    $this->room = $room;
+    $this->date = $date;
+    $this->session = $session;
+    $this->course_session_information = $course_session_information;
+    $this->time_slot_index = $time_slot_index;
+    $this->is_occupied = $is_occupied;
+    $this->is_occupied_by_course_in_prev_time_slot = $is_occupied_by_course_in_prev_time_slot;
+  }
+}
+
+class conflict_position
+{
+  public $room;
+  public $date;
+  public $session;
+  public $time_slot_index;
+  public $conflict_items_number_at_this_time_slot;
+  public $conflict_items_array;
+
+  public function __construct(
+    $room = null,
+    $date = null,
+    $session = null,
+    $time_slot_index = null,
+    $conflict_items_number_at_this_time_slot = null,
+    $conflict_items_array = null
+  ) {
+    $this->room = $room;
+    $this->date = $date;
+    $this->session = $session;
+    $this->time_slot_index = $time_slot_index;
+    $this->conflict_items_number_at_this_time_slot = $conflict_items_number_at_this_time_slot;
+    $this->conflict_items_array = $conflict_items_array;
+  }
+
+  public function set_value(
+    $room = null,
+    $date = null,
+    $session = null,
+    $time_slot_index = null,
+    $conflict_items_number_at_this_time_slot = null,
+    $conflict_items_array = null
+  ) {
+    $this->room = $room;
+    $this->date = $date;
+    $this->session = $session;
+    $this->time_slot_index = $time_slot_index;
+    $this->conflict_items_number_at_this_time_slot = $conflict_items_number_at_this_time_slot;
+    $this->conflict_items_array = $conflict_items_array;
   }
 }
 
@@ -1663,7 +1753,15 @@ function select_good_individuals_in_the_calendar_community($calendar_community, 
   }
 
   // sắp xếp lại mảng $calendar_score_violation_array
-  array_multisort(array_column($calendar_score_violation_array, 'total_score_violation'), SORT_ASC, SORT_REGULAR, $calendar_score_violation_array);
+  array_multisort(
+    array_column(
+      $calendar_score_violation_array,
+      'total_score_violation'
+    ),
+    SORT_ASC,
+    SORT_REGULAR,
+    $calendar_score_violation_array
+  );
 
   // chỉ lấy ra những cá thể tốt nhất trong số lượng max number inviduals mà có điểm nhỏ hơn điểm các vi phạm cứng
   for ($i = 0; $i < $max_number_of_individuals and $i < count($calendar_score_violation_array); $i++) {
@@ -1702,13 +1800,6 @@ function genetic_algorithm($initial_calendar_community)
       }
 
       $initial_calendar_community = select_good_individuals_in_the_calendar_community($initial_calendar_community, MAX_CALENDAR_NUMBER, $i);
-
-      // nếu tìm được cá thể nào mà không vi phạm bất cứ ràng buộc cứng nào mà nhỏ điểm nhất thì trả nó về.
-      // thuật toán ngừng.
-      if (evaluate_function_of_genetic_algorithm($initial_calendar_community[0], 0)['total_score_violation'] < UT_HT1) {
-        return $initial_calendar_community[0];
-      }
-
     } else {
       $initial_calendar_community = $second_calendar_community;
     }
@@ -2000,4 +2091,79 @@ function create_automatic_calendar_by_genetic_algorithm()
     return [];
   }
   return $initial_calendar_community[0];
+}
+
+function create_automic_calendar_by_recursive_swap_algorithm()
+{
+  // Lấy ra các course mà chưa được tạo lịch học 
+  global $DB;
+  $courses_not_schedule_sql = "SELECT c.id courseid, c.category, c.shortname, c.startdate, c.enddate, c.visible
+                              FROM {local_course_calendar_course_section} cs
+                              RIGHT JOIN {course} c on cs.courseid = c.id
+                              WHERE cs.courseid is null and c.id != 1 and c.visible = 1 and c.enddate >= UNIX_TIMESTAMP(NOW())";
+  $params = [];
+  $courses_not_schedule = $DB->get_records_sql($courses_not_schedule_sql, $params);
+
+  // Lấy ra các phòng học sẵn có của trung tâm
+  $available_rooms = $DB->get_records('local_course_calendar_course_room');
+
+  // Lưu lại các courseid của từng course chưa được tạo thời khóa biểu.
+  $courses_not_schedule_courseid_array = [];
+  foreach ($courses_not_schedule as $course) {
+    $courses_not_schedule_courseid_array[] = $course->courseid;
+  }
+
+  // Lưu lại các roomid của các room có sẵn
+  $available_rooms_roomid_array = [];
+  foreach ($available_rooms as $room) {
+    $available_rooms_roomid_array[] = $room->id;
+  }
+
+  // các biến được chuẩn bị cho việc tạo mảng time slot
+  $number_courses_not_schedule = count($courses_not_schedule);
+  $number_room = count($available_rooms);
+  $number_class_sessions = count(STT_CLASS_SESSIONS);
+  $number_day = count(DATES);
+  $time_slot_array = [];
+  $time_slot_index = 0;
+
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day; $j++) {
+      for ($k = 0; $k < $number_class_sessions; $k++) {
+        $time_slot_array[] = new time_slot(
+          $i,
+          $j,
+          $k,
+          new course_session_information(),
+          $time_slot_index,
+          false,
+          false
+        );
+        $time_slot_index++;
+      }
+    }
+  }
+
+  // chuẩn bị để tạo mảng chứa các conflict_position nếu ta cố gắng đặt một hoạt động Ai vào vị trí time_slot_index.
+  // mảng conflict_position này có độ dài đúng bằng mảng time_slot_array.
+  $conflict_position_array = [];
+  $time_slot_index = 0;
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day; $j++) {
+      for ($k = 0; $k < $number_class_sessions; $k++) {
+        $conflict_position_array[] = new conflict_position(
+          $i,
+          $j,
+          $k,
+          $time_slot_index,
+          0,
+          []
+        );
+        $time_slot_index++;
+      }
+    }
+  }
+
+
+
 }
