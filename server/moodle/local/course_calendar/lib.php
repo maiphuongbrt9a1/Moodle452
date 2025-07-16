@@ -48,10 +48,25 @@ const MAX_NUMBER_OF_CROSSOVER_OPERATIONS_IN_ONE_GENERATION = 20000;
  * @var int
  */
 const MAX_NUMBER_OF_GENERATION = 200000;
-
+/**
+ * Summary of MAX_NUMBER_OF_CALL_RECURSIVE
+ * Số lần tối đa có thể gọi đệ quy cho thuật toán recursive swap
+ * @var int
+ */
+const MAX_NUMBER_OF_CALL_RECURSIVE = 1000000;
+/**
+ * Summary of MAX_LEVEL_RECURSIVE
+ * Level tối đa còn có thể gọi đệ quy cho giải thuật recursive swap
+ * @var int
+ */
+const MAX_LEVEL_RECURSIVE = 16;
 // CÀI ĐẶT THÔNG TIN CẤU HÌNH CHO PLUGIN LOCAL COURSE CALENDAR
 // CÀI ĐẶT CÁC LUẬT RÀNG BUỘC CHO XỬ LÝ THỜI KHÓA BIỂU
-// GIẢI THUẬT ĐỂ GIẢI LÀ GIẢI THUẬT DI TRUYỀN
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// GIẢI THUẬT ĐỂ GIẢI LÀ GIẢI THUẬT DI TRUYỀN////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Quy định 1 tiết là 45 phút
 // 1 ca học gồm 2 tiết học, mỗi tiết học là 45 
@@ -2093,77 +2108,497 @@ function create_automatic_calendar_by_genetic_algorithm()
   return $initial_calendar_community[0];
 }
 
-function create_automic_calendar_by_recursive_swap_algorithm()
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////NEW ALGORITHM: RECURSIVE SWAP ALGORITHM////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class TimetableGenerator
 {
-  // Lấy ra các course mà chưa được tạo lịch học 
-  global $DB;
-  $courses_not_schedule_sql = "SELECT c.id courseid, c.category, c.shortname, c.startdate, c.enddate, c.visible
-                              FROM {local_course_calendar_course_section} cs
-                              RIGHT JOIN {course} c on cs.courseid = c.id
-                              WHERE cs.courseid is null and c.id != 1 and c.visible = 1 and c.enddate >= UNIX_TIMESTAMP(NOW())";
-  $params = [];
-  $courses_not_schedule = $DB->get_records_sql($courses_not_schedule_sql, $params);
+  private $course_array;
+  private $room_array;
+  private $time_slot_array;
+  private $number_room;
+  private $number_day;
+  private $number_class_sessions;
+  private $max_level_recursive;
+  private $max_number_of_call_recursive;
+  private $number_of_call_recursive;
 
-  // Lấy ra các phòng học sẵn có của trung tâm
-  $available_rooms = $DB->get_records('local_course_calendar_course_room');
-
-  // Lưu lại các courseid của từng course chưa được tạo thời khóa biểu.
-  $courses_not_schedule_courseid_array = [];
-  foreach ($courses_not_schedule as $course) {
-    $courses_not_schedule_courseid_array[] = $course->courseid;
+  public function __construct(
+    $course_array = null,
+    $room_array = null,
+    $time_slot_array = null,
+    $number_room = null,
+    $number_day = null,
+    $number_class_sessions = null,
+    $max_level_recursive = null,
+    $max_number_of_call_recursive = null,
+    $number_of_call_recursive = null
+  ) {
+    $this->course_array = $course_array;
+    $this->room_array = $room_array;
+    $this->time_slot_array = $time_slot_array;
+    $this->number_room = $number_room;
+    $this->number_day = $number_day;
+    $this->number_class_sessions = $number_class_sessions;
+    $this->max_level_recursive = $max_level_recursive;
+    $this->max_number_of_call_recursive = $max_number_of_call_recursive;
+    $this->number_of_call_recursive = $number_of_call_recursive;
   }
 
-  // Lưu lại các roomid của các room có sẵn
-  $available_rooms_roomid_array = [];
-  foreach ($available_rooms as $room) {
-    $available_rooms_roomid_array[] = $room->id;
+  /**
+   * Summary of format_time_table
+   * Hàm này dùng để định dạng lại time_table theo format calendar[room][day][session].
+   * @return array Trả về mảng calendar là định dạng mới của time_table. Định dạng của calendar là calendar[room][day][session].
+   */
+  public function format_time_table()
+  {
+    $calendar = [];
+    for ($i = 0; $i < $this->number_room; $i++) {
+      $calendar[] = [];
+      for ($j = 0; $j < $this->number_day; $j++) {
+        $calendar[$i][] = [];
+        for ($k = 0; $k < $this->number_class_sessions; $k++) {
+          $calendar[$i][$j][] = new course_session_information();
+        }
+      }
+    }
+
+    return $calendar;
   }
 
-  // các biến được chuẩn bị cho việc tạo mảng time slot
-  $number_courses_not_schedule = count($courses_not_schedule);
-  $number_room = count($available_rooms);
-  $number_class_sessions = count(STT_CLASS_SESSIONS);
-  $number_day = count(DATES);
-  $time_slot_array = [];
-  $time_slot_index = 0;
+  /**
+   * Summary of init_conflict_position_array
+   * Hàm này thực hiện khởi tạo một mảng chứa các conflict position.
+   * @return conflict_position[]
+   */
+  public function init_conflict_position_array()
+  {
+    // chuẩn bị để tạo mảng chứa các conflict_position nếu ta cố gắng đặt một hoạt động Ai vào vị trí time_slot_index.
+    // mảng conflict_position này có độ dài đúng bằng mảng time_slot_array.
+    $conflict_position_array = [];
+    $time_slot_index = 0;
+    for ($i = 0; $i < $this->number_room; $i++) {
+      for ($j = 0; $j < $this->number_day; $j++) {
+        for ($k = 0; $k < $this->number_class_sessions; $k++) {
+          $conflict_position_array[] = new conflict_position(
+            $i,
+            $j,
+            $k,
+            $time_slot_index,
+            0,
+            []
+          );
+          $time_slot_index++;
+        }
+      }
+    }
 
-  for ($i = 0; $i < $number_room; $i++) {
-    for ($j = 0; $j < $number_day; $j++) {
-      for ($k = 0; $k < $number_class_sessions; $k++) {
-        $time_slot_array[] = new time_slot(
-          $i,
-          $j,
-          $k,
-          new course_session_information(),
-          $time_slot_index,
-          false,
-          false
+    return $conflict_position_array;
+  }
+
+  /**
+   * Summary of deep_copy_time_slot_array
+   * Hàm này dùng để sao chép sâu mảng dữ liệu time_slot_array[]
+   * @param mixed $time_slot_array
+   * @return time_slot[]
+   */
+  public function deep_copy_time_slot_array($time_slot_array)
+  {
+    $clone = [];
+    foreach ($time_slot_array as $time_slot) {
+      $clone[] = new time_slot(
+        $time_slot->room,
+        $time_slot->date,
+        $time_slot->session,
+        $time_slot->course_session_information,
+        $time_slot->time_slot_index,
+        $time_slot->is_occupied,
+        $time_slot->is_occupied_by_course_in_prev_time_slot
+      );
+    }
+    return $clone;
+  }
+
+  /**
+   * Summary of check_position
+   * Hàm này dùng để thực hiện kiểm tra tất cả các ràng buộc tại vị trí time_slot trước khi điền thông tin của course vào.
+   * @param mixed $time_slot
+   * @param mixed $course
+   * @return bool trả về true nếu tất cả các ràng buộc được đáp ứng. Trái lại trả về false.
+   */
+  public function check_position(
+    $time_slot,
+    $course
+  ) {
+    return true;
+  }
+
+  /**
+   * Summary of set_course_information_to_time_slot
+   * Hàm này dùng để ghi dữ liệu của course vào trong một time_slot
+   * @param mixed $time_slot
+   * @param mixed $course
+   * @return bool trả về true nếu việc ghi dữ liệu là thành công và ngược lại trả về false.
+   */
+  public function set_course_information_to_time_slot($time_slot, $course)
+  {
+    return true;
+  }
+
+  /**
+   * Summary of get_conflict_items_at_this_time_slot
+   * Hàm này dùng để thực hiện lấy ra tất cả các thông tin về course đụng độ khi tiến hành đặt thêm thông tin mới về một course vào trong một time_slot
+   * Các thông tin của course đụng độ có thể nằm tại vị trí time_slot hoặc nằm xung quanh vị trí time_slot.
+   * @param mixed $time_slot_array
+   * @param mixed $time_slot
+   * @param mixed $course
+   * @return array trả về danh sách các course.
+   */
+  public function get_conflict_items_at_this_time_slot($time_slot_array, $time_slot, $course)
+  {
+    return [];
+  }
+
+  /**
+   * Summary of remove_conflict_items_from_time_slot
+   * Hàm này dùng để gỡ các course đụng độ ra khỏi time_slot này hoặc time_slot xung quanh đó.
+   * @param mixed $time_slot
+   * @param mixed $conflict_position_array
+   * @param mixed $position
+   * @return array Trả về một mảng chứa thông tin các course đã bị gỡ ra.
+   */
+  public function remove_conflict_items_from_time_slot($time_slot, $conflict_position_array, $position)
+  {
+    $courses = [];
+    return $courses;
+  }
+
+  /**
+   * Summary of try_place_course_to_time_slot.
+   * Đây là hàm đệ quy chính của giải thuật create time table by recursive swap.
+   * @param mixed $course Thông tin của khóa học
+   * @param mixed $level_recursive Thông tin về mức đệ quy đang được gọi
+   * @return bool return true if place course to time slot successfully else false.
+   */
+  public function try_place_course_to_time_slot(
+    $course,
+    $level_recursive
+  ) {
+
+    // Check stop condition
+    if ($level_recursive > MAX_LEVEL_RECURSIVE or $level_recursive > $this->max_level_recursive) {
+      return false;
+    }
+
+    $this->number_of_call_recursive++;
+    if ($this->number_of_call_recursive > $this->max_number_of_call_recursive) {
+      return false;
+    }
+
+    // 2) Try to place each activity (A_i) in an allowed time slot, following the above order, one at a time.
+    // Search for an available slot (T_j) for A_i, in which this activity can be placed respecting the constraints.
+    // If more slots are available, choose a random one. If none is available, do recursive swapping:
+    $is_put_course_to_time_slot_successfully = false;
+    foreach ($this->time_slot_array as $time_slot) {
+      if ($this->check_position($time_slot, $course)) {
+        $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($time_slot, $course);
+        $this->course_array = array_filter($this->course_array, function ($course_param) use ($course) {
+          return $course_param->courseid != $course->courseid;
+        });
+        break;
+      }
+    }
+
+    if (!$is_put_course_to_time_slot_successfully) {
+      //     2 a) For each time slot T_j, consider what happens if you put A_i into T_j. There will be a list of other
+      // activities which don't agree with this move (for instance, activity A_k is on the same slot T_j and has the
+      // same teacher or same students as A_i). Keep a list of conflicting activities for each time slot T_j.
+
+      $conflict_position_array = $this->init_conflict_position_array();
+      foreach ($this->time_slot_array as $time_slot) {
+        $conflict_items_array = $this->get_conflict_items_at_this_time_slot($this->time_slot_array, $time_slot, $course);
+
+        foreach ($conflict_position_array as $conflict_position) {
+          if ($conflict_position->time_slot_index == $time_slot->time_slot_index) {
+            $conflict_position->set_value(
+              $time_slot->room,
+              $time_slot->date,
+              $time_slot->session,
+              $time_slot->time_slot_index,
+              count($conflict_items_array),
+              $conflict_items_array
+            );
+
+            break;
+          }
+        }
+      }
+
+      // 2 b) Choose a slot (T_j) with lowest number of conflicting activities. Say the list of activities in this
+      // slot contains 3 activities: A_p, A_q, A_r.
+      $conflict_items_number = [];
+      foreach ($conflict_position_array as $conflict_position) {
+        $conflict_items_number[] = $conflict_position->conflict_items_number_at_this_time_slot;
+      }
+      array_multisort(
+        $conflict_items_number,
+        SORT_ASC,
+        SORT_REGULAR,
+        $conflict_position_array
+      );
+
+      foreach ($conflict_position_array as $position) {
+        // Thực hiện việc lưu lại thông tin của thời khóa biểu tại thời điểm này 
+        // nếu không đặt được thông tin course mới vào thì khôi phục lại bằng dữ liệu này
+        $backup_time_slot_array = $this->deep_copy_time_slot_array($this->time_slot_array);
+
+        $time_slot = $this->time_slot_array[0];
+        for ($i = 0; $i < count($this->time_slot_array); $i++) {
+          if ($this->time_slot_array[$i]->time_slot_index == $position->time_slot_index) {
+            $time_slot = $this->time_slot_array[$i];
+            break;
+          }
+        }
+
+        // 2 c) Place A_i at T_j and make A_p, A_q, A_r unallocated.
+
+        $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($time_slot, $course);
+        $unplaced_courses_array = [];
+        if ($is_put_course_to_time_slot_successfully) {
+          $unplaced_courses_array = [] = $this->remove_conflict_items_from_time_slot(
+            $time_slot,
+            $conflict_position_array,
+            $position
+          );
+
+          //       2 d) Recursively try to place A_p, A_q, A_r (if the level of recursion is not too large, say 14,
+          // and if the total number of recursive calls counted since step (2) on A_i began is not too large, say 2*n),
+          // as in step (2).
+
+          if (!empty($unplaced_courses_array)) {
+            $is_success = true;
+            foreach ($unplaced_courses_array as $course) {
+              if (!$this->try_place_course_to_time_slot($course, $level_recursive + 1)) {
+                $is_success = false;
+                break;
+              }
+            }
+
+            //           2 e) If successfully placed A_p, A_q, A_r, return with success, otherwise try other time slots
+            // (go to step (2 b) and choose the next best time slot).
+
+            if ($is_success) {
+              return true;
+            } else {
+              // Khôi phục lại dữ liệu tại các time_slot do đệ quy thực hiện thay đổi dữ liệu
+              $this->time_slot_array = $backup_time_slot_array;
+            }
+          }
+        }
+      }
+    }
+
+    // 2 f) If all (or a reasonable number of) time slots were tried unsuccessfully, return without success.
+    return false;
+  }
+
+  /**
+   * Summary of generate_time_table.
+   * Hàm này thực hiện việc khởi tạo time table và trực tiếp gọi hàm đệ quy để tạo timetable.
+   * @return void 
+   */
+  public function generate_time_table()
+  {
+    // Bước 1: Sort the activities, most difficult first. Not critical step, but speeds up the algorithm maybe 10 times or more.
+
+    array_multisort(
+      array_column($this->course_array, 'class_duration'),
+      SORT_DESC,
+      SORT_REGULAR,
+      array_column($this->course_array, 'number_course_session_weekly'),
+      SORT_DESC,
+      SORT_REGULAR,
+      array_column($this->course_array, 'number_student_on_course'),
+      SORT_DESC,
+      SORT_REGULAR,
+      $this->course_array
+    );
+
+    // Bước 2: Try to place each activity (A_i) in an allowed time slot, following the above order, one at a time.
+    // Search for an available slot (T_j) for A_i, in which this activity can be placed respecting the constraints.
+    // If more slots are available, choose a random one. If none is available, do recursive swapping:
+    foreach ($this->course_array as $course) {
+      $this->number_of_call_recursive = 0;
+
+      // Bước 2 g) If we are at level 0, and we had no success in placing A_i, place it like in steps (2 b) and (2 c),
+      // but without recursion. We have now 3 - 1 = 2 more activities to place. Go to step (2) (some methods to
+      // avoid cycling are used here).
+      if (!$this->try_place_course_to_time_slot($course, 0)) {
+        // prepare data
+        $conflict_position_array = $this->init_conflict_position_array();
+        foreach ($this->time_slot_array as $time_slot) {
+          $conflict_items_array = $this->get_conflict_items_at_this_time_slot($this->time_slot_array, $time_slot, $course);
+
+          foreach ($conflict_position_array as $conflict_position) {
+            if ($conflict_position->time_slot_index == $time_slot->time_slot_index) {
+              $conflict_position->set_value(
+                $time_slot->room,
+                $time_slot->date,
+                $time_slot->session,
+                $time_slot->time_slot_index,
+                count($conflict_items_array),
+                $conflict_items_array
+              );
+
+              break;
+            }
+          }
+        }
+
+        $conflict_items_number = [];
+        foreach ($conflict_position_array as $conflict_position) {
+          $conflict_items_number[] = $conflict_position->conflict_items_number_at_this_time_slot;
+        }
+        array_multisort(
+          $conflict_items_number,
+          SORT_ASC,
+          SORT_REGULAR,
+          $conflict_position_array
         );
-        $time_slot_index++;
+
+        //       2 b) Choose a slot (T_j) with lowest number of conflicting activities. Say the list of activities in this
+        // slot contains 3 activities: A_p, A_q, A_r.
+
+        foreach ($conflict_position_array as $position) {
+          $time_slot = $this->time_slot_array[0];
+          for ($i = 0; $i < count($this->time_slot_array); $i++) {
+            if ($this->time_slot_array[$i]->time_slot_index == $position->time_slot_index) {
+              $time_slot = $this->time_slot_array[$i];
+              break;
+            }
+          }
+
+          // 2 c) Place A_i at T_j and make A_p, A_q, A_r unallocated.
+
+          $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($time_slot, $course);
+          $unplaced_courses_array = [];
+          if ($is_put_course_to_time_slot_successfully) {
+            $unplaced_courses_array = $this->remove_conflict_items_from_time_slot(
+              $time_slot,
+              $conflict_position_array,
+              $position
+            );
+
+            if (!empty($unplaced_courses_array)) {
+              foreach ($unplaced_courses_array as $course) {
+                $this->try_place_course_to_time_slot($course, 0);
+              }
+            }
+          }
+
+        }
       }
     }
   }
 
-  // chuẩn bị để tạo mảng chứa các conflict_position nếu ta cố gắng đặt một hoạt động Ai vào vị trí time_slot_index.
-  // mảng conflict_position này có độ dài đúng bằng mảng time_slot_array.
-  $conflict_position_array = [];
-  $time_slot_index = 0;
-  for ($i = 0; $i < $number_room; $i++) {
-    for ($j = 0; $j < $number_day; $j++) {
-      for ($k = 0; $k < $number_class_sessions; $k++) {
-        $conflict_position_array[] = new conflict_position(
-          $i,
-          $j,
-          $k,
-          $time_slot_index,
-          0,
-          []
-        );
-        $time_slot_index++;
+  /**
+   * Summary of create_automatic_calendar_by_recursive_swap_algorithm
+   * Hàm này thực hiện việc truy xuất các dữ liệu cần thiết cho việc tạo thời khóa biểu và tiến hành gọi hàm 
+   * generate_time_table() để tạo thời khóa biểu.
+   * @return void 
+   */
+  public function create_automatic_calendar_by_recursive_swap_algorithm()
+  {
+    // Lấy ra các course mà chưa được tạo lịch học 
+    global $DB;
+    $courses_not_schedule_sql = "SELECT c.id courseid, c.category, c.shortname, c.startdate, 
+                                        c.enddate, c.visible, cc.class_duration, cc.number_course_session_weekly, 
+                                        cc.number_student_on_course
+                                FROM mdl_local_course_calendar_course_section cs
+                                RIGHT JOIN mdl_course c on cs.courseid = c.id
+                                join mdl_local_course_calendar_course_config_for_calendar cc on cc.courseid = c.id
+                                WHERE cs.courseid is null 
+                                      and c.id != 1 
+                                      and c.visible = 1 
+                                      and c.enddate >= UNIX_TIMESTAMP(NOW())";
+    $params = [];
+    $courses_not_schedule = $DB->get_records_sql($courses_not_schedule_sql, $params);
+
+    // Tạo dữ liệu course_list bao gồm những course ta sẽ cần xếp thời khóa biểu và cần sắp xếp chúng theo thứ tự ưu tiên
+    // Thứ tự ưu tiên là thời gian diễn ra buổi học (số tiết học trên một buổi)
+    // Số buổi học trên một tuần
+    // Phải tạo thêm course_list để lưu là vì khi chúng ta thực hiện thêm course vào trong thời khóa biểu sẽ cần xóa course đó ra 
+    // và khi cần unlocated course thì cần nơi để lưu trở lại.
+    // và ta cũng cần sort lại mảng course này để sắp xếp lại theo thứ tự ưu tiên
+    // nếu ta làm trên mảng chính luôn có thể sẽ gây sai sót dữ liệu.
+
+    // và cũng vì cái $course_not_schedule đang được đánh index theo cột đầu tiên là courseid ta không biết chắc các id này có theo thứ tự không
+    // nó sẽ khó cho quá trình duyệt qua mảng sẽ gây thiếu sót, khó khăn khi chỉ có thể dùng mỗi foreach.
+
+    $course_array = [];
+    foreach ($courses_not_schedule as $course) {
+      $course_array[] = $course;
+    }
+
+    // Lấy ra các phòng học sẵn có của trung tâm
+    $available_rooms = $DB->get_records('local_course_calendar_course_room');
+
+    // Lưu lại các room vào mảng có index theo thứ tự từ 0->n
+    $room_array = [];
+    foreach ($available_rooms as $room) {
+      $room_array[] = $room;
+    }
+
+    // các biến được chuẩn bị cho việc tạo mảng time slot
+    $number_courses_not_schedule = count($courses_not_schedule);
+    $number_room = count($available_rooms);
+    $number_class_sessions = count(STT_CLASS_SESSIONS);
+    $number_day = count(DATES);
+    $time_slot_array = [];
+    $time_slot_index = 0;
+
+    for ($i = 0; $i < $number_room; $i++) {
+      for ($j = 0; $j < $number_day; $j++) {
+        for ($k = 0; $k < $number_class_sessions; $k++) {
+          $time_slot_array[] = new time_slot(
+            $i,
+            $j,
+            $k,
+            new course_session_information(),
+            $time_slot_index,
+            false,
+            false
+          );
+          $time_slot_index++;
+        }
       }
     }
+
+    // hai biến này dùng để giới hạn lại số lần gọi đệ quy để xử lý bài toán.
+    // độ sâu tối đa mà thuật toán có thể gọi đến là 16 - theo hướng dẫn của giải thuật fet application - file doc
+    // Số lần có thể gọi đệ quy là bằng 2 * số hoạt động có thể có - trong bài toán này số hoạt động có thể có là $number_course_not_schedule.
+    $max_level_recursive = 16;
+    $number_of_call_recursive = 0;
+    $max_number_of_call_recursive = 2 * $number_courses_not_schedule;
+
+    // Khởi tạo calendar kết quả
+    // Tạo calendar bằng giải thuật recursive swap
+    // Trả về kết quả.
+    $time_table = new TimetableGenerator(
+      $course_array,
+      $room_array,
+      $time_slot_array,
+      $number_room,
+      $number_day,
+      $number_class_sessions,
+      $max_level_recursive,
+      $max_number_of_call_recursive,
+      $number_of_call_recursive
+    );
+
+    $time_table->generate_time_table();
   }
-
-
-
 }

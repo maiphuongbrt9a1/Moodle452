@@ -1,0 +1,441 @@
+<?php
+
+/**
+ * Lớp Activity (Hoạt động)
+ * Đại diện cho một hoạt động cần được xếp vào thời khóa biểu.
+ * Trong một hệ thống thực tế, nó sẽ có thêm các thuộc tính như giáo viên, nhóm học sinh, môn học, v.v.
+ */
+class Activity {
+    public $id;
+    public $name;
+    public $teacherId; // Ví dụ: ID của giáo viên
+    public $studentGroupIds; // Ví dụ: Mảng các ID nhóm học sinh
+    public $timeSlot = null; // Thời gian được gán (null nếu chưa được gán)
+    public $roomId = null; // Phòng được gán (null nếu chưa được gán, đơn giản hóa cho ví dụ này)
+
+    public function __construct($id, $name, $teacherId, array $studentGroupIds) {
+        $this->id = $id;
+        $this->name = $name;
+        $this->teacherId = $teacherId;
+        $this->studentGroupIds = $studentGroupIds;
+    }
+
+    /**
+     * Trả về một chuỗi đại diện cho hoạt động.
+     */
+    public function __toString() {
+        return "Activity {$this->id} ({$this->name})";
+    }
+}
+
+/**
+ * Lớp TimetableGenerator (Bộ tạo thời khóa biểu)
+ * Chứa logic chính của giải thuật xếp thời khóa biểu.
+ */
+class TimetableGenerator {
+    private $activities = []; // Mảng các đối tượng Activity
+    private $constraints = []; // Mảng các ràng buộc cơ bản (ví dụ: A1 và A2 không thể đồng thời)
+    private $maxTimeSlots; // Tổng số khe thời gian có sẵn
+    private $currentTimetable = []; // Mảng lưu trữ thời gian đã gán cho các hoạt động: [activityId => timeSlot]
+    private $maxRecursionLevel = 14; // Giới hạn cấp độ đệ quy
+    private $maxTotalRecursiveCalls = 0; // Giới hạn tổng số lần gọi đệ quy (sẽ được tính dựa trên số hoạt động)
+    private $totalRecursiveCallsCount = 0; // Đếm tổng số lần gọi đệ quy
+    private $debug = true; // Bật/tắt thông báo gỡ lỗi
+
+    public function __construct($maxTimeSlots) {
+        $this->maxTimeSlots = $maxTimeSlots;
+        // Giới hạn tổng số lần gọi đệ quy có thể là 2 * n (số hoạt động)
+        // Sẽ được cập nhật khi các hoạt động được thêm vào
+    }
+
+    /**
+     * Thêm một hoạt động vào bộ tạo.
+     */
+    public function addActivity(Activity $activity) {
+        $this->activities[$activity->id] = $activity;
+        // Cập nhật giới hạn tổng số lần gọi đệ quy khi số hoạt động thay đổi
+        $this->maxTotalRecursiveCalls = 2 * count($this->activities);
+    }
+
+    /**
+     * Thêm một ràng buộc cơ bản (hai hoạt động không thể đồng thời).
+     * @param int $activityId1 ID của hoạt động thứ nhất.
+     * @param int $activityId2 ID của hoạt động thứ hai.
+     */
+    public function addBasicConstraint($activityId1, $activityId2) {
+        // Lưu trữ dưới dạng cặp sắp xếp để tránh trùng lặp (ví dụ: (1,2) giống (2,1))
+        $pair = [$activityId1, $activityId2];
+        sort($pair); // Đảm bảo thứ tự nhất quán
+        $this->constraints[] = $pair;
+    }
+
+    /**
+     * Kiểm tra xem hai hoạt động có xung đột dựa trên các ràng buộc đã biết.
+     * Trong một hệ thống thực tế, điều này sẽ phức tạp hơn, bao gồm giáo viên, học sinh, phòng, v.v.
+     *
+     * @param Activity $activity1 Hoạt động thứ nhất.
+     * @param Activity $activity2 Hoạt động thứ hai.
+     * @return bool True nếu có xung đột, False nếu không.
+     */
+    private function hasConflict(Activity $activity1, Activity $activity2) {
+        // Ràng buộc C1: Kiểm tra các cặp hoạt động không thể đồng thời
+        $pair1 = [$activity1->id, $activity2->id];
+        sort($pair1);
+        foreach ($this->constraints as $constraintPair) {
+            if ($pair1 == $constraintPair) {
+                return true;
+            }
+        }
+
+        // Các ràng buộc khác (ví dụ đơn giản):
+        // Nếu cùng giáo viên hoặc cùng nhóm học sinh, chúng xung đột.
+        if ($activity1->teacherId === $activity2->teacherId) {
+            return true;
+        }
+
+        foreach ($activity1->studentGroupIds as $groupId1) {
+            if (in_array($groupId1, $activity2->studentGroupIds)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Lấy danh sách các hoạt động xung đột nếu một hoạt động được đặt vào một khe thời gian cụ thể.
+     *
+     * @param Activity $targetActivity Hoạt động muốn đặt.
+     * @param int $timeSlot Khe thời gian để kiểm tra.
+     * @return Activity[] Mảng các hoạt động xung đột.
+     */
+    private function getConflictingActivities(Activity $targetActivity, $timeSlot) {
+        $conflicts = [];
+        foreach ($this->currentTimetable as $activityId => $assignedTimeSlot) {
+            if ($assignedTimeSlot === $timeSlot) {
+                $assignedActivity = $this->activities[$activityId];
+                if ($this->hasConflict($targetActivity, $assignedActivity)) {
+                    $conflicts[] = $assignedActivity;
+                }
+            }
+        }
+        return $conflicts;
+    }
+
+    /**
+     * Cố gắng đặt một hoạt động vào thời khóa biểu. Đây là hàm đệ quy chính.
+     *
+     * @param Activity $activity Hoạt động cần đặt.
+     * @param int $recursionLevel Cấp độ đệ quy hiện tại.
+     * @return bool True nếu hoạt động và các hoạt động xung đột được đặt thành công, False nếu không.
+     */
+    private function tryPlaceActivity(Activity $activity, $recursionLevel) {
+        if ($this->debug) {
+            echo str_repeat("  ", $recursionLevel) . "Đang cố gắng đặt: " . $activity->name . " (Cấp độ: $recursionLevel)\n";
+        }
+
+        // Kiểm tra giới hạn đệ quy
+        if ($recursionLevel > $this->maxRecursionLevel) {
+            if ($this->debug) {
+                echo str_repeat("  ", $recursionLevel) . "  Vượt quá giới hạn cấp độ đệ quy ($this->maxRecursionLevel). Thất bại.\n";
+            }
+            return false;
+        }
+        $this->totalRecursiveCallsCount++;
+        if ($this->totalRecursiveCallsCount > $this->maxTotalRecursiveCalls) {
+            if ($this->debug) {
+                echo str_repeat("  ", $recursionLevel) . "  Vượt quá tổng số lần gọi đệ quy ($this->maxTotalRecursiveCalls). Thất bại.\n";
+            }
+            return false;
+        }
+
+        // Bước 2: Tìm một khe thời gian có sẵn cho A_i
+        $availableSlots = [];
+        for ($j = 0; $j < $this->maxTimeSlots; $j++) {
+            $conflicts = $this->getConflictingActivities($activity, $j);
+            if (empty($conflicts)) {
+                $availableSlots[] = $j;
+            }
+        }
+
+        // Nếu có các khe có sẵn không xung đột, chọn một cách ngẫu nhiên
+        if (!empty($availableSlots)) {
+            $chosenSlot = $availableSlots[array_rand($availableSlots)];
+            $this->currentTimetable[$activity->id] = $chosenSlot;
+            $activity->timeSlot = $chosenSlot; // Cập nhật thuộc tính của đối tượng Activity
+            if ($this->debug) {
+                echo str_repeat("  ", $recursionLevel) . "  Đã đặt thành công " . $activity->name . " vào khe $chosenSlot (không xung đột).\n";
+            }
+            return true; // Đặt thành công
+        }
+
+        // Nếu không có khe nào không xung đột, thực hiện hoán đổi đệ quy
+        if ($this->debug) {
+            echo str_repeat("  ", $recursionLevel) . "  Không có khe không xung đột. Đang thử hoán đổi đệ quy...\n";
+        }
+
+        // Bước 2a & 2b: Lập danh sách các khe thời gian và số lượng xung đột
+        $slotConflicts = [];
+        for ($j = 0; $j < $this->maxTimeSlots; $j++) {
+            $conflicts = $this->getConflictingActivities($activity, $j);
+            $slotConflicts[$j] = $conflicts;
+        }
+
+        // Sắp xếp các khe thời gian theo số lượng xung đột tăng dần
+        uksort($slotConflicts, function($a, $b) use ($slotConflicts) {
+            return count($slotConflicts[$a]) <=> count($slotConflicts[$b]);
+        });
+
+        foreach ($slotConflicts as $chosenSlot => $conflictingActivities) {
+            if ($this->debug) {
+                echo str_repeat("  ", $recursionLevel) . "  Đang thử khe $chosenSlot với " . count($conflictingActivities) . " xung đột cho " . $activity->name . ".\n";
+            }
+
+            // Bước 2c: Đặt A_i vào T_j và hủy phân bổ các hoạt động xung đột
+            $originalTimetable = $this->currentTimetable; // Lưu trạng thái hiện tại để khôi phục
+            $originalActivitySlots = []; // Lưu trữ khe ban đầu của các hoạt động xung đột
+            $this->currentTimetable[$activity->id] = $chosenSlot;
+            $activity->timeSlot = $chosenSlot;
+
+            $unallocatedActivities = [];
+            foreach ($conflictingActivities as $conflictingActivity) {
+                $originalActivitySlots[$conflictingActivity->id] = $conflictingActivity->timeSlot;
+                unset($this->currentTimetable[$conflictingActivity->id]); // Hủy phân bổ
+                $conflictingActivity->timeSlot = null;
+                $unallocatedActivities[] = $conflictingActivity;
+            }
+
+            // Bước 2d: Đệ quy cố gắng đặt lại các hoạt động chưa được phân bổ
+            $success = true;
+            foreach ($unallocatedActivities as $unallocatedActivity) {
+                if (!$this->tryPlaceActivity($unallocatedActivity, $recursionLevel + 1)) {
+                    $success = false;
+                    break; // Nếu một hoạt động không thể đặt được, thất bại
+                }
+            }
+
+            // Bước 2e: Nếu thành công, trả về thành công, ngược lại thử các khe khác
+            if ($success) {
+                if ($this->debug) {
+                    echo str_repeat("  ", $recursionLevel) . "  Đã đặt thành công " . $activity->name . " vào khe $chosenSlot và giải quyết xung đột.\n";
+                }
+                return true;
+            } else {
+                if ($this->debug) {
+                    echo str_repeat("  ", $recursionLevel) . "  Không thể giải quyết xung đột cho " . $activity->name . " ở khe $chosenSlot. Đang khôi phục và thử lại.\n";
+                }
+                // Khôi phục trạng thái thời khóa biểu về trước khi thử khe này
+                $this->currentTimetable = $originalTimetable;
+                $activity->timeSlot = null; // Hoạt động này cũng chưa được đặt
+                foreach ($unallocatedActivities as $unallocatedActivity) {
+                    // Khôi phục khe ban đầu của các hoạt động xung đột
+                    if (isset($originalActivitySlots[$unallocatedActivity->id])) {
+                        $this->currentTimetable[$unallocatedActivity->id] = $originalActivitySlots[$unallocatedActivity->id];
+                        $unallocatedActivity->timeSlot = $originalActivitySlots[$unallocatedActivity->id];
+                    } else {
+                        // Nếu hoạt động này ban đầu không được gán, đảm bảo nó vẫn chưa được gán
+                        $unallocatedActivity->timeSlot = null;
+                    }
+                }
+            }
+        }
+
+        // Bước 2f: Nếu tất cả các khe đã được thử mà không thành công
+        if ($this->debug) {
+            echo str_repeat("  ", $recursionLevel) . "  Tất cả các khe đã được thử cho " . $activity->name . " mà không thành công.\n";
+        }
+        return false;
+    }
+
+    /**
+     * Hàm chính để tạo thời khóa biểu.
+     *
+     * @return array|false Mảng thời khóa biểu đã tạo (activityId => timeSlot) hoặc false nếu thất bại.
+     */
+    public function generateTimetable() {
+        // Bước 1: Sắp xếp các hoạt động, khó nhất trước.
+        // Đây là một bước giả định. Trong thực tế, bạn cần một hàm tính độ khó phức tạp hơn.
+        // Ví dụ đơn giản: hoạt động có nhiều ràng buộc hơn sẽ khó hơn.
+        // Hoặc, hoạt động có ít khe thời gian trống khả thi hơn.
+        // Ở đây, chúng ta sẽ sắp xếp theo số lượng nhóm học sinh (một chỉ số đơn giản của độ phức tạp).
+        usort($this->activities, function(Activity $a, Activity $b) {
+            // Sắp xếp giảm dần theo số lượng nhóm học sinh
+            return count($b->studentGroupIds) <=> count($a->studentGroupIds);
+        });
+
+        if ($this->debug) {
+            echo "Bắt đầu tạo thời khóa biểu...\n";
+            echo "Thứ tự hoạt động (giả định độ khó): \n";
+            foreach ($this->activities as $activity) {
+                echo "  - " . $activity->name . " (Nhóm: " . count($activity->studentGroupIds) . ")\n";
+            }
+            echo "--------------------------------------\n";
+        }
+
+        // Bước 2: Cố gắng đặt từng hoạt động
+        $unplacedActivities = [];
+        foreach ($this->activities as $activity) {
+            $this->totalRecursiveCallsCount = 0; // Đặt lại bộ đếm cho mỗi hoạt động cấp 0
+            if (!$this->tryPlaceActivity($activity, 0)) {
+                // Bước 2g: Nếu ở cấp độ 0 và không thành công, đặt nó mà không đệ quy,
+                // và thêm các hoạt động xung đột vào danh sách chưa được đặt.
+                if ($this->debug) {
+                    echo "Hoạt động " . $activity->name . " không thể đặt được ở cấp 0. Đang thử đặt mà không đệ quy.\n";
+                }
+
+                $bestSlot = -1;
+                $minConflicts = PHP_INT_MAX;
+                $bestConflictingActivities = [];
+
+                // Tìm khe có số xung đột thấp nhất
+                for ($j = 0; $j < $this->maxTimeSlots; $j++) {
+                    $conflicts = $this->getConflictingActivities($activity, $j);
+                    if (count($conflicts) < $minConflicts) {
+                        $minConflicts = count($conflicts);
+                        $bestSlot = $j;
+                        $bestConflictingActivities = $conflicts;
+                    }
+                }
+
+                if ($bestSlot !== -1) {
+                    if ($this->debug) {
+                        echo "  Đặt " . $activity->name . " vào khe $bestSlot. Các hoạt động xung đột sẽ được xử lý sau.\n";
+                    }
+                    $this->currentTimetable[$activity->id] = $bestSlot;
+                    $activity->timeSlot = $bestSlot;
+
+                    foreach ($bestConflictingActivities as $conflictingActivity) {
+                        unset($this->currentTimetable[$conflictingActivity->id]); // Hủy phân bổ
+                        $conflictingActivity->timeSlot = null;
+                        $unplacedActivities[$conflictingActivity->id] = $conflictingActivity; // Thêm vào danh sách chưa đặt
+                        if ($this->debug) {
+                            echo "  Thêm " . $conflictingActivity->name . " vào danh sách chưa đặt.\n";
+                        }
+                    }
+                } else {
+                    // Điều này không nên xảy ra nếu có ít nhất một khe thời gian,
+                    // nhưng là một trường hợp dự phòng.
+                    if ($this->debug) {
+                        echo "  Không tìm thấy khe nào cho " . $activity->name ", ngay cả với xung đột.\n";
+                    }
+                    return false; // Thất bại hoàn toàn
+                }
+            }
+        }
+
+        // Nếu có các hoạt động chưa được đặt sau bước 2g, cần một cơ chế để xử lý chúng.
+        // Giải thuật gốc nói "Go to step (2) (some methods to avoid cycling are used here)".
+        // Điều này có thể có nghĩa là lặp lại toàn bộ quá trình hoặc một phần của nó
+        // cho đến khi tất cả các hoạt động được đặt hoặc đạt đến giới hạn lặp.
+        // Đối với ví dụ này, chúng ta sẽ kiểm tra xem tất cả các hoạt động đã được đặt chưa.
+        // Trong một triển khai thực tế, bạn sẽ cần một vòng lặp bên ngoài để xử lý `unplacedActivities`
+        // và cơ chế tránh lặp vô hạn.
+        if (!empty($unplacedActivities)) {
+            if ($this->debug) {
+                echo "--------------------------------------\n";
+                echo "Có các hoạt động chưa được đặt sau vòng lặp chính. Cần thêm logic để xử lý:\n";
+                foreach ($unplacedActivities as $act) {
+                    echo "  - " . $act->name . "\n";
+                }
+                echo "Giải thuật có thể cần lặp lại hoặc có cơ chế xử lý cụ thể cho các hoạt động này.\n";
+            }
+            // Đối với ví dụ này, chúng ta sẽ coi là thất bại nếu còn hoạt động chưa đặt.
+            // Trong thực tế, bạn có thể lặp lại `generateTimetable` hoặc có một vòng lặp bên ngoài.
+            return false;
+        }
+
+
+        // Kiểm tra xem tất cả các hoạt động đã được đặt chưa
+        foreach ($this->activities as $activity) {
+            if ($activity->timeSlot === null) {
+                if ($this->debug) {
+                    echo "Hoạt động " . $activity->name . " chưa được đặt. Thời khóa biểu không hoàn chỉnh.\n";
+                }
+                return false; // Thời khóa biểu không hoàn chỉnh
+            }
+        }
+
+        if ($this->debug) {
+            echo "--------------------------------------\n";
+            echo "Tạo thời khóa biểu hoàn tất!\n";
+        }
+        return $this->currentTimetable;
+    }
+
+    /**
+     * Hiển thị thời khóa biểu đã tạo.
+     */
+    public function displayTimetable() {
+        if (empty($this->currentTimetable)) {
+            echo "Thời khóa biểu chưa được tạo hoặc không có hoạt động nào.\n";
+            return;
+        }
+
+        echo "\n--- Thời khóa biểu đã tạo ---\n";
+        // Sắp xếp theo khe thời gian để hiển thị dễ đọc hơn
+        $sortedTimetable = [];
+        foreach ($this->currentTimetable as $activityId => $timeSlot) {
+            $sortedTimetable[$timeSlot][] = $this->activities[$activityId];
+        }
+        ksort($sortedTimetable); // Sắp xếp theo khe thời gian
+
+        for ($i = 0; $i < $this->maxTimeSlots; $i++) {
+            echo "Khe thời gian $i: ";
+            if (isset($sortedTimetable[$i])) {
+                $activityNames = array_map(function($act) { return $act->name; }, $sortedTimetable[$i]);
+                echo implode(", ", $activityNames);
+            } else {
+                echo "Trống";
+            }
+            echo "\n";
+        }
+        echo "---------------------------\n";
+    }
+}
+
+// --- Ví dụ sử dụng ---
+echo "<pre>"; // Giúp định dạng đầu ra trong trình duyệt
+
+$generator = new TimetableGenerator(5); // 5 khe thời gian (ví dụ: Thứ 2 sáng, Thứ 2 chiều, ...)
+
+// Tạo một số hoạt động
+$activity1 = new Activity(1, "Toán 10A", 101, [10]);
+$activity2 = new Activity(2, "Văn 10A", 102, [10]);
+$activity3 = new Activity(3, "Lý 10B", 103, [11]);
+$activity4 = new Activity(4, "Hóa 10B", 104, [11]);
+$activity5 = new Activity(5, "Thể dục 10A+10B", 105, [10, 11]); // Hoạt động chung
+$activity6 = new Activity(6, "Sử 10A", 106, [10]);
+$activity7 = new Activity(7, "Địa 10B", 107, [11]);
+$activity8 = new Activity(8, "Toán 10B", 101, [11]); // Giáo viên 101 cũng dạy 10B
+
+$generator->addActivity($activity1);
+$generator->addActivity($activity2);
+$generator->addActivity($activity3);
+$generator->addActivity($activity4);
+$generator->addActivity($activity5);
+$generator->addActivity($activity6);
+$generator->addActivity($activity7);
+$generator->addActivity($activity8);
+
+
+// Thêm một số ràng buộc cơ bản (ví dụ: giáo viên 101 không thể dạy Toán 10A và Toán 10B cùng lúc)
+// (Mặc dù hàm hasConflict đã xử lý cùng giáo viên, đây là ví dụ về C1)
+$generator->addBasicConstraint($activity1->id, $activity8->id); // Toán 10A và Toán 10B không đồng thời
+
+// Thêm một ràng buộc khác (ví dụ: Toán 10A và Văn 10A không thể đồng thời vì cùng nhóm 10A)
+// (Hàm hasConflict cũng đã xử lý cùng nhóm học sinh)
+$generator->addBasicConstraint($activity1->id, $activity2->id);
+
+
+$timetable = $generator->generateTimetable();
+
+if ($timetable) {
+    echo "\nThời khóa biểu đã được tạo thành công!\n";
+    $generator->displayTimetable();
+} else {
+    echo "\nKhông thể tạo thời khóa biểu hoàn chỉnh. Vui lòng kiểm tra ràng buộc hoặc tăng số khe thời gian/giới hạn đệ quy.\n";
+}
+
+echo "</pre>";
+
+?>

@@ -1,6 +1,7 @@
 <?php
 
-function xmldb_local_course_calendar_upgrade($oldversion): bool {
+function xmldb_local_course_calendar_upgrade($oldversion): bool
+{
     global $CFG, $DB;
 
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
@@ -29,10 +30,41 @@ function xmldb_local_course_calendar_upgrade($oldversion): bool {
         // Conditionally launch create table for local_course_calendar_holiday.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
+        }
+
+        // Course_calendar savepoint reached.
+        upgrade_plugin_savepoint(true, 20250606010, 'local', 'course_calendar');
     }
 
-    // Course_calendar savepoint reached.
-    upgrade_plugin_savepoint(true, 20250606010, 'local', 'course_calendar');
+    if ($oldversion < 20250606011) {
+
+        // Define table local_course_calendar_course_config_for_calendar to be created.
+        $table = new xmldb_table('local_course_calendar_course_config_for_calendar');
+
+        // Adding fields to table local_course_calendar_course_config_for_calendar.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('class_duration', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 2);
+        $table->add_field('number_course_session_weekly', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 2);
+        $table->add_field('number_student_on_course', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 25);
+        $table->add_field('created_user_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('modified_user_id', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('createdtime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('modifiedtime', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+
+        // Adding keys to table local_course_calendar_course_config_for_calendar.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('courseid_fk', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
+        $table->add_key('created_user_fk', XMLDB_KEY_FOREIGN, ['created_user_id'], 'user', ['id']);
+        $table->add_key('modified_user_fk', XMLDB_KEY_FOREIGN, ['modified_user_id'], 'user', ['id']);
+
+        // Conditionally launch create table for local_course_calendar_course_config_for_calendar.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Course_calendar savepoint reached.
+        upgrade_plugin_savepoint(true, 20250606011, 'local', 'course_calendar');
     }
 
     // Everything has succeeded to here. Return true.

@@ -64,7 +64,10 @@ try {
     $times_and_addresses = required_param_array('selected_times_and_addresses', PARAM_TEXT);
 
     // $calendar = create_manual_calendar($courses, $teachers, $times_and_addresses);
-    $calendar = create_automatic_calendar_by_genetic_algorithm();
+    // $calendar = create_automatic_calendar_by_genetic_algorithm();
+    $calendar = new TimetableGenerator();
+    $calendar->create_automatic_calendar_by_recursive_swap_algorithm();
+    $calendar->format_time_table();
 
     $available_rooms = $DB->get_records('local_course_calendar_course_room');
 
