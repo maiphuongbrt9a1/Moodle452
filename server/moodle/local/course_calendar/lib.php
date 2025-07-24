@@ -2294,18 +2294,18 @@ function is_available_teacher($teacher_id, $start_time, $end_time)
 
 }
 
-function create_manual_calendar(array $courses, array $teachers, array $room_addresses, int $start_time, int $end_time)
+function create_manual_calendar(int $courses, array $teachers, int $room_addresses, int $start_time, int $end_time)
 {
   // define global variable
   global $DB, $USER;
-  $courseid = $courses[0];
-  $roomid = $room_addresses[0];
+  $courseid = $courses;
+  $roomid = $room_addresses;
 
   if (empty($courses) || empty($teachers) || empty($room_addresses) || empty($start_time) || empty($end_time)) {
     throw new \InvalidArgumentException('Invalid arguments provided for creating manual calendar.');
   }
 
-  if (is_empty_room($room_addresses[0], $start_time, $end_time) === false) {
+  if (is_empty_room($room_addresses, $start_time, $end_time) === false) {
     throw new \Exception('The room is not available for the specified time range.');
   }
 

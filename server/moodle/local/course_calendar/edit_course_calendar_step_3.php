@@ -100,12 +100,7 @@ try {
         // If there is a cancel element on the form, and it was pressed,
         // then the `is_cancelled()` function will return true.
         // You can handle the cancel operation here.
-        $params = [];
-        if (!empty($courses) and !empty($teachers)) {
-            $params['selected_courses'] = $courses;
-            $params['selected_teachers[]'] = $teachers;
-        }
-        redirect(new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params), 'Cancelled choose time for class section.', 0, \core\output\notification::NOTIFY_ERROR);
+
     } else if ($fromform = $mform->get_data()) {
 
         global $PAGE, $OUTPUT, $DB, $USER;
@@ -296,8 +291,24 @@ try {
         // and parent does not need to search for children.
         echo html_writer::start_tag('form', ['action' => 'process_edit_course_calendar_after_step_3.php', 'method' => 'get']);
 
+        $params = [];
+        if (isset($courses)) {
+            $params['selected_courses'] = $courses;
+        }
 
-        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', []);
+        if (!empty($teachers) and isset($teachers)) {
+            foreach ($teachers as $teacherid) {
+                // Add hidden input for each selected teacher.
+                $params['selected_teachers[]'] = $teacherid;
+            }
+        }
+
+        // if (isset($start_class_time) and isset($end_class_time)) {
+        //     $params['starttime'] = $start_class_time;
+        //     $params['endtime'] = $end_class_time;
+        // }
+
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
@@ -324,7 +335,7 @@ try {
                     'type' => 'radio',
                     'value' => $room_address->room_id,
                     'class' => 'select-radio',
-                    'name' => 'selected_room_addresses[]',
+                    'name' => 'selected_room_addresses',
                 ]),
 
                 $stt,
@@ -337,7 +348,7 @@ try {
         }
         echo html_writer::table($table);
 
-        if (!empty($courses)) {
+        if (isset($courses)) {
             // Add hidden input for each selected course.
             echo html_writer::empty_tag('input', [
                 'type' => 'hidden',
@@ -346,7 +357,7 @@ try {
             ]);
         }
 
-        if (!empty($teachers)) {
+        if (isset($teachers)) {
             foreach ($teachers as $teacherid) {
                 // Add hidden input for each selected teacher.
                 echo html_writer::empty_tag('input', [
@@ -374,10 +385,17 @@ try {
         echo '<div class="d-flex justify-content-end align-items-center">';
         echo '<div class="me-2">';
         $params = [];
-        if (isset($courses) and isset($teachers)) {
+        if (isset($courses)) {
             $params['selected_courses'] = $courses;
-            $params['selected_teachers'] = $teachers;
         }
+
+        if (!empty($teachers) and isset($teachers)) {
+            foreach ($teachers as $teacherid) {
+                // Add hidden input for each selected teacher.
+                $params['selected_teachers[]'] = $teacherid;
+            }
+        }
+
         $back_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
         echo '<div class="d-flex justify-content-end align-items-center">';
         echo '<div><a class="btn btn-secondary " href="' . $back_url->out() . '">Back</a></div>';

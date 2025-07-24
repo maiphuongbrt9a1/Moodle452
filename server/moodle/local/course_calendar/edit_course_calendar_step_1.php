@@ -182,7 +182,7 @@ try {
             $base_url->param('searchquery', $search_query);
         }
 
-        if (!empty($selected_courses_from_request)) {
+        if (isset($selected_courses_from_request)) {
             echo html_writer::empty_tag('input', [
                 'type' => 'hidden',
                 'name' => 'selected_courses',

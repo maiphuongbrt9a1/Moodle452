@@ -209,8 +209,11 @@ try {
         // and parent does not need to search for children.
         echo html_writer::start_tag('form', ['action' => 'edit_course_calendar_step_3.php', 'method' => 'get']);
 
-
-        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', []);
+        $params = [];
+        if (isset($courses)) {
+            $params['selected_courses'] = $courses;
+        }
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
@@ -304,7 +307,7 @@ try {
             ];
         }
         echo html_writer::table($table);
-        if (!empty($courses)) {
+        if (isset($courses)) {
             echo html_writer::empty_tag('input', [
                 'type' => 'hidden',
                 'name' => 'selected_courses',
@@ -314,9 +317,6 @@ try {
         echo '<div class="d-flex justify-content-end align-items-center">';
         echo '<div class="me-2">';
         $params = [];
-        if (!empty($courses)) {
-            $params['selected_courses'] = $courses;
-        }
         $back_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', $params);
         echo '<div class="d-flex justify-content-end align-items-center">';
         echo '<div><a class="btn btn-secondary " href="' . $back_url->out() . '">Back</a></div>';

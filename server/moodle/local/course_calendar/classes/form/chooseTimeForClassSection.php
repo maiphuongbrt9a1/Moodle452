@@ -55,7 +55,7 @@ class chooseTimeForClassSection extends \moodleform
         $mform->setDefault('endtime', time() + $duration); // HOURSECS = 3600 giây (1 giờ)
         $mform->addRule('endtime', get_string('required', 'moodle'), 'required', null, 'client');
 
-        $this->add_custom_action_buttons();
+        $this->add_action_buttons(false, get_string('findroom', 'local_course_calendar'));
     }
 
     public function validation($data, $files)
@@ -68,48 +68,5 @@ class chooseTimeForClassSection extends \moodleform
         }
 
         return $errors;
-    }
-
-    /**
-     * Use this method to a cancel and submit button to the end of your form. Pass a param of false
-     * if you don't want a cancel button in your form. If you have a cancel button make sure you
-     * check for it being pressed using is_cancelled() and redirecting if it is true before trying to
-     * get data with get_data().
-     *
-     * @param bool $cancel whether to show cancel button, default true
-     * @param string $submitlabel label for submit button, defaults to get_string('savechanges')
-     */
-    public function add_custom_action_buttons($cancel = true, $submitlabel = null)
-    {
-        if (is_null($submitlabel)) {
-            $submitlabel = get_string('findroom', 'local_course_calendar');
-        }
-        $mform = $this->_form;
-        // Only use uniqueid if the form defines it needs to be used.
-        $forceuniqueid = false;
-        if (is_array($this->_customdata)) {
-            $forceuniqueid = $this->_customdata['forceuniqueid'] ?? false;
-        }
-        // Keep the first action button as submitbutton (without uniqueid) because single forms pages expect this to happen.
-        $submitbuttonname = $forceuniqueid && $this::$uniqueid > 0 ? 'submitbutton_' . $this::$uniqueid : 'submitbutton';
-        if ($cancel) {
-            // When two elements we need a group.
-            $buttonarray = [
-                $mform->createElement('submit', $submitbuttonname, $submitlabel),
-                $mform->createElement('cancel'),
-            ];
-            $buttonarname = $forceuniqueid && $this::$uniqueid > 0 ? 'buttonar_' . $this::$uniqueid : 'buttonar';
-            $mform->addGroup($buttonarray, $buttonarname, '', [' '], false);
-            $mform->closeHeaderBefore('buttonar');
-        } else {
-            // No group needed.
-            $mform->addElement('submit', $submitbuttonname, $submitlabel);
-            $mform->closeHeaderBefore('submitbutton');
-        }
-
-        // Increase the uniqueid so that we can have multiple forms with different ids for the action buttons on the same page.
-        if ($forceuniqueid) {
-            $this::$uniqueid++;
-        }
     }
 }

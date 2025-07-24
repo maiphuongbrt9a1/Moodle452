@@ -48,14 +48,14 @@ try {
 
     echo $OUTPUT->header();
     // courses is array with format [courseid, courseid, courseid,....]
-    $courses = required_param_array('selected_courses', PARAM_INT);
+    $courses = required_param('selected_courses', PARAM_INT);
 
     // teachers is array with format [teacherid, teacherid, teacherid,....]
     $teachers = required_param_array('selected_teachers', PARAM_INT);
 
     // start_time and endtime is Unix timestamp. It is an integer number.
     // room_address is roomid. 
-    $room_addresses = required_param_array('selected_room_addresses', PARAM_INT);
+    $room_addresses = required_param('selected_room_addresses', PARAM_INT);
     $start_time = required_param('starttime', PARAM_INT);
     $end_time = required_param('endtime', PARAM_INT);
 
