@@ -165,8 +165,8 @@ try {
         $total_count_sql = "SELECT count(cr.id)
                             from {local_course_calendar_course_room} cr
                             left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
-                            where :search_param_end_class_time <= cs.class_begin_time 
-                                or cs.class_end_time <= :search_param_start_class_time
+                            where (:search_param_start_class_time <= :search_param_end_class_time and :search_param_end_class_time <= cs.class_begin_time) 
+                                or (:search_param_start_class_time <= :search_param_end_class_time and cs.class_end_time <= :search_param_start_class_time)
                                 or (cs.class_begin_time is null and cs.class_end_time is null)";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
@@ -198,8 +198,8 @@ try {
                         cs.visible
                 from {local_course_calendar_course_room} cr
                 left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
-                where :search_param_end_class_time <= cs.class_begin_time 
-                    or cs.class_end_time <= :search_param_start_class_time
+                where (:search_param_start_class_time <= :search_param_end_class_time and :search_param_end_class_time <= cs.class_begin_time) 
+                    or (:search_param_start_class_time <= :search_param_end_class_time and cs.class_end_time <= :search_param_start_class_time)
                     or (cs.class_begin_time is null and cs.class_end_time is null)
                 order by cr.id asc";
         $available_room_address = $DB->get_records_sql($sql, $params, $offset, $per_page);
@@ -225,8 +225,8 @@ try {
                             left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
                             where 
                                 (
-                                    :search_param_end_class_time <= cs.class_begin_time 
-                                    or cs.class_end_time <= :search_param_start_class_time
+                                    (:search_param_start_class_time <= :search_param_end_class_time and :search_param_end_class_time <= cs.class_begin_time) 
+                                    or (:search_param_start_class_time <= :search_param_end_class_time and cs.class_end_time <= :search_param_start_class_time)
                                     or (cs.class_begin_time is null and cs.class_end_time is null)
                                 )
                             AND 
@@ -268,11 +268,11 @@ try {
                 left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
                 where 
                     (
-                        :search_param_end_class_time <= cs.class_begin_time 
-                        or cs.class_end_time <= :search_param_start_class_time
+                        (:search_param_start_class_time <= :search_param_end_class_time and :search_param_end_class_time <= cs.class_begin_time) 
+                        or (:search_param_start_class_time <= :search_param_end_class_time and cs.class_end_time <= :search_param_start_class_time)
                         or (cs.class_begin_time is null and cs.class_end_time is null)
                     )
-                AND 
+                AND
                     (
                         cr.room_building like :search_param_room_building 
                         or cr.ward_address like :search_param_ward_address
