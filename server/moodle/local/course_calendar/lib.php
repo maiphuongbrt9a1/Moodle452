@@ -2326,17 +2326,69 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
   $courseid = $courses;
   $roomid = $room_addresses;
 
-  if (empty($courses) || empty($teachers) || empty($room_addresses) || empty($start_time) || empty($end_time)) {
-    throw new \InvalidArgumentException('Invalid arguments provided for creating manual calendar.');
+  if (empty($courses)) {
+    $params = [];
+    $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', $params);
+    redirect($base_url, "You must select one course.", 0, \core\output\notification::NOTIFY_ERROR);
+  }
+
+  if (empty($teachers)) {
+    $params = [];
+    if (isset($courses)) {
+      $params['selected_courses'] = $courses;
+    }
+    $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
+    redirect($base_url, "You must select at least one teacher.", 0, \core\output\notification::NOTIFY_ERROR);
+  }
+
+  if (empty($room_addresses)) {
+    $params = [];
+    if (isset($courses)) {
+      $params['selected_courses'] = $courses;
+    }
+
+    if (!empty($teachers) and isset($teachers)) {
+      foreach ($teachers as $teacherid) {
+        // Add hidden input for each selected teacher.
+        $params['selected_teachers[]'] = $teacherid;
+      }
+    }
+    $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
+    redirect($base_url, "You must select one room.", 0, \core\output\notification::NOTIFY_ERROR);
   }
 
   if (is_empty_room($room_addresses, $start_time, $end_time) === false) {
-    throw new \Exception('The room is not available for the specified time range.');
+    $params = [];
+    if (isset($courses)) {
+      $params['selected_courses'] = $courses;
+    }
+
+    if (!empty($teachers) and isset($teachers)) {
+      foreach ($teachers as $teacherid) {
+        // Add hidden input for each selected teacher.
+        $params['selected_teachers[]'] = $teacherid;
+      }
+    }
+    $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
+    redirect($base_url, "The room is not available for the specified time range.", 0, \core\output\notification::NOTIFY_ERROR);
   }
 
   foreach ($teachers as $teacher_id) {
     if (is_available_teacher($teacher_id, $start_time, $end_time) === false) {
-      throw new \Exception('The teacher is not available for the specified time range.');
+      $params = [];
+      if (isset($courses)) {
+        $params['selected_courses'] = $courses;
+      }
+
+      if (!empty($teachers) and isset($teachers)) {
+        foreach ($teachers as $teacherid) {
+          // Add hidden input for each selected teacher.
+          $params['selected_teachers[]'] = $teacherid;
+        }
+      }
+
+      $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
+      redirect($base_url, "The teacher is not available for the specified time range.", 0, \core\output\notification::NOTIFY_ERROR);
     }
   }
 
@@ -2370,9 +2422,11 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
           []
         ),
         "Inserted new course section with course section ID: " . $inserted_id,
-        null,
+        60,
         \core\output\notification::NOTIFY_SUCCESS
       );
+      // \core\notification::success("Inserted new course section with course section ID: " . $inserted_id);
+      exit;
     } else {
       $params = [];
       if (isset($courses)) {
@@ -2397,9 +2451,11 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
           $params
         ),
         "Cannot insert record." . $inserted_id,
-        null,
+        60,
         \core\output\notification::NOTIFY_ERROR
       );
+      // \core\notification::error("Cannot insert record." . $inserted_id);
+      exit;
     }
   } catch (moodle_exception $e) {
     // Xử lý các lỗi từ database, ví dụ: ràng buộc duy nhất bị vi phạm

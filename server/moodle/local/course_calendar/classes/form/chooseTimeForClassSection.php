@@ -17,6 +17,8 @@ namespace local_course_calendar\form;
 
 // moodleform is defined in formslib.php
 require_once("$CFG->libdir/formslib.php");
+require_once($CFG->dirroot . '/local/course_calendar/lib.php');
+
 class chooseTimeForClassSection extends \moodleform
 {
     /**

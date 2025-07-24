@@ -46,7 +46,7 @@ try {
     $PAGE->set_title(get_string('teaching_schedule_assignment_processing_title', 'local_course_calendar'));
     $PAGE->set_heading(get_string('teaching_schedule_assignment_processing_heading', 'local_course_calendar'));
 
-    echo $OUTPUT->header();
+
     // courses is array with format [courseid, courseid, courseid,....]
     $courses = required_param('selected_courses', PARAM_INT);
 
@@ -60,7 +60,7 @@ try {
     $end_time = required_param('endtime', PARAM_INT);
 
     create_manual_calendar($courses, $teachers, $room_addresses, $start_time, $end_time);
-
+    echo $OUTPUT->header();
     // $calendar = create_automatic_calendar_by_genetic_algorithm();
     // $timeTable = new TimetableGenerator();
     // $timeTable = $timeTable->create_automatic_calendar_by_recursive_swap_algorithm();

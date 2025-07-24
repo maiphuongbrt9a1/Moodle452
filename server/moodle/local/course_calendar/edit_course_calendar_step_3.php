@@ -177,31 +177,14 @@ try {
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
-        $sql = "SELECT concat(cr.id, floor(rand() * 1000000000000)) AS course_session_information_id,
-                        cr.id room_id, -- ĐẶT CỘT ID CỦA BẢNG CHÍNH (cr) LÀM CỘT ĐẦU TIÊN VÀ ĐẢM BẢO NÓ DUY NHẤT
+        $sql = "SELECT distinct cr.id AS room_id, -- ĐẶT CỘT ID CỦA BẢNG CHÍNH (cr) LÀM CỘT ĐẦU TIÊN VÀ ĐẢM BẢO NÓ DUY NHẤT
                         cr.room_number,
                         cr.room_floor,
                         cr.room_building,
                         cr.ward_address,
                         cr.district_address,
                         cr.province_address,
-                        cr.room_online_url,
-                        -- Các cột từ bảng cs (course_section), đổi tên cột 'id' để không bị trùng với cr.id
-                        cs.id AS section_id, 
-                        cs.courseid,
-                        cs.created_user_id,
-                        cs.modified_user_id,
-                        cs.course_room_id,
-                        cs.createdtime,
-                        cs.modifiedtime,
-                        cs.class_begin_time,
-                        cs.class_end_time,
-                        cs.class_total_sessions,
-                        cs.reason,
-                        cs.is_cancel,
-                        cs.is_makeup,
-                        cs.is_accepted,
-                        cs.visible
+                        cr.room_online_url
                 from {local_course_calendar_course_room} cr
                 left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
                 where :search_param_start_class_time <= :search_param_end_class_time
@@ -252,31 +235,14 @@ try {
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT concat(cr.id, floor(rand() * 1000000000000)) course_session_information_id,
-                        cr.id AS room_id, -- ĐẶT CỘT ID CỦA BẢNG CHÍNH (cr) LÀM CỘT ĐẦU TIÊN VÀ ĐẢM BẢO NÓ DUY NHẤT
+        $sql = "SELECT distinct cr.id AS room_id, -- ĐẶT CỘT ID CỦA BẢNG CHÍNH (cr) LÀM CỘT ĐẦU TIÊN VÀ ĐẢM BẢO NÓ DUY NHẤT
                         cr.room_number,
                         cr.room_floor,
                         cr.room_building,
                         cr.ward_address,
                         cr.district_address,
                         cr.province_address,
-                        cr.room_online_url,
-                        -- Các cột từ bảng cs (course_section), đổi tên cột 'id' để không bị trùng với cr.id
-                        cs.id AS section_id, 
-                        cs.courseid,
-                        cs.created_user_id,
-                        cs.modified_user_id,
-                        cs.course_room_id,
-                        cs.createdtime,
-                        cs.modifiedtime,
-                        cs.class_begin_time,
-                        cs.class_end_time,
-                        cs.class_total_sessions,
-                        cs.reason,
-                        cs.is_cancel,
-                        cs.is_makeup,
-                        cs.is_accepted,
-                        cs.visible
+                        cr.room_online_url
                 from {local_course_calendar_course_room} cr
                 left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
                 where :search_param_start_class_time <= :search_param_end_class_time
