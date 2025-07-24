@@ -160,14 +160,20 @@ try {
         $params = [
             'search_param_start_class_time' => $start_class_time,
             'search_param_end_class_time' => $end_class_time,
+            'search_param_start_class_time_th1' => $start_class_time,
+            'search_param_end_class_time_th1' => $end_class_time,
         ];
 
-        $total_count_sql = "SELECT count(cr.id)
+        $total_count_sql = "SELECT count(DISTINCT cr.id)
                             from {local_course_calendar_course_room} cr
                             left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
-                            where (:search_param_start_class_time <= :search_param_end_class_time and :search_param_end_class_time <= cs.class_begin_time) 
-                                or (:search_param_start_class_time <= :search_param_end_class_time and cs.class_end_time <= :search_param_start_class_time)
-                                or (cs.class_begin_time is null and cs.class_end_time is null)";
+                            where :search_param_start_class_time <= :search_param_end_class_time
+                                and 
+                                (
+                                    (cs.class_end_time <= :search_param_start_class_time_th1)
+                                    or (:search_param_end_class_time_th1 <= cs.class_begin_time) 
+                                    or (cs.class_begin_time is null and cs.class_end_time is null)
+                                )";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
@@ -198,9 +204,13 @@ try {
                         cs.visible
                 from {local_course_calendar_course_room} cr
                 left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
-                where (:search_param_start_class_time <= :search_param_end_class_time and :search_param_end_class_time <= cs.class_begin_time) 
-                    or (:search_param_start_class_time <= :search_param_end_class_time and cs.class_end_time <= :search_param_start_class_time)
-                    or (cs.class_begin_time is null and cs.class_end_time is null)
+                where :search_param_start_class_time <= :search_param_end_class_time
+                    and 
+                    (
+                        (cs.class_end_time <= :search_param_start_class_time_th1)
+                        or (:search_param_end_class_time_th1 <= cs.class_begin_time) 
+                        or (cs.class_begin_time is null and cs.class_end_time is null)
+                    )
                 order by cr.id asc";
         $available_room_address = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
@@ -218,15 +228,18 @@ try {
             'search_param_province_address' => $search_query,
             'search_param_start_class_time' => $start_class_time,
             'search_param_end_class_time' => $end_class_time,
+            'search_param_start_class_time_th1' => $start_class_time,
+            'search_param_end_class_time_th1' => $end_class_time,
         ];
 
-        $total_count_sql = "SELECT count(cr.id)
+        $total_count_sql = "SELECT count(DISTINCT cr.id)
                             from {local_course_calendar_course_room} cr
                             left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
-                            where 
+                            where :search_param_start_class_time <= :search_param_end_class_time
+                            and 
                                 (
-                                    (:search_param_start_class_time <= :search_param_end_class_time and :search_param_end_class_time <= cs.class_begin_time) 
-                                    or (:search_param_start_class_time <= :search_param_end_class_time and cs.class_end_time <= :search_param_start_class_time)
+                                    (cs.class_end_time <= :search_param_start_class_time_th1)
+                                    or (:search_param_end_class_time_th1 <= cs.class_begin_time) 
                                     or (cs.class_begin_time is null and cs.class_end_time is null)
                                 )
                             AND 
@@ -266,10 +279,11 @@ try {
                         cs.visible
                 from {local_course_calendar_course_room} cr
                 left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
-                where 
+                where :search_param_start_class_time <= :search_param_end_class_time
+                and 
                     (
-                        (:search_param_start_class_time <= :search_param_end_class_time and :search_param_end_class_time <= cs.class_begin_time) 
-                        or (:search_param_start_class_time <= :search_param_end_class_time and cs.class_end_time <= :search_param_start_class_time)
+                        (cs.class_end_time <= :search_param_start_class_time_th1)
+                        or (:search_param_end_class_time_th1 <= cs.class_begin_time) 
                         or (cs.class_begin_time is null and cs.class_end_time is null)
                     )
                 AND
@@ -303,10 +317,10 @@ try {
             }
         }
 
-        // if (isset($start_class_time) and isset($end_class_time)) {
-        //     $params['starttime'] = $start_class_time;
-        //     $params['endtime'] = $end_class_time;
-        // }
+        if (!empty($start_class_time) and !empty($end_class_time)) {
+            $params['starttime'] = $start_class_time;
+            $params['endtime'] = $end_class_time;
+        }
 
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
         if (!empty($search_query)) {

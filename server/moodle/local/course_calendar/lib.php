@@ -2240,14 +2240,27 @@ function is_empty_room($room_address, $start_time, $end_time)
 
   $params = [
     'room_address' => $room_address,
-    'start_time' => $start_time,
-    'end_time' => $end_time
+    'start_time_th1' => $start_time,
+    'end_time_th1' => $end_time,
+    'start_time_th2' => $start_time,
+    'end_time_th2' => $end_time,
+    'start_time_th3' => $start_time,
+    'end_time_th3' => $end_time,
+    'start_time_th4' => $start_time,
+    'end_time_th4' => $end_time,
   ];
 
-  $sql = "SELECT *
+  $sql = "SELECT concat(cr.id, cs.id, cs.class_begin_time, cs.class_end_time) course_section_information_id, cr.*, cs.*
   FROM {local_course_calendar_course_section} cs
   JOIN {local_course_calendar_course_room} cr ON cs.course_room_id = cr.id
-  WHERE cr.id = :room_address and cs.class_begin_time >= :start_time and cs.class_end_time <= :end_time";
+  WHERE cr.id = :room_address 
+        and 
+        (
+          (:start_time_th1 <= cs.class_begin_time and cs.class_end_time <= :end_time_th1)
+          or (cs.class_begin_time <= :start_time_th2 and :end_time_th2 <= cs.class_end_time)
+          or (cs.class_begin_time <= :start_time_th3 and cs.class_end_time <= :end_time_th3)
+          or (:start_time_th4 <= cs.class_begin_time and :end_time_th4 <= cs.class_end_time)
+        )";
 
   $overlapping_sections = $DB->get_records_sql($sql, $params);
   if (empty($overlapping_sections)) {
@@ -2269,10 +2282,17 @@ function is_available_teacher($teacher_id, $start_time, $end_time)
   // check if the teacher has any course sections that overlap with the given time range
   $params = [
     'teacher_id' => $teacher_id,
-    'start_time' => $start_time,
-    'end_time' => $end_time
+    'start_time_th1' => $start_time,
+    'end_time_th1' => $end_time,
+    'start_time_th2' => $start_time,
+    'end_time_th2' => $end_time,
+    'start_time_th3' => $start_time,
+    'end_time_th3' => $end_time,
+    'start_time_th4' => $start_time,
+    'end_time_th4' => $end_time,
   ];
 
+  // This query checks if the teacher has any course sections that overlap with the given time range
   $sql = "SELECT *
   FROM {user} teacher
   JOIN {role_assignments} ra on teacher.id = ra.userid
@@ -2281,10 +2301,15 @@ function is_available_teacher($teacher_id, $start_time, $end_time)
   JOIN {course} c on ctx.instanceid = c.id
   JOIN {local_course_calendar_course_section} cs on c.id = cs.courseid
   WHERE teacher.id = :teacher_id 
-        and cs.class_begin_time >= :start_time 
-        and cs.class_end_time <= :end_time
         and ctx.contextlevel = 50
-        and (r.shortname = 'editingteacher' or r.shortname = 'teacher')";
+        and (r.shortname = 'editingteacher' or r.shortname = 'teacher')
+        and 
+        (
+          (:start_time_th1 <= cs.class_begin_time and cs.class_end_time <= :end_time_th1)
+          or (cs.class_begin_time <= :start_time_th2 and :end_time_th2 <= cs.class_end_time)
+          or (cs.class_begin_time <= :start_time_th3 and cs.class_end_time <= :end_time_th3)
+          or (:start_time_th4 <= cs.class_begin_time and :end_time_th4 <= cs.class_end_time)
+        )";
 
   $overlapping_sections = $DB->get_records_sql($sql, $params);
   if (empty($overlapping_sections)) {
@@ -2339,11 +2364,42 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
     $inserted_id = $DB->insert_record('local_course_calendar_course_section', $new_course_section);
 
     if ($inserted_id !== false) {
-      \core\notification::success("Inserted new course section with course section ID: " . $inserted_id);
-      // Có thể chuyển hướng người dùng hoặc hiển thị thông tin khác
-      // redirect(new moodle_url('/local/course_calendar/view.php', ['id' => $inserted_id]));
+      redirect(
+        new moodle_url(
+          '/local/course_calendar/edit_course_calendar_step_1.php',
+          []
+        ),
+        "Inserted new course section with course section ID: " . $inserted_id,
+        null,
+        \core\output\notification::NOTIFY_SUCCESS
+      );
     } else {
-      \core\notification::error("Cannot insert record.");
+      $params = [];
+      if (isset($courses)) {
+        $params['selected_courses'] = $courses;
+      }
+
+      if (!empty($teachers) and isset($teachers)) {
+        foreach ($teachers as $teacherid) {
+          // Add hidden input for each selected teacher.
+          $params['selected_teachers[]'] = $teacherid;
+        }
+      }
+
+      if (!empty($start_class_time) and !empty($end_class_time)) {
+        $params['starttime'] = $start_class_time;
+        $params['endtime'] = $end_class_time;
+      }
+
+      redirect(
+        new moodle_url(
+          '/local/course_calendar/edit_course_calendar_step_3.php',
+          $params
+        ),
+        "Cannot insert record." . $inserted_id,
+        null,
+        \core\output\notification::NOTIFY_ERROR
+      );
     }
   } catch (moodle_exception $e) {
     // Xử lý các lỗi từ database, ví dụ: ràng buộc duy nhất bị vi phạm
