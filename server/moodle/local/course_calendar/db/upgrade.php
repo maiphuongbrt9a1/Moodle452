@@ -67,6 +67,94 @@ function xmldb_local_course_calendar_upgrade($oldversion): bool
         upgrade_plugin_savepoint(true, 20250606011, 'local', 'course_calendar');
     }
 
+    if ($oldversion < 20250606015) {
+
+        // Define field class_begin_time to be added to local_course_calendar_course_schedule.
+        $table = new xmldb_table('local_course_calendar_course_section');
+        $field = new xmldb_field('class_begin_time', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'modifiedtime');
+
+        // Conditionally launch add field class_begin_time.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('class_end_time', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'class_begin_time');
+
+        // Conditionally launch add field class_end_time.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('class_total_sessions', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'class_end_time');
+
+        // Conditionally launch add field class_total_sessions.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('reason', XMLDB_TYPE_CHAR, '1024', null, null, null, null, 'class_total_sessions');
+
+        // Conditionally launch add field reason.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('is_cancel', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null, 'reason');
+
+        // Conditionally launch add field is_cancel.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('is_makeup', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null, 'is_cancel');
+
+        // Conditionally launch add field is_makeup.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('is_accepted', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null, 'is_makeup');
+
+        // Conditionally launch add field is_accepted.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('local_course_calendar_course_schedule');
+        // Conditionally launch drop table for local_course_calendar_course_schedule.
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Course_calendar savepoint reached.
+        upgrade_plugin_savepoint(true, 20250606015, 'local', 'course_calendar');
+
+    }
+
+    if ($oldversion < 20250606017) {
+
+        // Define field course_schedule_id to be dropped from local_course_calendar_course_section.
+        // Define index course_schedule_id (not unique) to be dropped form local_course_calendar_course_section.
+        $table = new xmldb_table('local_course_calendar_course_section');
+        $index = new xmldb_index('course_schedule_id', XMLDB_INDEX_NOTUNIQUE, ['course_schedule_id']);
+
+        // Conditionally launch drop index course_schedule_id.
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+
+        // Define key course_schedule_fk (foreign) to be dropped form local_course_calendar_course_section.
+        $key = new xmldb_key('course_schedule_fk', XMLDB_KEY_FOREIGN, ['course_schedule_id'], 'local_course_calendar_course_schedule', ['id']);
+
+        // Launch drop key course_schedule_fk.
+        $dbman->drop_key($table, $key);
+        $field = new xmldb_field('course_schedule_id');
+
+        // Conditionally launch drop field course_schedule_id.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Course_calendar savepoint reached.
+        upgrade_plugin_savepoint(true, 20250606017, 'local', 'course_calendar');
+    }
     // Everything has succeeded to here. Return true.
     return true;
 }

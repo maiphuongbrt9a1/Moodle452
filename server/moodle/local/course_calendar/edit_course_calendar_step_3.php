@@ -25,6 +25,7 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+require_once($CFG->dirroot . '/local/course_calendar/classes/form/chooseTimeForClassSection.php');
 
 try {
     // Yêu cầu người dùng đăng nhập
@@ -39,21 +40,22 @@ try {
     // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
-    $PAGE->set_context($context); 
+    $PAGE->set_context($context);
 
     // Thiết lập trang Moodle
     // Đặt URL cho trang hiện tại
-    $PAGE->set_url(new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', [])); 
+    $PAGE->set_url(new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', []));
+    $PAGE->set_pagelayout('standard');
     // Tiêu đề trang
-    $PAGE->set_title(get_string('teaching_schedule_assignment_choose_address_and_time', 'local_course_calendar')); 
+    $PAGE->set_title(get_string('teaching_schedule_assignment_choose_address_and_time', 'local_course_calendar'));
     $PAGE->set_heading(get_string('teaching_schedule_assignment_choose_address_and_time', 'local_course_calendar'));
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
     // Thêm breadcrumb cho trang hiện tại
     $PAGE->navbar->add(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar'), new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []));
@@ -84,12 +86,51 @@ try {
     //         $settingnode->add_node($foonode);
     //     }
     // }
+    $courses = optional_param('selected_courses', null, PARAM_INT);
+    $teachers = optional_param_array('selected_teachers', [], PARAM_INT);
 
+    // form to search time
+    $start_class_time = time();
+    $end_class_time = $start_class_time + 90 * 60;
+
+    $mform = new \local_course_calendar\form\chooseTimeForClassSection();
+
+    // Form processing and displaying is done here.
+    if ($mform->is_cancelled()) {
+        // If there is a cancel element on the form, and it was pressed,
+        // then the `is_cancelled()` function will return true.
+        // You can handle the cancel operation here.
+        $params = [];
+        if (!empty($courses) and !empty($teachers)) {
+            $params['selected_courses'] = $courses;
+            $params['selected_teachers[]'] = $teachers;
+        }
+        redirect(new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params), 'Cancelled choose time for class section.', 0, \core\output\notification::NOTIFY_ERROR);
+    } else if ($fromform = $mform->get_data()) {
+
+        global $PAGE, $OUTPUT, $DB, $USER;
+        $start_class_time = $fromform->starttime;
+        $end_class_time = $fromform->endtime;
+        $selected_teachers = $fromform->selected_teachers;
+        $selected_courses = $fromform->selected_courses;
+
+    } else {
+        $data = new stdClass();
+        $data->starttime = $start_class_time;
+        $data->endtime = $end_class_time;
+        $data->selected_teachers = $teachers;
+        $data->selected_courses = $courses;
+        $mform->set_data($data);
+    }
 
     echo $OUTPUT->header();
 
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
+
+    $mform->display();
+
+    // search box
     $search_context = new stdClass();
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
@@ -111,87 +152,151 @@ try {
 
     // Set default variable.
     $stt = 0;
-    $available_time_address = [];
+    $available_room_address = [];
 
     $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];
-    $courses = optional_param_array('selected_courses', [], PARAM_INT);
-    $teachers = optional_param_array('selected_teachers', [], PARAM_INT);
 
-    // Get all time_address of central.
+    // Get all room available of central.
     if (empty($search_query)) {
-        $params = [];
+        $params = [
+            'search_param_start_class_time' => $start_class_time,
+            'search_param_end_class_time' => $end_class_time,
+        ];
 
-        $total_count_sql = "SELECT count((concat(cs.id, cr.id)))
-                            from {local_course_calendar_course_schedule} cs, {local_course_calendar_course_room} cr";
-    
+        $total_count_sql = "SELECT count(cr.id)
+                            from {local_course_calendar_course_room} cr
+                            left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
+                            where :search_param_end_class_time <= cs.class_begin_time 
+                                or cs.class_end_time <= :search_param_start_class_time
+                                or (cs.class_begin_time is null and cs.class_end_time is null)";
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
-        $sql = "SELECT concat(cs.id, cr.id) id, cs.id course_schedule_id, cr.id course_room_id, cs.*, cr.*
-                from {local_course_calendar_course_schedule} cs, {local_course_calendar_course_room} cr
-                order by cs.id, cr.id asc";
-        $available_time_address = $DB->get_records_sql($sql, $params, $offset, $per_page);
+        $sql = "SELECT concat(cr.id, floor(rand() * 1000000000000)) AS course_session_information_id,
+                        cr.id room_id, -- ĐẶT CỘT ID CỦA BẢNG CHÍNH (cr) LÀM CỘT ĐẦU TIÊN VÀ ĐẢM BẢO NÓ DUY NHẤT
+                        cr.room_number,
+                        cr.room_floor,
+                        cr.room_building,
+                        cr.ward_address,
+                        cr.district_address,
+                        cr.province_address,
+                        cr.room_online_url,
+                        -- Các cột từ bảng cs (course_section), đổi tên cột 'id' để không bị trùng với cr.id
+                        cs.id AS section_id, 
+                        cs.courseid,
+                        cs.created_user_id,
+                        cs.modified_user_id,
+                        cs.course_room_id,
+                        cs.createdtime,
+                        cs.modifiedtime,
+                        cs.class_begin_time,
+                        cs.class_end_time,
+                        cs.class_total_sessions,
+                        cs.reason,
+                        cs.is_cancel,
+                        cs.is_makeup,
+                        cs.is_accepted,
+                        cs.visible
+                from {local_course_calendar_course_room} cr
+                left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
+                where :search_param_end_class_time <= cs.class_begin_time 
+                    or cs.class_end_time <= :search_param_start_class_time
+                    or (cs.class_begin_time is null and cs.class_end_time is null)
+                order by cr.id asc";
+        $available_room_address = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
     // if parent use search input, we need to filter the children list.
-    if(!empty($search_query)) {
-        
+    if (!empty($search_query)) {
+
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
         $params = [
             'search_param_room_building' => $search_query,
-            'search_param_ward_address'=> $search_query,
-            'search_param_district_address'=> $search_query,
-            'search_param_province_address'=> $search_query,
-            'search_param_class_begin_time'=> $search_query,
-            'search_param_class_end_time'=> $search_query,
-            'search_param_class_total_sessions'=> $search_query,
+            'search_param_ward_address' => $search_query,
+            'search_param_district_address' => $search_query,
+            'search_param_province_address' => $search_query,
+            'search_param_start_class_time' => $start_class_time,
+            'search_param_end_class_time' => $end_class_time,
         ];
 
-        $total_count_sql = "SELECT count((concat(cs.id, cr.id)))
-                            from {local_course_calendar_course_schedule} cs, {local_course_calendar_course_room} cr
-                            where  
-                                        (
-                                            cr.room_building like :search_param_room_building 
-                                            or cr.ward_address like :search_param_ward_address
-                                            or cr.district_address like :search_param_district_address
-                                            or cr.province_address like :search_param_province_address
-                                            or cs.class_begin_time like :search_param_class_begin_time
-                                            or cs.class_end_time like :search_param_class_end_time
-                                            or cs.class_total_sessions like :search_param_class_total_sessions
-                                        )";
-        
+        $total_count_sql = "SELECT count(cr.id)
+                            from {local_course_calendar_course_room} cr
+                            left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
+                            where 
+                                (
+                                    :search_param_end_class_time <= cs.class_begin_time 
+                                    or cs.class_end_time <= :search_param_start_class_time
+                                    or (cs.class_begin_time is null and cs.class_end_time is null)
+                                )
+                            AND 
+                                (
+                                    cr.room_building like :search_param_room_building 
+                                    or cr.ward_address like :search_param_ward_address
+                                    or cr.district_address like :search_param_district_address
+                                    or cr.province_address like :search_param_province_address
+                                )";
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT concat(cs.id, cr.id) id, cs.id course_schedule_id, cr.id course_room_id, cs.*, cr.*
-                from {local_course_calendar_course_schedule} cs, {local_course_calendar_course_room} cr
-                where  
-                            (
-                                cr.room_building like :search_param_room_building 
-                                or cr.ward_address like :search_param_ward_address
-                                or cr.district_address like :search_param_district_address
-                                or cr.province_address like :search_param_province_address
-                                or cs.class_begin_time like :search_param_class_begin_time
-                                or cs.class_end_time like :search_param_class_end_time
-                                or cs.class_total_sessions like :search_param_class_total_sessions
-                            )
-                ORDER BY cr.id, cs.id ASC";
-        $available_time_address = $DB->get_records_sql($sql, $params, $offset, $per_page);
+        $sql = "SELECT concat(cr.id, floor(rand() * 1000000000000)) course_session_information_id,
+                        cr.id AS room_id, -- ĐẶT CỘT ID CỦA BẢNG CHÍNH (cr) LÀM CỘT ĐẦU TIÊN VÀ ĐẢM BẢO NÓ DUY NHẤT
+                        cr.room_number,
+                        cr.room_floor,
+                        cr.room_building,
+                        cr.ward_address,
+                        cr.district_address,
+                        cr.province_address,
+                        cr.room_online_url,
+                        -- Các cột từ bảng cs (course_section), đổi tên cột 'id' để không bị trùng với cr.id
+                        cs.id AS section_id, 
+                        cs.courseid,
+                        cs.created_user_id,
+                        cs.modified_user_id,
+                        cs.course_room_id,
+                        cs.createdtime,
+                        cs.modifiedtime,
+                        cs.class_begin_time,
+                        cs.class_end_time,
+                        cs.class_total_sessions,
+                        cs.reason,
+                        cs.is_cancel,
+                        cs.is_makeup,
+                        cs.is_accepted,
+                        cs.visible
+                from {local_course_calendar_course_room} cr
+                left join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
+                where 
+                    (
+                        :search_param_end_class_time <= cs.class_begin_time 
+                        or cs.class_end_time <= :search_param_start_class_time
+                        or (cs.class_begin_time is null and cs.class_end_time is null)
+                    )
+                AND 
+                    (
+                        cr.room_building like :search_param_room_building 
+                        or cr.ward_address like :search_param_ward_address
+                        or cr.district_address like :search_param_district_address
+                        or cr.province_address like :search_param_province_address
+                    )
+                ORDER BY cr.id ASC";
+        $available_room_address = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
     // Display children list of parent on screen.
-    if (!$available_time_address) {
+    if (!$available_room_address) {
         echo $OUTPUT->notification(get_string('no_address_and_time_found', 'local_course_calendar'), 'info');
     } else {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('form', ['action' => 'process_edit_course_calendar_after_step_3.php', 'method' => 'get']);
-        
-        
+
+
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
@@ -200,56 +305,45 @@ try {
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
-            // Checkbox "Select All"
-            html_writer::empty_tag('input', [
-                'type' => 'checkbox',
-                'id' => 'selectall',
-                'onchange' => 'toggleAllCheckboxes(this)',
-            ]),
+            html_writer::empty_tag('div'),
             get_string('stt', 'local_course_calendar'),
             get_string('building', 'local_course_calendar'),
             get_string('floor', 'local_course_calendar'),
             get_string('room', 'local_course_calendar'),
-            get_string('start_time', 'local_course_calendar'),
-            get_string('end_time', 'local_course_calendar'),
             get_string('address', 'local_course_calendar')
         ];
-        $table->align = ['center', 'center', 'left', 'left','left', 'center', 'center', 'left'];
-        foreach ($available_time_address as $time_address) {
+        $table->align = ['center', 'center', 'left', 'left', 'left', 'left'];
+        foreach ($available_room_address as $room_address) {
             // add no. for the table.
             $stt = $stt + 1;
-            
+
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 html_writer::empty_tag('input', [
-                    'type' => 'checkbox',
-                    // 'value' => [$time_address->course_schedule_id, $time_address->course_room_id],
-                    'value' => $time_address->course_schedule_id . '|' . $time_address->course_room_id,
-                    'class' => 'select-checkbox',
-                    'name' => 'selected_times_and_addresses[]',
+                    'type' => 'radio',
+                    'value' => $room_address->room_id,
+                    'class' => 'select-radio',
+                    'name' => 'selected_room_addresses[]',
                 ]),
+
                 $stt,
-                $time_address->room_building,
-                $time_address->room_floor,
-                $time_address->room_number,
-                date('D, d-m-Y H:i:s', $time_address->class_begin_time),
-                date('D, d-m-Y H:i:s', $time_address->class_end_time),
-                $time_address->ward_address . ', ' . $time_address->district_address . ', ' . $time_address->province_address
+                $room_address->room_building,
+                $room_address->room_floor,
+                $room_address->room_number,
+                $room_address->ward_address . ', ' . $room_address->district_address . ', ' . $room_address->province_address
 
             ];
         }
         echo html_writer::table($table);
 
-        if (!empty($courses)) { 
-            foreach ($courses as $courseid) {
-                // Add hidden input for each selected course.
-                echo html_writer::empty_tag('input', [
-                    'type' => 'hidden',
-                    'name' => 'selected_courses[]',
-                    'value' => $courseid,
-                ]);
-            }
+        if (!empty($courses)) {
+            // Add hidden input for each selected course.
+            echo html_writer::empty_tag('input', [
+                'type' => 'hidden',
+                'name' => 'selected_courses',
+                'value' => $courses,
+            ]);
         }
 
         if (!empty($teachers)) {
@@ -263,14 +357,40 @@ try {
             }
         }
 
+        // Add hidden inputs for start and end class time.
+        if (isset($start_class_time) && isset($end_class_time)) {
+            echo html_writer::empty_tag('input', [
+                'type' => 'hidden',
+                'name' => 'starttime',
+                'value' => $start_class_time,
+            ]);
+            echo html_writer::empty_tag('input', [
+                'type' => 'hidden',
+                'name' => 'endtime',
+                'value' => $end_class_time,
+            ]);
+        }
+
         echo '<div class="d-flex justify-content-end align-items-center">';
-            echo '<div>';
-                echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('save_changes','local_course_calendar')));
-            echo '</div>';
+        echo '<div class="me-2">';
+        $params = [];
+        if (isset($courses) and isset($teachers)) {
+            $params['selected_courses'] = $courses;
+            $params['selected_teachers'] = $teachers;
+        }
+        $back_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
+        echo '<div class="d-flex justify-content-end align-items-center">';
+        echo '<div><a class="btn btn-secondary " href="' . $back_url->out() . '">Back</a></div>';
         echo '</div>';
-        
+        echo '</div>';
+
+        echo '<div>';
+        echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('save_changes', 'local_course_calendar')));
+        echo '</div>';
+        echo '</div>';
+
         echo html_writer::end_tag('form');
-        
+
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
     }
 
@@ -280,10 +400,10 @@ try {
 
 } catch (Exception $e) {
     dlog($e->getTrace());
-    
+
     echo "<pre>";
-        var_dump($e->getTrace());
+    var_dump($e->getTrace());
     echo "</pre>";
-    
+
     throw new \moodle_exception('error', 'local_course_calendar', '', null, $e->getMessage());
 }

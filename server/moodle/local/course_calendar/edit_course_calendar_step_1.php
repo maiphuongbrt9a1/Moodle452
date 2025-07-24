@@ -39,21 +39,21 @@ try {
     // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
-    $PAGE->set_context($context); 
+    $PAGE->set_context($context);
 
     // Thiết lập trang Moodle
     // Đặt URL cho trang hiện tại
-    $PAGE->set_url(new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', [])); 
+    $PAGE->set_url(new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []));
     // Tiêu đề trang
-    $PAGE->set_title(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar')); 
+    $PAGE->set_title(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar'));
     $PAGE->set_heading(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar'));
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
     // Thêm breadcrumb cho trang hiện tại
     $PAGE->navbar->add(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar'));
@@ -95,7 +95,7 @@ try {
     $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
     $search_context->btnclass = 'btn-primary';
 
-    $selected_courses_from_request = optional_param_array('selected_courses', [], PARAM_INT);
+    $selected_courses_from_request = optional_param('selected_courses', null, PARAM_INT);
 
     // Renderer for template core
     $core_renderer = $PAGE->get_renderer('core');
@@ -133,14 +133,14 @@ try {
     }
 
     // if parent use search input, we need to filter the children list.
-    if(!empty($search_query)) {
-        
+    if (!empty($search_query)) {
+
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
         $params = [
             'searchparamcourseid' => $search_query,
-            'searchparamcoursename'=> $search_query
+            'searchparamcoursename' => $search_query
         ];
 
         $total_count_sql = "SELECT count(*)
@@ -153,7 +153,7 @@ try {
                                         
                                     )
                             ORDER BY c.category, c.fullname ASC";
-        
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
         $sql = "SELECT *
@@ -175,32 +175,24 @@ try {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('form', ['action' => 'edit_course_calendar_step_2.php', 'method' => 'get']);
-        
-        
+
+
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
 
         if (!empty($selected_courses_from_request)) {
-            foreach ($selected_courses_from_request as $courseid) {
-                echo html_writer::empty_tag('input', [
-                    'type' => 'hidden',
-                    'name' => 'selected_courses[]',
-                    'value' => $courseid,
-                ]);
-            }
+            echo html_writer::empty_tag('input', [
+                'type' => 'hidden',
+                'name' => 'selected_courses',
+                'value' => $selected_courses_from_request,
+            ]);
         }
-
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
-            // Checkbox "Select All"
-            html_writer::empty_tag('input', [
-                'type' => 'checkbox',
-                'id' => 'selectall',
-                'onchange' => 'toggleAllCheckboxes(this)',
-            ]),
+            html_writer::empty_tag('div'),
             get_string('stt', 'local_course_calendar'),
             get_string('course_category', 'local_course_calendar'),
             get_string('course_full_name', 'local_course_calendar'),
@@ -208,14 +200,14 @@ try {
             get_string('end_date', 'local_course_calendar'),
             get_string('user_created_course', 'local_course_calendar')
         ];
-        $table->align = ['center', 'center', 'left', 'left','center', 'center', 'center'];
+        $table->align = ['center', 'center', 'left', 'left', 'center', 'center', 'center'];
         foreach ($courses as $course) {
             // add no. for the table.
             $stt = $stt + 1;
 
             // You might want to add a link to course's profile overview and course detail.
             $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->id]);
-            
+
             // Get course category name.
             $course_category = $DB->get_record('course_categories', ['id' => $course->category]);
 
@@ -239,7 +231,7 @@ try {
             $params = ['courseid' => $course->id];
             $course_creators = $DB->get_records_sql($sql, $params);
 
-            if (!empty($course_creators)) {    
+            if (!empty($course_creators)) {
                 foreach ($course_creators as $course_creator) {
                     // add to show course_creator full name.
                     $course_creator_profile_url = new moodle_url('/user/profile.php', ['id' => $course_creator->id]);
@@ -253,31 +245,39 @@ try {
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 html_writer::empty_tag('input', [
-                    'type' => 'checkbox',
+                    'type' => 'radio',
                     'value' => $course->id,
-                    'class' => 'select-checkbox',
-                    'name' => 'selected_courses[]',
+                    'class' => 'select-radio',
+                    'name' => 'selected_courses',
                 ]),
                 $stt,
                 $course_category->name,
                 html_writer::link($course_detail_url, format_string($course->fullname)),
                 date('D, d-m-Y', $course->startdate),
                 date('D, d-m-Y', $course->enddate),
-                implode(', ',  $course_creators_fullname),
+                implode(', ', $course_creators_fullname),
             ];
         }
         echo html_writer::table($table);
 
         echo '<div class="d-flex justify-content-end align-items-center">';
-            echo '<div>';
-                echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('next_step','local_course_calendar')));
-            echo '</div>';
+
+        echo '<div class="me-2">';
+        $back_url = new moodle_url('/local/course_calendar/index.php', []);
+        echo '<div class="d-flex justify-content-end align-items-center">';
+        echo '<div><a class="btn btn-secondary " href="' . $back_url->out() . '">Back</a></div>';
         echo '</div>';
-        
+        echo '</div>';
+
+        echo '<div>';
+        echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('next_step', 'local_course_calendar')));
+        echo '</div>';
+        echo '</div>';
+
         echo html_writer::end_tag('form');
-        
+
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
-        
+
     }
 
     echo $OUTPUT->box_end();
@@ -286,10 +286,10 @@ try {
 
 } catch (Exception $e) {
     dlog($e->getTrace());
-    
+
     echo "<pre>";
-        var_dump($e->getTrace());
+    var_dump($e->getTrace());
     echo "</pre>";
-    
+
     throw new \moodle_exception('error', 'local_course_calendar', '', null, $e->getMessage());
 }

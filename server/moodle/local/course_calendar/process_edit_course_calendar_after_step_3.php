@@ -53,138 +53,135 @@ try {
     // teachers is array with format [teacherid, teacherid, teacherid,....]
     $teachers = required_param_array('selected_teachers', PARAM_INT);
 
-    // room_time and room address is array with format 
-    // [
-    // 'room_time_id|room_address_id' , 
-    // 'room_time_id|room_address_id' ,
-    // 'room_time_id|room_address_id' ,
-    // 'room_time_id|room_address_id' ,
-    // 'room_time_id|room_address_id' ,...
-    // ]
-    $times_and_addresses = required_param_array('selected_times_and_addresses', PARAM_TEXT);
+    // start_time and endtime is Unix timestamp. It is an integer number.
+    // room_address is roomid. 
+    $room_addresses = required_param_array('selected_room_addresses', PARAM_INT);
+    $start_time = required_param('starttime', PARAM_INT);
+    $end_time = required_param('endtime', PARAM_INT);
 
-    // $calendar = create_manual_calendar($courses, $teachers, $times_and_addresses);
+    create_manual_calendar($courses, $teachers, $room_addresses, $start_time, $end_time);
+
     // $calendar = create_automatic_calendar_by_genetic_algorithm();
-    $timeTable = new TimetableGenerator();
-    $timeTable = $timeTable->create_automatic_calendar_by_recursive_swap_algorithm();
-    $calendar = $timeTable->format_time_table();
+    // $timeTable = new TimetableGenerator();
+    // $timeTable = $timeTable->create_automatic_calendar_by_recursive_swap_algorithm();
+    // $calendar = $timeTable->format_time_table($timeTable->get_time_slot_array());
 
-    $available_rooms = $DB->get_records('local_course_calendar_course_room');
+    // $available_rooms = $DB->get_records('local_course_calendar_course_room');
 
-    $number_room = count($available_rooms);
-    $number_class_sessions = count(STT_CLASS_SESSIONS);
-    $number_day = count(DATES);
+    // $number_room = count($available_rooms);
+    // $number_class_sessions = count(STT_CLASS_SESSIONS);
+    // $number_day = count(DATES);
 
-    // --- In bảng thời khóa biểu ---
-    echo "<!DOCTYPE html>";
-    echo "<html lang='vi'>";
-    echo "<head>";
-    echo "    <meta charset='UTF-8'>";
-    echo "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>";
-    echo "    <title>Bảng Thời Khóa Biểu</title>";
-    echo "    <style>";
-    echo "        table {";
-    echo "            width: 100%;";
-    echo "            border-collapse: collapse;";
-    echo "            margin-bottom: 20px;";
-    echo "        }";
-    echo "        th, td {";
-    echo "            border: 1px solid #ccc;";
-    echo "            padding: 8px;";
-    echo "            text-align: center;";
-    echo "            vertical-align: top;"; // Căn trên cho nội dung dài
-    echo "        }";
-    echo "        th {";
-    echo "            background-color: #f2f2f2;";
-    echo "        }";
-    echo "        .room-header {";
-    echo "            background-color: #e0e0e0;";
-    echo "            font-weight: bold;";
-    echo "        }";
-    echo "        .day-header {";
-    echo "            background-color: #f9f9f9;";
-    echo "            font-weight: bold;";
-    echo "        }";
-    echo "    </style>";
-    echo "</head>";
-    echo "<body>";
+    // // --- In bảng thời khóa biểu ---
+    // echo "<!DOCTYPE html>";
+    // echo "<html lang='vi'>";
+    // echo "<head>";
+    // echo "    <meta charset='UTF-8'>";
+    // echo "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+    // echo "    <title>Bảng Thời Khóa Biểu</title>";
+    // echo "    <style>";
+    // echo "        table {";
+    // echo "            width: 100%;";
+    // echo "            border-collapse: collapse;";
+    // echo "            margin-bottom: 20px;";
+    // echo "        }";
+    // echo "        th, td {";
+    // echo "            border: 1px solid #ccc;";
+    // echo "            padding: 8px;";
+    // echo "            text-align: center;";
+    // echo "            vertical-align: top;"; // Căn trên cho nội dung dài
+    // echo "        }";
+    // echo "        th {";
+    // echo "            background-color: #f2f2f2;";
+    // echo "        }";
+    // echo "        .room-header {";
+    // echo "            background-color: #e0e0e0;";
+    // echo "            font-weight: bold;";
+    // echo "        }";
+    // echo "        .day-header {";
+    // echo "            background-color: #f9f9f9;";
+    // echo "            font-weight: bold;";
+    // echo "        }";
+    // echo "    </style>";
+    // echo "</head>";
+    // echo "<body>";
 
-    echo "<h2>Thời Khóa Biểu</h2>";
+    // echo "<h2>Thời Khóa Biểu</h2>";
 
-    echo "<table>";
-    // Hàng tiêu đề cho các ngày
-    echo "<thead>";
-    echo "<tr>";
-    echo "<th>Phòng / Ngày</th>"; // Góc trên bên trái
-    for ($j = 0; $j < $number_day; $j++) {
-        switch ($j) {
-            case 0:
-                echo "<th class='day-header'>Thứ 2" . "</th>";
-                break;
-            case 1:
-                echo "<th class='day-header'>Thứ 3" . "</th>";
+    // echo "<table>";
+    // // Hàng tiêu đề cho các ngày
+    // echo "<thead>";
+    // echo "<tr>";
+    // echo "<th>Phòng / Ngày</th>"; // Góc trên bên trái
+    // for ($j = 0; $j < $number_day; $j++) {
+    //     switch ($j) {
+    //         case 0:
+    //             echo "<th class='day-header'>Thứ 2" . "</th>";
+    //             break;
+    //         case 1:
+    //             echo "<th class='day-header'>Thứ 3" . "</th>";
 
-                break;
-            case 2:
-                echo "<th class='day-header'>Thứ 4" . "</th>";
+    //             break;
+    //         case 2:
+    //             echo "<th class='day-header'>Thứ 4" . "</th>";
 
-                break;
-            case 3:
-                echo "<th class='day-header'>Thứ 5" . "</th>";
+    //             break;
+    //         case 3:
+    //             echo "<th class='day-header'>Thứ 5" . "</th>";
 
-                break;
-            case 4:
-                echo "<th class='day-header'>Thứ 6" . "</th>";
+    //             break;
+    //         case 4:
+    //             echo "<th class='day-header'>Thứ 6" . "</th>";
 
-                break;
-            case 5:
-                echo "<th class='day-header'>Thứ 7" . "</th>";
-                break;
-            case 6:
-                echo "<th class='day-header'>CN" . "</th>";
-                break;
+    //             break;
+    //         case 5:
+    //             echo "<th class='day-header'>Thứ 7" . "</th>";
+    //             break;
+    //         case 6:
+    //             echo "<th class='day-header'>CN" . "</th>";
+    //             break;
 
-        }
+    //     }
 
-    }
-    echo "</tr>";
-    echo "</thead>";
+    // }
+    // echo "</tr>";
+    // echo "</thead>";
 
-    // Nội dung bảng
-    echo "<tbody>";
-    for ($i = 0; $i < $number_room; $i++) {
-        echo "<tr>";
-        echo "<td class='room-header'>Phòng " . ($i + 1) . "</td>"; // Cột đầu tiên là tên phòng
-        for ($j = 0; $j < $number_day; $j++) {
-            echo "<td>";
-            // Duyệt qua các buổi học trong ngày và phòng hiện tại
-            if (!empty($calendar) and !empty($calendar[$i][$j])) {
-                $tiet = 1;
-                foreach ($calendar[$i][$j] as $k => $session_data) {
-                    // Hiển thị nội dung buổi học.
-                    // Bạn có thể format lại ở đây để hiển thị thông tin chi tiết hơn.
-                    if (isset($session_data->courseid)) {
-                        echo "<div>" . "Tiết " . $tiet . "</div>";
-                        // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
-                        echo "<div>" . $session_data->course_name . "</div>";
-                    }
-                    if ($k < $number_class_sessions - 1) {
-                        echo "<hr style='border-top: 1px dashed #eee; margin: 5px 0;'>"; // Đường kẻ phân cách các buổi
-                    }
-                    $tiet++;
-                }
-            } else {
-                echo "<i>(Chưa có dữ liệu)</i>"; // Hiển thị khi không có dữ liệu
-            }
-            echo "</td>";
-        }
-        echo "</tr>";
-    }
-    echo "</tbody>";
-    echo "</table>";
+    // // Nội dung bảng
+    // echo "<tbody>";
+    // for ($i = 0; $i < $number_room; $i++) {
+    //     echo "<tr>";
+    //     echo "<td class='room-header'>Phòng " . ($i + 1) . "</td>"; // Cột đầu tiên là tên phòng
+    //     for ($j = 0; $j < $number_day; $j++) {
+    //         echo "<td>";
+    //         // Duyệt qua các buổi học trong ngày và phòng hiện tại
+    //         if (!empty($calendar) and !empty($calendar[$i][$j])) {
+    //             $tiet = 1;
+    //             foreach ($calendar[$i][$j] as $k => $session_data) {
+    //                 // Hiển thị nội dung buổi học.
+    //                 // Bạn có thể format lại ở đây để hiển thị thông tin chi tiết hơn.
+    //                 if (isset($session_data->courseid)) {
+    //                     echo "<div>" . "Tiết " . $tiet . "</div>";
+    //                     // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
+    //                     echo "<div>" . $session_data->course_name . "</div>";
+    //                 }
+    //                 if ($k < $number_class_sessions - 1) {
+    //                     echo "<hr style='border-top: 1px dashed #eee; margin: 5px 0;'>"; // Đường kẻ phân cách các buổi
+    //                 }
+    //                 $tiet++;
+    //             }
+    //         } else {
+    //             echo "<i>(Chưa có dữ liệu)</i>"; // Hiển thị khi không có dữ liệu
+    //         }
+    //         echo "</td>";
+    //     }
+    //     echo "</tr>";
+    // }
+    // echo "</tbody>";
+    // echo "</table>";
 
-    echo "</body>";
-    echo "</html>";
+    // echo "</body>";
+    // echo "</html>";
 
 
     echo $OUTPUT->footer();

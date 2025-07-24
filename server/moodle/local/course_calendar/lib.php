@@ -33,21 +33,21 @@ const TIME_ZONE = 'Asia/Ho_Chi_Minh';
  * Số lượng thời khóa biểu ban đầu của quần thể
  * @var int 
  */
-const MAX_CALENDAR_NUMBER = 1000;
+const MAX_CALENDAR_NUMBER = 500;
 
 /**
  * Summary of MAX_STEP_OF_CROSSOVER_OPERATIONS
  * Số lượng lần lai ghép tối đa trong một thế hệ.
  * @var int 
  */
-const MAX_NUMBER_OF_CROSSOVER_OPERATIONS_IN_ONE_GENERATION = 20000;
+const MAX_NUMBER_OF_CROSSOVER_OPERATIONS_IN_ONE_GENERATION = 20;
 
 /**
  * Summary of MAX_NUMBER_OF_GENERATION
  * Số lượng thế hệ tối đa có thể lai ghép
  * @var int
  */
-const MAX_NUMBER_OF_GENERATION = 200000;
+const MAX_NUMBER_OF_GENERATION = 20;
 /**
  * Summary of MAX_NUMBER_OF_CALL_RECURSIVE
  * Số lần tối đa có thể gọi đệ quy cho thuật toán recursive swap
@@ -243,6 +243,28 @@ class course_session_information
     $this->district = $district;
     $this->province = $province;
   }
+
+  public function get_copy()
+  {
+    $clone = new course_session_information(
+      $this->courseid,
+      $this->course_name,
+      $this->course_session_length,
+      $this->course_session_start_time,
+      $this->course_session_end_time,
+      $this->editting_teacherid,
+      $this->non_editting_teacherid,
+      $this->date,
+      $this->random_room_stt,
+      $this->room,
+      $this->floor,
+      $this->building,
+      $this->ward,
+      $this->district,
+      $this->province
+    );
+    return $clone;
+  }
 }
 
 class time_slot
@@ -291,6 +313,21 @@ class time_slot
     $this->is_occupied = $is_occupied;
     $this->is_occupied_by_course_in_prev_time_slot = $is_occupied_by_course_in_prev_time_slot;
   }
+
+  public function get_copy()
+  {
+    $clone = new time_slot(
+      $this->room,
+      $this->date,
+      $this->session,
+      $this->course_session_information->get_copy(),
+      $this->time_slot_index,
+      $this->is_occupied,
+      $this->is_occupied_by_course_in_prev_time_slot
+    );
+
+    return $clone;
+  }
 }
 
 class conflict_position
@@ -332,6 +369,24 @@ class conflict_position
     $this->time_slot_index = $time_slot_index;
     $this->conflict_items_number_at_this_time_slot = $conflict_items_number_at_this_time_slot;
     $this->conflict_items_array = $conflict_items_array;
+  }
+
+  public function get_copy()
+  {
+    $conflict_items_array = [];
+    foreach ($this->conflict_items_array as $item) {
+      $conflict_items_array[] = $item;
+    }
+
+    $clone = new conflict_position(
+      $this->room,
+      $this->date,
+      $this->session,
+      $this->time_slot_index,
+      $this->conflict_items_number_at_this_time_slot,
+      $conflict_items_array
+    );
+    return $clone;
   }
 }
 
@@ -397,7 +452,7 @@ const UT_HT1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT1
  */
 function is_class_duration_in_one_session($class_start_time, $class_duration = CLASS_DURATION / TIME_SLOT_DURATION)
 {
-  $class_end_time = (int) $class_start_time + $class_duration;
+  $class_end_time = (int) $class_start_time + (int) $class_duration;
 
   $start_morning = START_MORNING;
   $end_morning = END_MORNING;
@@ -446,7 +501,7 @@ const UT_HT2 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT2
  */
 function is_forbidden_session($date, $class_start_time, $class_duration = CLASS_DURATION / TIME_SLOT_DURATION)
 {
-  $class_end_time = (int) $class_start_time + $class_duration;
+  $class_end_time = (int) $class_start_time + (int) $class_duration;
 
   $start_everning = START_EVENING;
   $end_everning = END_EVENING;
@@ -724,6 +779,122 @@ function compute_score_violation_of_rule_duplicate_course_at_same_room_at_same_t
   return 0;
 }
 
+function get_conflict_item_of_rule_duplicate_course_at_same_room_at_same_time(
+  $calendar,
+  $time_slot
+) {
+
+  $room = $time_slot->room;
+  $date = $time_slot->date;
+  $class_start_time = $time_slot->session;
+  $course_session_information = $calendar[$room][$date][$class_start_time];
+  $conflict_position_array = [];
+
+  // ngay tại ô room - date - class_start_time đã có course
+  if (!empty($course_session_information) && isset($course_session_information->courseid)) {
+    $conflict_items_array = [];
+    $conflict_items_array[] = $course_session_information->courseid;
+    $conflict_items_number = count($conflict_items_array);
+
+    $conflict_position_array[] = new conflict_position(
+      $room,
+      $date,
+      $class_start_time,
+      $time_slot->time_slot_index,
+      $conflict_items_number,
+      $conflict_items_array
+    );
+    return $conflict_position_array;
+  }
+
+  // ngay tại ô room - date - class_start_time không có course 
+  // nhưng ô liền trước nó có course và class_duration của course session đó là 2
+  if (
+    !empty($course_session_information) && isset($calendar[$room][$date][$class_start_time - 1]->courseid)
+    && $calendar[$room][$date][$class_start_time - 1]->course_session_length == 2
+  ) {
+    $conflict_items_array = [];
+    $conflict_items_array[] = $calendar[$room][$date][$class_start_time - 1]->courseid;
+    $conflict_items_number = count($conflict_items_array);
+
+    $conflict_position_array[] = new conflict_position(
+      $room,
+      $date,
+      $class_start_time,
+      $time_slot->time_slot_index,
+      $conflict_items_number,
+      $conflict_items_array
+    );
+    return $conflict_position_array;
+  }
+
+  // ngay tại ô room - date - class_start_time không có course 
+  // nhưng ô liền trước nó 2 ô có course và class_duration của course session đó là 3
+  if (
+    !empty($course_session_information) && isset($calendar[$room][$date][$class_start_time - 2]->courseid)
+    && $calendar[$room][$date][$class_start_time - 2]->course_session_length == 3
+  ) {
+    $conflict_items_array = [];
+    $conflict_items_array[] = $calendar[$room][$date][$class_start_time - 2]->courseid;
+    $conflict_items_number = count($conflict_items_array);
+
+    $conflict_position_array[] = new conflict_position(
+      $room,
+      $date,
+      $class_start_time,
+      $time_slot->time_slot_index,
+      $conflict_items_number,
+      $conflict_items_array
+    );
+    return $conflict_position_array;
+  }
+
+  // ngay tại ô room - date - class_start_time không có course 
+  // nhưng ô liền trước nó 3 ô có course và class_duration của course session đó là 4
+  if (
+    !empty($course_session_information) && isset($calendar[$room][$date][$class_start_time - 3]->courseid)
+    && $calendar[$room][$date][$class_start_time - 3]->course_session_length == 4
+  ) {
+    $conflict_items_array = [];
+    $conflict_items_array[] = $calendar[$room][$date][$class_start_time - 3]->courseid;
+    $conflict_items_number = count($conflict_items_array);
+
+    $conflict_position_array[] = new conflict_position(
+      $room,
+      $date,
+      $class_start_time,
+      $time_slot->time_slot_index,
+      $conflict_items_number,
+      $conflict_items_array
+    );
+    return $conflict_position_array;
+  }
+
+  // ngay tại ô room - date - class_start_time không có course 
+  // nhưng ô liền trước nó 4 ô có course và class_duration của course session đó là 5
+  if (
+    !empty($course_session_information) && isset($calendar[$room][$date][$class_start_time - 4]->courseid)
+    && $calendar[$room][$date][$class_start_time - 4]->course_session_length == 5
+  ) {
+    $conflict_items_array = [];
+    $conflict_items_array[] = $calendar[$room][$date][$class_start_time - 4]->courseid;
+    $conflict_items_number = count($conflict_items_array);
+
+    $conflict_position_array[] = new conflict_position(
+      $room,
+      $date,
+      $class_start_time,
+      $time_slot->time_slot_index,
+      $conflict_items_number,
+      $conflict_items_array
+    );
+    return $conflict_position_array;
+  }
+
+  return $conflict_position_array;
+}
+
+
 /**
  * HP2 sĩ số của một lớp - môn học không được vượt quá sĩ số tối đa của phòng học. mặc định là 25 học sinh một phòng học.
  */
@@ -854,6 +1025,7 @@ function compute_score_violation_of_rule_student_study_all_day($calendar)
       // nếu tìm được một buổi học trong khoảng t2 -> t6 thì ghi nhận tổng số buổi học đó
       for ($i = 0; $i < $number_room; $i++) {
         // tìm trong khoảng t2 đến t6 chỉ gồm 5 ngày.
+        // chú ý là buổi sáng đã bị cấm nhưng ở đây vẫn cần kiểm tra luôn.
         for ($j = 0; $j < $number_day - 2; $j++) {
           for ($k = 0; $k < $number_session; $k++) {
             if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
@@ -991,6 +1163,48 @@ function compute_score_violation_of_rule_class_session_continuously($calendar)
 
   return $total_score_violation;
 }
+
+function get_conflict_item_of_rule_class_session_continuously($calendar)
+{
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+  $time_slot_index = 0;
+  $conflict_position_array = [];
+
+  for ($i = 0; $i < $number_room; $i++) {
+    for ($j = 0; $j < $number_day; $j++) {
+      for ($k = 0; $k < $number_session; $k++) {
+        $time_slot_index++;
+
+        if (!empty($calendar[$i][$j][$k]) && isset($calendar[$i][$j][$k]->courseid)) {
+          $skip_step = $calendar[$i][$j][$k]->course_session_length;
+          // bỏ qua các ô liên tiếp là chỗ chứa cho course có độ dài hiện tại
+          // độ dài buổi học của khóa học là 2 thì chỉ cần bỏ qua 1 ô tính từ ô hiện tại
+          // độ dài buổi học của khóa học là 3 thì chỉ cần bỏ qua 2 ô tính từ ô hiện tại
+          $k += $skip_step - 1;
+          continue;
+        }
+
+        // sau khi bỏ qua các ô là ô khóa học và vòng lặp vẫn còn chạy vào đây tức là ô hiện tại đang duyệt là một ô trống
+        // và ô trống này là thực chất nó không có course session nào và cũng không bị chiếm chỗ bởi độ dài của course session
+        // bắt đầu đếm số ô trống tiết
+        // đếm đến khi chạm một ô khóa học mới thì ngừng và kiểm tra xem số ô trống đang là loại nào (2, 3, > 3 ô liên tục)
+        $conflict_position = new conflict_position(
+          $i,
+          $j,
+          $k,
+          $time_slot_index - 1
+        );
+        $conflict_position_array[] = $conflict_position;
+      }
+    }
+  }
+
+
+  return $conflict_position_array;
+}
+
 /**
  * ST3: Các lớp học- môn học được xếp sao cho 
  * buổi học mà giảng viên trợ giảng lên lớp học - môn học là ít nhất nhưng số tiết dạy là nhiều nhất
@@ -1134,6 +1348,131 @@ function compute_score_violation_of_rule_largest_teaching_hours($calendar)
 
   return $total_score_violation;
 }
+
+function get_conflict_item_of_rule_largest_teaching_hours($calendar)
+{
+  global $DB;
+  $number_room = count($calendar);
+  $number_day = count(DATES);
+  $number_session = count(AVAILABLE_CLASS_SESSIONS);
+  $total_score_violation = 0;
+
+  $users_join_course_sql = "SELECT
+                          CONCAT(user.id, r.id , c.id) id,
+                          user.id userid, 
+                          user.firstname user_firstname, 
+                          user.lastname user_lastname
+                        FROM {user} user 
+                        join {role_assignments} ra on ra.userid = user.id
+                        join {role} r on r.id = ra.roleid
+                        join {context} ctx on ctx.id = ra.contextid
+                        join {course} c on c.id = ctx.instanceid 
+                        WHERE c.id != 1 
+                              and ctx.contextlevel = 50
+                              and r.shortname = 'editingteacher' or r.shortname = 'teacher'
+                        GROUP BY user.id  
+                        ORDER BY 
+                                user.id,
+                                user.firstname, 
+                                user.lastname ASC";
+  $params = [];
+  $users = $DB->get_records_sql($users_join_course_sql, $params);
+
+  if (empty($users)) {
+    return $total_score_violation;
+  }
+
+  foreach ($users as $user) {
+    $course_sql = "SELECT
+                        CONCAT(user.id, r.id, c.id) id,
+                        user.id userid, 
+                        user.firstname user_firstname, 
+                        user.lastname user_lastname, 
+                        c.id courseid, 
+                        c.fullname course_fullname
+                    FROM mdl_user user 
+                    join mdl_role_assignments ra on ra.userid = user.id
+                    join mdl_role r on r.id = ra.roleid
+                    join mdl_context ctx on ctx.id = ra.contextid
+                    join mdl_course c on c.id = ctx.instanceid 
+                    WHERE c.id != 1 
+                        and ctx.contextlevel = 50
+                        and r.shortname = 'editingteacher' or r.shortname = 'teacher'
+                        and user.id = :userid
+
+                    ORDER BY 
+                            c.id, 
+                            user.id,
+                            user.firstname, 
+                            user.lastname ASC";
+    $params = ['userid' => $user->userid];
+    $courses = $DB->get_records_sql($course_sql, $params);
+
+    for ($i = 0; $i < $number_room; $i++) {
+      for ($j = 0; $j < $number_day; $j++) {
+        // mảng $stt_class_session lưu lại vị trí tiết học mà người giảng viên giảng dạy trong ngày hôm đó
+        $stt_class_session = [];
+        // kiểm tra cho buổi sáng người giảng viên này dạy bao nhiêu ca dạy (1 ca dạy = 2 tiết học liên tục = 2 * 45 phút = 1h30 phút)
+        $number_class_session_in_morning = 0;
+        for ($k = 0; $k < STT_CLASS_SESSIONS[6]; $k++) {
+          foreach ($courses as $course) {
+            if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+              $number_class_session_in_morning++;
+              $stt_class_session[] = $k;
+            }
+          }
+        }
+        // kiểm tra cho buổi chiều người giảng viên này dạy bao nhiêu ca dạy (1 ca dạy = 2 tiết học liên tục = 2 * 45 phút = 1h30 phút)
+        $number_class_session_in_afternoon = 0;
+        for ($k = STT_CLASS_SESSIONS[6]; $k < STT_CLASS_SESSIONS[10]; $k++) {
+          foreach ($courses as $course) {
+            if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+              $number_class_session_in_afternoon++;
+              $stt_class_session[] = $k;
+
+            }
+          }
+        }
+        // kiểm tra cho buổi tối người giảng viên này dạy bao nhiêu ca dạy (1 ca dạy = 2 tiết học liên tục = 2 * 45 phút = 1h30 phút)
+        $number_class_session_in_evening = 0;
+        for ($k = STT_CLASS_SESSIONS[10]; $k <= STT_CLASS_SESSIONS[15]; $k++) {
+          foreach ($courses as $course) {
+            if ($calendar[$i][$j][$k]->courseid == $course->courseid) {
+              $number_class_session_in_evening++;
+              $stt_class_session[] = $k;
+
+            }
+          }
+        }
+
+        // kiểm tra các điều kiện ràng buộc.
+        if ($number_class_session_in_morning == 1 or $number_class_session_in_afternoon == 1 or $number_class_session_in_evening == 1) {
+          $total_score_violation += VP_ST3_GRAVE_VIOLATION * UT_ST3;
+        } elseif ($number_class_session_in_morning == 2 or $number_class_session_in_afternoon == 2 or $number_class_session_in_evening == 2) {
+          $number_class_session = count($stt_class_session);
+          $is_continuous_class_session = true;
+          for ($m = 0; $m < $number_class_session - 1; $m++) {
+            if ($stt_class_session[$m] + $calendar[$i][$j][$stt_class_session[$m]]->course_session_length != $stt_class_session[$m + 1]) {
+              $is_continuous_class_session = false;
+              break;
+            }
+          }
+
+          if ($is_continuous_class_session) {
+            $total_score_violation += VP_ST3_MODERATE_VIOLATION * UT_ST3;
+          } else {
+            $total_score_violation += VP_ST3_SERIOUS_VIOLATION * UT_ST3;
+          }
+        } else {
+          $total_score_violation += VP_ST3_NO_VIOLATION * UT_ST3;
+        }
+      }
+    }
+  }
+
+  return $total_score_violation;
+}
+
 /**
  * ST4: Các môn học - lớp học - giảng viên cần ưu tiên xếp lịch học vào các buổi tối ngày t7 - cn 
  * ưu tiên 2 là tối các ngày trong tuần t2 - t6.
@@ -1172,10 +1511,11 @@ function compute_score_violation_of_rule_priority_order_of_class_session($calend
   $number_session = count(AVAILABLE_CLASS_SESSIONS);
   $total_score_violation = 0;
 
+  // Phải chèn thêm điều kiện kiểm tra có course vào ngày đó nữa thì mới đúng
   for ($i = 0; $i < $number_room; $i++) {
     for ($j = 0; $j < $number_day; $j++) {
       for ($k = 0; $k < $number_session; $k++) {
-        if ($number_session >= STT_CLASS_SESSIONS[10]) {
+        if ($number_session >= STT_CLASS_SESSIONS[10] and isset($calendar[$i][$j][$k]->courseid)) {
           // nếu là tối thứ 7 hoặc chủ nhật
           // 5 và 6 là index của ngày bên trong biến const DATES
           if ($number_day == 5 or $number_day == 6) {
@@ -1185,7 +1525,7 @@ function compute_score_violation_of_rule_priority_order_of_class_session($calend
             $total_score_violation += VP_ST4_MINOR_VIOLATION * UT_ST4;
           }
 
-        } elseif ($number_session >= STT_CLASS_SESSIONS[6]) {
+        } elseif ($number_session >= STT_CLASS_SESSIONS[6] and isset($calendar[$i][$j][$k]->courseid)) {
           // NẾU là chiều của t7 hay chủ nhật
           if ($number_day == 5 or $number_day == 6) {
             $total_score_violation += VP_ST4_NO_VIOLATION * UT_ST4;
@@ -1193,7 +1533,7 @@ function compute_score_violation_of_rule_priority_order_of_class_session($calend
             // nếu là chiều của ngày t2 đến t6
             $total_score_violation += VP_ST4_GRAVE_VIOLATION * UT_ST4;
           }
-        } else {
+        } elseif ($number_session >= STT_CLASS_SESSIONS[0] and isset($calendar[$i][$j][$k]->courseid)) {
           // NẾU đây là buổi sáng
           // kiểm tra ngày chủ nhật
           if ($number_day == 6) {
@@ -1880,139 +2220,140 @@ function local_course_calendar_extend_settings_navigation($settingsnav, $context
   }
 }
 
-/**
- * Summary of create_calendar
- * @param array $courses     // courses is array with format [courseid, courseid, courseid,....]
- * @param array $teachers      // teachers is array with format [teacherid, teacherid, teacherid,....]
- * @param array $time_and_addresses // room_time and room address is array with format 
- * [
- * 'room_time_id|room_address_id' , 
- * 'room_time_id|room_address_id' ,
- * 'room_time_id|room_address_id' ,
- * 'room_time_id|room_address_id' ,
- * 'room_time_id|room_address_id' ,...
- * ]
- * @return array
- */
-function create_manual_calendar(array $courses, array $teachers, array $times_and_addresses): array
+function is_empty_room($room_address, $start_time, $end_time)
+{
+  global $DB;
+
+  // Check if the room address is valid
+  if (empty($room_address) || empty($start_time) || empty($end_time)) {
+    return false;
+  }
+  // Check if the room exists in the database
+  $room_exists = $DB->record_exists('local_course_calendar_course_room', ['id' => $room_address]);
+  if (!$room_exists) {
+    return false;
+  }
+  // Check if there are any course sections in the specified room that overlap with the given time range
+  // This query checks if there are any course sections in the specified room that overlap with the given time range
+  // It returns true if there are no overlapping course sections, indicating that the room is empty during that time
+  // If there are overlapping course sections, it returns false, indicating that the room is not empty
+
+  $params = [
+    'room_address' => $room_address,
+    'start_time' => $start_time,
+    'end_time' => $end_time
+  ];
+
+  $sql = "SELECT *
+  FROM {local_course_calendar_course_section} cs
+  JOIN {local_course_calendar_course_room} cr ON cs.course_room_id = cr.id
+  WHERE cr.id = :room_address and cs.class_begin_time >= :start_time and cs.class_end_time <= :end_time";
+
+  $overlapping_sections = $DB->get_records_sql($sql, $params);
+  if (empty($overlapping_sections)) {
+    return true;
+  }
+
+  return false;
+}
+
+function is_available_teacher($teacher_id, $start_time, $end_time)
+{
+  global $DB;
+  // check if the teacher exists in the database
+  $teacher_exists = $DB->record_exists('user', ['id' => $teacher_id]);
+  if (!$teacher_exists) {
+    return false;
+  }
+
+  // check if the teacher has any course sections that overlap with the given time range
+  $params = [
+    'teacher_id' => $teacher_id,
+    'start_time' => $start_time,
+    'end_time' => $end_time
+  ];
+
+  $sql = "SELECT *
+  FROM {user} teacher
+  JOIN {role_assignments} ra on teacher.id = ra.userid
+  JOIN {role} r on ra.roleid = r.id
+  JOIN {context} ctx on ra.contextid = ctx.id
+  JOIN {course} c on ctx.instanceid = c.id
+  JOIN {local_course_calendar_course_section} cs on c.id = cs.courseid
+  WHERE teacher.id = :teacher_id 
+        and cs.class_begin_time >= :start_time 
+        and cs.class_end_time <= :end_time
+        and ctx.contextlevel = 50
+        and (r.shortname = 'editingteacher' or r.shortname = 'teacher')";
+
+  $overlapping_sections = $DB->get_records_sql($sql, $params);
+  if (empty($overlapping_sections)) {
+    return true;
+  }
+  return false;
+
+}
+
+function create_manual_calendar(array $courses, array $teachers, array $room_addresses, int $start_time, int $end_time)
 {
   // define global variable
-  global $CFG, $PAGE, $DB, $USER;
-  // 1 ngày có 16 tiết 7h30 đến 22h tức là 8 ca. 7 ngày một tuần -> tổng tiết = 7*16 = 112 tiết
-  // $calendar is 3-dimensional array. Phòng(room) - Thứ(date) - Tiết(session)(tiết 1 - tiết 112) 
-  // $calendar[room-ith][date][session-jth] =  new course_session_information();
-  // calendar format 
-  /**
-   * -----------------------------thứ 2-----------------------------------------------------------Thứ3----------------------------------------------------------------------Thứ4------------------------------------------Thứ5-------------------------------------------------------------------------Thứ6-----------------------------------------------------------------Thứ7----------------------------------------------------------cn----------------------
-   * --------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||--------Tiết 0-----------------tiết 1.-------.Tiết 14-..tiet15||
-   *Room 101  course_session_information()                      course_session_information()
-   *Room 102  course_session_information()                      course_session_information()
-   *Room 103  course_session_information()                      course_session_information()
-   *Room 104  course_session_information()                      course_session_information()
-   *Room 105  course_session_information()                      course_session_information()
-   *Room 106  course_session_information()                      course_session_information()
-   *Room 107  course_session_information()                      course_session_information()
-   *Room 108  course_session_information()                      course_session_information()
-   *Room 109 course_session_information()                       course_session_information()
-   *Room 201 course_session_information()                       course_session_information()
-   *Room 202 course_session_information()                      course_session_information()
-   */
-  $calendar = [];
+  global $DB, $USER;
+  $courseid = $courses[0];
+  $roomid = $room_addresses[0];
 
-  // Consit of 50 calendar [[calendar1], [calendar2], [calendar3]......]
-  $fifty_best_calendars = [];
-  // process address and time to create $time_and_addresses = [[room_time_id, room_address_id], [room_time_id, room_address_id], [room_time_id, room_address_id], ]
-  $times_and_addresses_after_process = [];
-  foreach ($times_and_addresses as $time_and_address) {
-    $time_and_address = explode('|', $time_and_address);
-    $times_and_addresses_after_process[] = $time_and_address;
+  if (empty($courses) || empty($teachers) || empty($room_addresses) || empty($start_time) || empty($end_time)) {
+    throw new \InvalidArgumentException('Invalid arguments provided for creating manual calendar.');
   }
-  // return result in times_and_addresses
-  $times_and_addresses = $times_and_addresses_after_process;
 
-  // define course with teacher. Teacher have major that can teach course.
-  // teacher major === course category.
-  // course-teacher is array with format [[courseid, teacherid], [courseid, teacherid], [courseid, teacherid], ....]
-  $course_with_teacher_informations = [];
-  foreach ($teachers as $teacher) {
-    $teacher_majors = [];
-    $teacher_major_ids = [];
-
-    // get teacher major by course category.
-    $sql_get_teacher_major = "SELECT  distinct (course_categories.id) id, course_categories.name
-                              from mdl_user user
-                              join mdl_role_assignments ra on ra.userid = user.id
-                              join mdl_role role on role.id = ra.roleid
-                              join mdl_context context on context.id = ra.contextid
-                              join mdl_course course on course.id = context.instanceid
-                              join mdl_course_categories course_categories on course.category = course_categories.id
-                              where course.id != 1 and user.id = :teacher_id
-                                      and (role.shortname = 'teacher' or role.shortname = 'editingteacher')
-                                      and context.contextlevel = 50 
-                              ORDER BY user.id ASC";
-    $params = ['teacher_id' => $teacher];
-    $teacher_majors = $DB->get_records_sql($sql_get_teacher_major, $params);
-
-    if (!empty($teacher_majors)) {
-      foreach ($teacher_majors as $major) {
-        $teacher_major_ids[] = $major->id;
-      }
-    }
-
-    // find course with course category === teacher major id
-    // scan courses
-    foreach ($courses as $course) {
-      // get course with courseid and get course category id
-      $course_record = $DB->get_record('course', ['id' => $course], 'category');
-
-      // if course category === teacher major id then insert teacherid and courseid to $course_with_teacher_informations
-      if (!empty($course_record)) {
-        foreach ($teacher_major_ids as $teacher_major_id) {
-          if ($course_record->category == $teacher_major_id) {
-            // add course-teacher in $course_with_teacher_informations[]
-            $course_with_teacher_informations[] = [$course, $teacher];
-            break;
-          }
-        }
-      }
-    }
+  if (is_empty_room($room_addresses[0], $start_time, $end_time) === false) {
+    throw new \Exception('The room is not available for the specified time range.');
   }
-  // init calendar - this is first calendar and it is result calendar.  
-  // please fix me to adapt calendar format 
-  // note $class_start_time and class_end_time are saved by unixtimestamp not tiết 1, tiết 2, tiết 3, tiết 4.
-  // 
-  $temp_calendar = [];
-  $temp_time_array = [];
-  $temp_address_array = [];
 
-  foreach ($times_and_addresses as $time_and_address) {
-    $room_time_id = $time_and_address[0];
-    $room_address_id = $time_and_address[1];
-
-    $temp_address_array[] = $room_address_id;
-    $temp_time_array[] = $room_time_id;
-
-    foreach ($course_with_teacher_informations as $course_with_teacher) {
-      $courseid = $course_with_teacher[0];
-      $teacherid = $course_with_teacher[1];
-
-      $temp_calendar_element = [$room_time_id, $room_address_id, $courseid, $teacherid];
-      $temp_calendar[] = $temp_calendar_element;
+  foreach ($teachers as $teacher_id) {
+    if (is_available_teacher($teacher_id, $start_time, $end_time) === false) {
+      throw new \Exception('The teacher is not available for the specified time range.');
     }
   }
 
-  foreach (DATES as $date) {
-    foreach (STT_CLASS_SESSIONS as $stt_class_session) {
+  // create a new course section
+  $new_course_section = new stdClass();
 
+  // Các thuộc tính của đối tượng phải khớp với tên cột trong bảng DB
+  $new_course_section->courseid = $courseid; // ID của khóa học
+  $new_course_section->created_user_id = $USER->id; // ID của người dùng hiện tại (lấy từ global $USER)
+  $new_course_section->modified_user_id = null;
+  $new_course_section->course_room_id = $roomid; // ID của phòng học
+  $new_course_section->createdtime = time(); // Timestamp hiện tại
+  $new_course_section->modifiedtime = time(); // Timestamp hiện tại
+  $new_course_section->class_begin_time = $start_time; // Timestamp bắt đầu (ví dụ)
+  $new_course_section->class_end_time = $end_time; // Timestamp kết thúc (ví dụ)
+  $new_course_section->class_total_sessions = ($end_time - $start_time) / (45 * 60); // Ví dụ
+  $new_course_section->reason = null; // Hoặc một chuỗi nếu có lý do
+  $new_course_section->is_cancel = 0; // 0 = false, 1 = true
+  $new_course_section->is_makeup = 0;
+  $new_course_section->is_accepted = 1;
+  $new_course_section->visible = 1;
+
+  // Chèn bản ghi vào bảng
+  try {
+    $inserted_id = $DB->insert_record('local_course_calendar_course_section', $new_course_section);
+
+    if ($inserted_id !== false) {
+      \core\notification::success("Inserted new course section with course section ID: " . $inserted_id);
+      // Có thể chuyển hướng người dùng hoặc hiển thị thông tin khác
+      // redirect(new moodle_url('/local/course_calendar/view.php', ['id' => $inserted_id]));
+    } else {
+      \core\notification::error("Cannot insert record.");
     }
+  } catch (moodle_exception $e) {
+    // Xử lý các lỗi từ database, ví dụ: ràng buộc duy nhất bị vi phạm
+    \core\notification::error("Error inserting data: " . $e->getMessage());
+    // Ghi log lỗi để debug chi tiết hơn
+    debugging("Database insert error: " . $e->getMessage(), DEBUG_DEVELOPER);
   }
-
-  // Trả về calendar có điểm số vi phạm thấp nhất 
-  // mặc định thời khóa biểu đó là thời khóa biểu đầu tiên trong 50 thời khóa biểu tốt nhất được chọn ra
-  // $calendar = $fifty_best_calendars[0];
-  $calendar = $temp_calendar;
-  return $calendar;
 }
+
+
 /**
  * Summary of create_automatic_calendar_by_genetic_algorithm:
  * Hàm này dùng để lên lịch tự động cho tất cả các khóa học chưa có lịch học.
@@ -2166,12 +2507,16 @@ class TimetableGenerator
     $this->number_of_call_recursive = $number_of_call_recursive;
   }
 
+  public function get_time_slot_array()
+  {
+    return $this->time_slot_array;
+  }
   /**
    * Summary of format_time_table
    * Hàm này dùng để định dạng lại time_table theo format calendar[room][day][session].
    * @return array Trả về mảng calendar là định dạng mới của time_table. Định dạng của calendar là calendar[room][day][session].
    */
-  public function format_time_table()
+  public function format_time_table($time_slot_array)
   {
     $calendar = [];
     for ($i = 0; $i < $this->number_room; $i++) {
@@ -2179,7 +2524,7 @@ class TimetableGenerator
       for ($j = 0; $j < $this->number_day; $j++) {
         $calendar[$i][] = [];
         for ($k = 0; $k < $this->number_class_sessions; $k++) {
-          foreach ($this->time_slot_array as $time_slot) {
+          foreach ($time_slot_array as $time_slot) {
             if ($time_slot->room == $i and $time_slot->date == $j and $time_slot->session == $k) {
               $calendar[$i][$j][] = new course_session_information(
                 $time_slot->course_session_information->courseid,
@@ -2253,7 +2598,7 @@ class TimetableGenerator
         $time_slot->room,
         $time_slot->date,
         $time_slot->session,
-        $time_slot->course_session_information,
+        $time_slot->course_session_information->get_copy(),
         $time_slot->time_slot_index,
         $time_slot->is_occupied,
         $time_slot->is_occupied_by_course_in_prev_time_slot
@@ -2287,51 +2632,78 @@ class TimetableGenerator
     $time_slot,
     $course
   ) {
-    $calendar = $this->format_time_table();
-    if (
-      compute_score_violation_of_rule_class_duration_in_one_session(
-        $time_slot->session,
-        $course->class_duration
-      ) == 0
-      and compute_score_violation_of_rule_class_overtime(
-        $time_slot->session,
-        $time_slot->session + $course->class_duration,
-        $course->class_duration
-      ) == 0
-      and compute_score_violation_of_rule_class_session_continuously(
-        $calendar
-      ) == 0
-      and compute_score_violation_of_rule_duplicate_course_at_same_room_at_same_time(
-        $calendar,
-        $time_slot->room,
-        $time_slot->date,
-        $time_slot->session
-      ) == 0
-      and compute_score_violation_of_rule_forbidden_session(
-        $time_slot->date,
-        $time_slot->session,
-        $course->class_duration
-      ) == 0
-      and compute_score_violation_of_rule_holiday($time_slot->date) == 0
-      and compute_score_violation_of_rule_largest_teaching_hours($calendar) == 0
-      and compute_score_violation_of_rule_not_enough_number_of_course_session_weekly(
-        $calendar,
-        $course->courseid,
-        $course->number_course_session_weekly
-      ) == 0
-      and compute_score_violation_of_rule_priority_order_of_class_session($calendar) == 0
-      and compute_score_violation_of_rule_room_gap_between_class_session($calendar) == 0
-      and compute_score_violation_of_rule_student_study_all_day($calendar) == 0
-      and compute_score_violation_of_rule_study_double_session_of_same_course_on_one_day(
-        $calendar,
-        $course->courseid
-      ) == 0
-      and compute_score_violation_of_rule_time_gap_between_class_session($calendar) == 0
-    ) {
-      return true;
-    }
+    // prepare data
+    $deep_copy_time_slot_array = $this->deep_copy_time_slot_array($this->time_slot_array);
+    // foreach ($deep_copy_time_slot_array as $temp_time_slot) {
+    //   if ($time_slot->time_slot_index == $temp_time_slot->time_slot_index) {
+    //     if ($this->set_course_information_to_time_slot($deep_copy_time_slot_array, $temp_time_slot, $course)) {
+    //       break;
+    //     } else {
+    //       throw new Exception(
+    //         "Error Processing Request: Check position at " . $temp_time_slot->room . "-" . $temp_time_slot->date . "-" . $temp_time_slot->session . "-" . $temp_time_slot->course_session_information->courseid,
+    //         1
+    //       );
+    //     }
+    //   }
+    // }
+    $calendar = $this->format_time_table($deep_copy_time_slot_array);
 
-    return false;
+    // check condition
+    // log 
+    $a = true;
+    $b = true;
+    $c = true;
+    $d = true;
+    $e = true;
+
+    // if (
+    $a = compute_score_violation_of_rule_class_duration_in_one_session(
+      $time_slot->session,
+      $course->class_duration
+    ) == 0;
+    // and 
+    $b = compute_score_violation_of_rule_class_overtime(
+      $time_slot->session,
+      $time_slot->session + $course->class_duration - 1,
+      $course->class_duration
+    ) == 0;
+    // and compute_score_violation_of_rule_class_session_continuously(
+    //   $calendar
+    // ) == 0
+    // and 
+    $c = compute_score_violation_of_rule_duplicate_course_at_same_room_at_same_time(
+      $calendar,
+      $time_slot->room,
+      $time_slot->date,
+      $time_slot->session
+    ) == 0;
+    // and 
+    $d = compute_score_violation_of_rule_forbidden_session(
+      $time_slot->date,
+      $time_slot->session,
+      $course->class_duration
+    ) == 0;
+    // and 
+    $e = compute_score_violation_of_rule_holiday($time_slot->date) == 0;
+    // and compute_score_violation_of_rule_largest_teaching_hours($calendar) == 0
+    // and compute_score_violation_of_rule_not_enough_number_of_course_session_weekly(
+    //   $calendar,
+    //   $course->courseid,
+    //   $course->number_course_session_weekly
+    // ) == 0
+    // and compute_score_violation_of_rule_priority_order_of_class_session($calendar) == 0
+    // and compute_score_violation_of_rule_room_gap_between_class_session($calendar) == 0
+    // and compute_score_violation_of_rule_student_study_all_day($calendar) == 0
+    // and compute_score_violation_of_rule_study_double_session_of_same_course_on_one_day(
+    //   $calendar,
+    //   $course->courseid
+    // ) == 0
+    // and compute_score_violation_of_rule_time_gap_between_class_session($calendar) == 0
+    // ) {
+    return true;
+    // }
+
+    // return false;
 
   }
 
@@ -2342,9 +2714,9 @@ class TimetableGenerator
    * @param mixed $course
    * @return bool trả về true nếu việc ghi dữ liệu là thành công và ngược lại trả về false.
    */
-  public function set_course_information_to_time_slot($time_slot, $course)
+  public function set_course_information_to_time_slot(&$time_slot_array, &$time_slot, $course)
   {
-    $time_slot->course_session_information->set_value(
+    $time_slot->course_session_information = new course_session_information(
       $course->courseid,
       $course->shortname,
       $course->class_duration,
@@ -2361,15 +2733,17 @@ class TimetableGenerator
 
     // Thực hiện việc đánh dấu các ô liên tiếp trong time_slot_array là đã bị chiếm dụng nếu có một course nào đó có độ dài > 1
     if ($course->class_duration > 1) {
-      $number_time_slot_array = count($this->time_slot_array);
+      $number_time_slot_array = count($time_slot_array);
 
       for ($i = 0; $i < $number_time_slot_array; $i++) {
-        $temp_time_slot = $this->time_slot_array[$i];
+        $temp_time_slot = $time_slot_array[$i];
         if ($temp_time_slot->time_slot_index == $time_slot->time_slot_index) {
           for ($j = 1; $j < $course->class_duration; $j++) {
-            $temp_time_slot = $this->time_slot_array[$i + $j];
-            $temp_time_slot->is_occupied = true;
-            $temp_time_slot->is_occupied_by_course_in_prev_time_slot = true;
+            if ($i + $j < $number_time_slot_array) {
+              $temp_time_slot = $time_slot_array[$i + $j];
+              $temp_time_slot->is_occupied = true;
+              $temp_time_slot->is_occupied_by_course_in_prev_time_slot = true;
+            }
           }
 
           break;
@@ -2377,6 +2751,7 @@ class TimetableGenerator
       }
 
     }
+
     return true;
   }
 
@@ -2390,10 +2765,131 @@ class TimetableGenerator
    * @param mixed $course
    * @return array trả về danh sách các course.
    */
-  public function get_conflict_items_at_this_time_slot($time_slot_array, $time_slot, $course)
+  public function get_conflict_items_at_this_time_slot($time_slot, $course)
   {
+    $conflict_items_array = [];
 
-    return [];
+    // prepare data
+    $deep_copy_time_slot_array = $this->deep_copy_time_slot_array($this->time_slot_array);
+    foreach ($deep_copy_time_slot_array as $temp_time_slot) {
+      if ($time_slot->time_slot_index == $temp_time_slot->time_slot_index) {
+        if ($this->set_course_information_to_time_slot($deep_copy_time_slot_array, $temp_time_slot, $course)) {
+          break;
+        } else {
+          throw new Exception(
+            "Error Processing Request: Check position at " . $temp_time_slot->room . "-" . $temp_time_slot->date . "-" . $temp_time_slot->session . "-" . $temp_time_slot->course_session_information->courseid,
+            1
+          );
+        }
+      }
+    }
+    $calendar = $this->format_time_table($deep_copy_time_slot_array);
+
+    // check condition
+    if (
+      compute_score_violation_of_rule_class_duration_in_one_session(
+        $time_slot->session,
+        $course->class_duration
+      ) > 0
+    ) {
+      $conflict_items_array += [];
+    }
+
+    if (
+      compute_score_violation_of_rule_class_overtime(
+        $time_slot->session,
+        $time_slot->session + $course->class_duration,
+        $course->class_duration
+      ) > 0
+    ) {
+      $conflict_items_array += [];
+    }
+
+    if (
+      compute_score_violation_of_rule_class_session_continuously(
+        $calendar
+      ) > 0
+    ) {
+      $conflict_items_array += get_conflict_item_of_rule_class_session_continuously($calendar);
+    }
+
+    if (
+      compute_score_violation_of_rule_duplicate_course_at_same_room_at_same_time(
+        $calendar,
+        $time_slot->room,
+        $time_slot->date,
+        $time_slot->session
+      ) > 0
+    ) {
+      $conflict_items_array += get_conflict_item_of_rule_duplicate_course_at_same_room_at_same_time(
+        $calendar,
+        $time_slot
+      );
+    }
+
+    if (
+      compute_score_violation_of_rule_forbidden_session(
+        $time_slot->date,
+        $time_slot->session,
+        $course->class_duration
+      ) > 0
+    ) {
+      $conflict_items_array += [];
+    }
+
+    if (compute_score_violation_of_rule_holiday($time_slot->date) > 0) {
+      $conflict_items_array += [];
+    }
+
+    // if (compute_score_violation_of_rule_largest_teaching_hours($calendar) > 0) {
+    //   $conflict_items_array += get_conflict_item_of_rule_largest_teaching_hours($calendar);
+    // }
+
+    // if (
+    //   compute_score_violation_of_rule_not_enough_number_of_course_session_weekly(
+    //     $calendar,
+    //     $course->courseid,
+    //     $course->number_course_session_weekly
+    //   ) > 0
+    // ) {
+    //   $conflict_items_array += get_conflict_item_of_rule_not_enough_number_of_course_session_weekly(
+    //     $calendar,
+    //     $course->courseid,
+    //     $course->number_course_session_weekly
+    //   );
+    // }
+
+    // if (compute_score_violation_of_rule_priority_order_of_class_session($calendar) > 0) {
+    //   $conflict_items_array += get_conflict_item_of_rule_priority_order_of_class_session($calendar);
+    // }
+
+    // if (compute_score_violation_of_rule_room_gap_between_class_session($calendar) > 0) {
+    //   $conflict_items_array += get_conflict_item_of_rule_room_gap_between_class_session($calendar);
+    // }
+
+    // if (compute_score_violation_of_rule_student_study_all_day($calendar) > 0) {
+    //   $conflict_items_array += get_conflict_item_of_rule_student_study_all_day($calendar);
+    // }
+
+    // if (
+    //   compute_score_violation_of_rule_study_double_session_of_same_course_on_one_day(
+    //     $calendar,
+    //     $course->courseid
+    //   ) > 0
+    // ) {
+    //   $conflict_items_array += get_conflict_item_of_rule_study_double_session_of_same_course_on_one_day(
+    //     $calendar,
+    //     $course->courseid
+    //   );
+    // }
+
+    // if (
+    //   compute_score_violation_of_rule_time_gap_between_class_session($calendar) > 0
+    // ) {
+    //   $conflict_items_array += get_conflict_item_of_rule_time_gap_between_class_session($calendar);
+    // }
+
+    return $conflict_items_array;
   }
 
   /**
@@ -2435,14 +2931,21 @@ class TimetableGenerator
     // 2) Try to place each activity (A_i) in an allowed time slot, following the above order, one at a time.
     // Search for an available slot (T_j) for A_i, in which this activity can be placed respecting the constraints.
     // If more slots are available, choose a random one. If none is available, do recursive swapping:
-    $is_put_course_to_time_slot_successfully = false;
     foreach ($this->time_slot_array as $time_slot) {
+      $is_put_course_to_time_slot_successfully = false;
       if ($this->check_position($time_slot, $course)) {
-        $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($time_slot, $course);
-        $this->course_array = array_filter($this->course_array, function ($course_param) use ($course) {
-          return $course_param->courseid != $course->courseid;
-        });
-        break;
+        $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($this->time_slot_array, $time_slot, $course);
+        if ($is_put_course_to_time_slot_successfully) {
+          // log
+          echo "<pre>";
+          echo var_dump($time_slot);
+          echo "</pre>";
+
+          $this->course_array = array_filter($this->course_array, function ($course_param) use ($course) {
+            return $course_param->courseid != $course->courseid;
+          });
+          return true;
+        }
       }
     }
 
@@ -2453,7 +2956,7 @@ class TimetableGenerator
 
       $conflict_position_array = $this->init_conflict_position_array();
       foreach ($this->time_slot_array as $time_slot) {
-        $conflict_items_array = $this->get_conflict_items_at_this_time_slot($this->time_slot_array, $time_slot, $course);
+        $conflict_items_array = $this->get_conflict_items_at_this_time_slot($time_slot, $course);
 
         foreach ($conflict_position_array as $conflict_position) {
           if ($conflict_position->time_slot_index == $time_slot->time_slot_index) {
@@ -2500,7 +3003,9 @@ class TimetableGenerator
 
         // 2 c) Place A_i at T_j and make A_p, A_q, A_r unallocated.
 
-        $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($time_slot, $course);
+        // check here please
+        // Chỗ này bắt buộc phải thực hiện được việc set course information sau khi đã xóa bỏ thông tin conflict mới hợp lệ
+        $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($this->time_slot_array, $time_slot, $course);
         $unplaced_courses_array = [];
         if ($is_put_course_to_time_slot_successfully) {
           $unplaced_courses_array = $this->remove_conflict_items_from_time_slot(
@@ -2619,7 +3124,7 @@ class TimetableGenerator
 
           // 2 c) Place A_i at T_j and make A_p, A_q, A_r unallocated.
 
-          $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($time_slot, $course);
+          $is_put_course_to_time_slot_successfully = $this->set_course_information_to_time_slot($this->time_slot_array, $time_slot, $course);
           $unplaced_courses_array = [];
           if ($is_put_course_to_time_slot_successfully) {
             $unplaced_courses_array = $this->remove_conflict_items_from_time_slot(

@@ -41,21 +41,21 @@ try {
     // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
-    $PAGE->set_context($context); 
+    $PAGE->set_context($context);
 
     // Thiết lập trang Moodle
     // Đặt URL cho trang hiện tại
-    $PAGE->set_url(new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', [])); 
+    $PAGE->set_url(new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', []));
     // Tiêu đề trang
-    $PAGE->set_title(get_string('teaching_schedule_assignment_choose_teacher', 'local_course_calendar')); 
+    $PAGE->set_title(get_string('teaching_schedule_assignment_choose_teacher', 'local_course_calendar'));
     $PAGE->set_heading(get_string('teaching_schedule_assignment_choose_teacher', 'local_course_calendar'));
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
     // Thêm breadcrumb cho trang hiện tại
     $PAGE->navbar->add(get_string('teaching_schedule_assignment_choose_course', 'local_course_calendar'), new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []));
@@ -117,7 +117,7 @@ try {
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];
-    $courses = optional_param_array('selected_courses', [], PARAM_INT);
+    $courses = optional_param('selected_courses', null, PARAM_INT);
 
     // Get all teacher of central.
     if (empty($search_query)) {
@@ -133,7 +133,7 @@ try {
                                     and (role.shortname = 'teacher' or role.shortname = 'editingteacher')
                                     and context.contextlevel = 50 
                             ORDER BY user.id ASC";
-    
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
         $sql = "SELECT DISTINCT (user.id) id, user.firstname, user.lastname, user.email, role.shortname
@@ -150,15 +150,15 @@ try {
     }
 
     // if parent use search input, we need to filter the children list.
-    if(!empty($search_query)) {
-        
+    if (!empty($search_query)) {
+
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
         $params = [
             'search_param_teacher_id' => $search_query,
-            'search_param_teacher_firstname'=> $search_query,
-            'search_param_teacher_lastname'=> $search_query
+            'search_param_teacher_firstname' => $search_query,
+            'search_param_teacher_lastname' => $search_query
         ];
 
         $total_count_sql = "SELECT count(DISTINCT (user.id))
@@ -178,7 +178,7 @@ try {
                                             
                                         )    
                             ORDER BY user.id ASC";
-        
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
         $sql = "SELECT DISTINCT (user.id) id, user.firstname, user.lastname, user.email, role.shortname
@@ -208,8 +208,8 @@ try {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('form', ['action' => 'edit_course_calendar_step_3.php', 'method' => 'get']);
-        
-        
+
+
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
@@ -244,19 +244,19 @@ try {
             get_string('teacher_major', 'local_course_calendar'),
             get_string('manager', 'local_course_calendar')
         ];
-        $table->align = ['center', 'center', 'center', 'left','left', 'left', 'left', 'left'];
+        $table->align = ['center', 'center', 'center', 'left', 'left', 'left', 'left', 'left'];
         foreach ($teachers as $teacher) {
             // You might want to add a link to teacher's profile overview etc.
             $profileurl = new moodle_url('/user/profile.php', ['id' => $teacher->id]);
             $actions = html_writer::link($profileurl, get_string('view_profile', 'local_course_calendar'));
 
             $avatar_url = \core_user::get_profile_picture(\core_user::get_user($teacher->id, '*', MUST_EXIST));
-            
+
             // add no. for the table.
             $stt = $stt + 1;
             $teacher_major = [];
             $teacher_major_name = [];
-            
+
             // get teacher major by course category.
             $sql_get_teacher_major = "SELECT  distinct (course_categories.id), course_categories.name
                                     from mdl_user user
@@ -272,7 +272,7 @@ try {
             $params = ['teacher_id' => $teacher->id];
             $teacher_major = $DB->get_records_sql($sql_get_teacher_major, $params);
 
-            if (!empty($teacher_major)) { 
+            if (!empty($teacher_major)) {
                 foreach ($teacher_major as $major) {
                     $teacher_major_name[] = $major->name;
                 }
@@ -290,12 +290,12 @@ try {
                 $stt,
                 $teacher->id,
                 html_writer::tag('img', '', array(
-                            'src' => $avatar_url->get_url($PAGE),
-                            'alt' => 'Avatar image of ' . format_string($teacher->firstname) . " " . format_string($teacher->lastname),
-                            'width' => 40,
-                            'height' => 40,
-                            'class' => 'rounded-avatar'
-                        )),
+                    'src' => $avatar_url->get_url($PAGE),
+                    'alt' => 'Avatar image of ' . format_string($teacher->firstname) . " " . format_string($teacher->lastname),
+                    'width' => 40,
+                    'height' => 40,
+                    'class' => 'rounded-avatar'
+                )),
                 html_writer::link($profileurl, format_string($teacher->firstname) . " " . format_string($teacher->lastname)),
                 format_string($teacher->email),
                 // Join the major names with a comma.
@@ -304,26 +304,32 @@ try {
             ];
         }
         echo html_writer::table($table);
-
         if (!empty($courses)) {
-            // If courses are selected, add them as hidden inputs.
-            foreach ($courses as $courseid) {
-                echo html_writer::empty_tag('input', [
-                    'type' => 'hidden',
-                    'name' => 'selected_courses[]',
-                    'value' => $courseid,
-                ]);
-            }
+            echo html_writer::empty_tag('input', [
+                'type' => 'hidden',
+                'name' => 'selected_courses',
+                'value' => $courses,
+            ]);
         }
-
         echo '<div class="d-flex justify-content-end align-items-center">';
-            echo '<div>';
-                echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('next_step','local_course_calendar')));
-            echo '</div>';
+        echo '<div class="me-2">';
+        $params = [];
+        if (!empty($courses)) {
+            $params['selected_courses'] = $courses;
+        }
+        $back_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', $params);
+        echo '<div class="d-flex justify-content-end align-items-center">';
+        echo '<div><a class="btn btn-secondary " href="' . $back_url->out() . '">Back</a></div>';
         echo '</div>';
-        
+        echo '</div>';
+
+        echo '<div>';
+        echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('next_step', 'local_course_calendar')));
+        echo '</div>';
+        echo '</div>';
+
         echo html_writer::end_tag('form');
-        
+
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
     }
 
@@ -333,10 +339,10 @@ try {
 
 } catch (Exception $e) {
     dlog($e->getTrace());
-    
+
     echo "<pre>";
-        var_dump($e->getTrace());
+    var_dump($e->getTrace());
     echo "</pre>";
-    
+
     throw new \moodle_exception('error', 'local_course_calendar', '', null, $e->getMessage());
 }
