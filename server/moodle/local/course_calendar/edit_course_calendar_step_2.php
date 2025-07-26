@@ -34,6 +34,16 @@ try {
     require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
     $PAGE->requires->css('/local/course_calendar/style/style.css');
     $PAGE->requires->js('/local/course_calendar/js/lib.js');
+    $per_page = optional_param('perpage', 20, PARAM_INT);
+    $current_page = optional_param('page', 0, PARAM_INT);
+    try {
+        $courses = required_param('selected_courses', PARAM_INT);
+    } catch (Exception $e) {
+        dlog($e->getTrace());
+        $params = [];
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', $params);
+        redirect($base_url, "You must select one course.", 0, \core\output\notification::NOTIFY_ERROR);
+    }
 
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
@@ -84,17 +94,22 @@ try {
     //     }
     // }
 
-
     echo $OUTPUT->header();
 
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
+
     $search_context = new stdClass();
+    $search_context->method = 'get';
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_course_calendar'); // Placeholder text for the search input
 
     $search_query = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters.
+    $current_params = [];
+    $current_params[] = ['name' => 'selected_courses', 'value' => required_param('selected_courses', PARAM_INT)];
+
+    $search_context->hiddenfields = $current_params;
 
     $search_context->value = $search_query; // Set the value of the search input to the current search query.
     $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
@@ -111,13 +126,9 @@ try {
     // Set default variable.
     $stt = 0;
     $teachers = [];
-
-    $per_page = optional_param('perpage', 20, PARAM_INT);
-    $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];
-    $courses = optional_param('selected_courses', null, PARAM_INT);
 
     // Get all teacher of central.
     if (empty($search_query)) {
@@ -213,10 +224,11 @@ try {
         if (isset($courses)) {
             $params['selected_courses'] = $courses;
         }
-        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
         if (!empty($search_query)) {
-            $base_url->param('searchquery', $search_query);
+            $params['searchquery'] = $search_query;
         }
+
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
 
         $manager = '';
         $sql_get_manager = "SELECT  user.id, user.firstname, user.lastname, user.email

@@ -440,13 +440,17 @@ function deep_copy_calendar_community($calendar_community)
 // BÊN DƯỚI LÀ CÁC RÀNG BUỘC VỀ THỜI GIAN CỦA LỚP HỌC
 /**
  * Summary of UT_HT1
- * HT1. Các lớp - môn học phải được dạy trọn vẹn trong một buổi của một ngày trong tuần (một Lớp Môn học không được cắt ra thành các tiết cuối buổi sáng và đầu buổi chiều hay cuối ngày này và đầu buổi sáng hôm sau).
+ * HT1. Các lớp - môn học phải được dạy trọn vẹn trong một buổi của một ngày trong tuần 
+ * (một Lớp Môn học không được cắt ra thành các tiết cuối buổi sáng và đầu buổi chiều hay 
+ * cuối ngày này và đầu buổi sáng hôm sau).
  * @var int
  */
 const UT_HT1 = 1000000000; // ĐIỂM ƯU TIÊN cho ràng buộc HT1
 /**
  * Summary of is_class_duration
- * HT1. Các lớp - môn học phải được dạy trọn vẹn trong một buổi của một ngày trong tuần (một Lớp Môn học không được cắt ra thành các tiết cuối buổi sáng và đầu buổi chiều hay cuối ngày này và đầu buổi sáng hôm sau).
+ * HT1. Các lớp - môn học phải được dạy trọn vẹn trong một buổi của một ngày trong tuần 
+ * (một Lớp Môn học không được cắt ra thành các tiết cuối buổi sáng và đầu buổi chiều 
+ * hay cuối ngày này và đầu buổi sáng hôm sau).
  * @param mixed $class_start_time Start time of class
  * @return boolean true if start time and end time are in one session (Morning session/ Afternoon session or evening session)
  */
@@ -2219,7 +2223,17 @@ function local_course_calendar_extend_settings_navigation($settingsnav, $context
     $settingnode->add_node($foonode);
   }
 }
+function get_empty_rooms(&$room_list, $start_time, $end_time)
+{
 
+  foreach ($room_list as $room) {
+    $room_address = $room->room_id;
+    if (!is_empty_room($room_address, $start_time, $end_time)) {
+      unset($room_list[$room_address]);
+    }
+  }
+
+}
 function is_empty_room($room_address, $start_time, $end_time)
 {
   global $DB;
@@ -2245,8 +2259,10 @@ function is_empty_room($room_address, $start_time, $end_time)
     'start_time_th2' => $start_time,
     'end_time_th2' => $end_time,
     'start_time_th3' => $start_time,
+    'start_time_th31' => $start_time,
     'end_time_th3' => $end_time,
     'start_time_th4' => $start_time,
+    'end_time_th41' => $end_time,
     'end_time_th4' => $end_time,
   ];
 
@@ -2258,8 +2274,8 @@ function is_empty_room($room_address, $start_time, $end_time)
         (
           (:start_time_th1 <= cs.class_begin_time and cs.class_end_time <= :end_time_th1)
           or (cs.class_begin_time <= :start_time_th2 and :end_time_th2 <= cs.class_end_time)
-          or (cs.class_begin_time <= :start_time_th3 and cs.class_end_time <= :end_time_th3)
-          or (:start_time_th4 <= cs.class_begin_time and :end_time_th4 <= cs.class_end_time)
+          or (cs.class_begin_time <= :start_time_th3 and :start_time_th31 < cs.class_end_time and cs.class_end_time <= :end_time_th3)
+          or (:start_time_th4 <= cs.class_begin_time and cs.class_begin_time < :end_time_th41 and :end_time_th4 <= cs.class_end_time)
         )";
 
   $overlapping_sections = $DB->get_records_sql($sql, $params);
@@ -2287,8 +2303,10 @@ function is_available_teacher($teacher_id, $start_time, $end_time)
     'start_time_th2' => $start_time,
     'end_time_th2' => $end_time,
     'start_time_th3' => $start_time,
+    'start_time_th31' => $start_time,
     'end_time_th3' => $end_time,
     'start_time_th4' => $start_time,
+    'end_time_th41' => $end_time,
     'end_time_th4' => $end_time,
   ];
 
@@ -2307,8 +2325,8 @@ function is_available_teacher($teacher_id, $start_time, $end_time)
         (
           (:start_time_th1 <= cs.class_begin_time and cs.class_end_time <= :end_time_th1)
           or (cs.class_begin_time <= :start_time_th2 and :end_time_th2 <= cs.class_end_time)
-          or (cs.class_begin_time <= :start_time_th3 and cs.class_end_time <= :end_time_th3)
-          or (:start_time_th4 <= cs.class_begin_time and :end_time_th4 <= cs.class_end_time)
+          or (cs.class_begin_time <= :start_time_th3 and :start_time_th31 < cs.class_end_time and cs.class_end_time <= :end_time_th3)
+          or (:start_time_th4 <= cs.class_begin_time and cs.class_begin_time < :end_time_th41 and :end_time_th4 <= cs.class_end_time)
         )";
 
   $overlapping_sections = $DB->get_records_sql($sql, $params);
@@ -2322,7 +2340,7 @@ function is_available_teacher($teacher_id, $start_time, $end_time)
 function create_manual_calendar(int $courses, array $teachers, int $room_addresses, int $start_time, int $end_time)
 {
   // define global variable
-  global $DB, $USER;
+  global $DB, $USER, $SESSION;
   $courseid = $courses;
   $roomid = $room_addresses;
 
@@ -2369,6 +2387,10 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
         $params['selected_teachers[]'] = $teacherid;
       }
     }
+
+    $SESSION->start_class_time = $start_time;
+    $SESSION->end_class_time = $end_time;
+
     $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
     redirect($base_url, "The room is not available for the specified time range.", 0, \core\output\notification::NOTIFY_ERROR);
   }
@@ -2387,6 +2409,9 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
         }
       }
 
+      $SESSION->start_class_time = $start_time;
+      $SESSION->end_class_time = $end_time;
+
       $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
       redirect($base_url, "The teacher is not available for the specified time range.", 0, \core\output\notification::NOTIFY_ERROR);
     }
@@ -2404,7 +2429,7 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
   $new_course_section->modifiedtime = time(); // Timestamp hiện tại
   $new_course_section->class_begin_time = $start_time; // Timestamp bắt đầu (ví dụ)
   $new_course_section->class_end_time = $end_time; // Timestamp kết thúc (ví dụ)
-  $new_course_section->class_total_sessions = ($end_time - $start_time) / (45 * 60); // Ví dụ
+  $new_course_section->class_total_sessions = ceil(($end_time - $start_time) / (45 * 60)); // Ví dụ
   $new_course_section->reason = null; // Hoặc một chuỗi nếu có lý do
   $new_course_section->is_cancel = 0; // 0 = false, 1 = true
   $new_course_section->is_makeup = 0;
@@ -2425,7 +2450,6 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
         60,
         \core\output\notification::NOTIFY_SUCCESS
       );
-      // \core\notification::success("Inserted new course section with course section ID: " . $inserted_id);
       exit;
     } else {
       $params = [];
@@ -2454,10 +2478,10 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
         60,
         \core\output\notification::NOTIFY_ERROR
       );
-      // \core\notification::error("Cannot insert record." . $inserted_id);
       exit;
     }
   } catch (moodle_exception $e) {
+    dlog($e->getTrace());
     // Xử lý các lỗi từ database, ví dụ: ràng buộc duy nhất bị vi phạm
     \core\notification::error("Error inserting data: " . $e->getMessage());
     // Ghi log lỗi để debug chi tiết hơn
@@ -3193,7 +3217,7 @@ class TimetableGenerator
         // prepare data
         $conflict_position_array = $this->init_conflict_position_array();
         foreach ($this->time_slot_array as $time_slot) {
-          $conflict_items_array = $this->get_conflict_items_at_this_time_slot($this->time_slot_array, $time_slot, $course);
+          $conflict_items_array = $this->get_conflict_items_at_this_time_slot($time_slot, $course);
 
           foreach ($conflict_position_array as $conflict_position) {
             if ($conflict_position->time_slot_index == $time_slot->time_slot_index) {

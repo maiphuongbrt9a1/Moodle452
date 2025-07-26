@@ -32,6 +32,10 @@ try {
     require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
     $PAGE->requires->css('/local/course_calendar/style/style.css');
     $PAGE->requires->js('/local/course_calendar/js/lib.js');
+    $selected_courses_from_request = optional_param('selected_courses', null, PARAM_INT);
+    $per_page = optional_param('perpage', 20, PARAM_INT);
+    $current_page = optional_param('page', 0, PARAM_INT);
+
 
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
@@ -79,23 +83,24 @@ try {
     //     }
     // }
 
-
     echo $OUTPUT->header();
 
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
     $search_context = new stdClass();
+    $search_context->method = 'get';
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_course_calendar'); // Placeholder text for the search input
 
     $search_query = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters.
+    $current_params = [];
+    $current_params[] = ['name' => 'selected_courses', 'value' => optional_param('selected_courses', null, PARAM_INT)];
+    $search_context->hiddenfields = $current_params;
 
     $search_context->value = $search_query; // Set the value of the search input to the current search query.
     $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
     $search_context->btnclass = 'btn-primary';
-
-    $selected_courses_from_request = optional_param('selected_courses', null, PARAM_INT);
 
     // Renderer for template core
     $core_renderer = $PAGE->get_renderer('core');
@@ -108,9 +113,6 @@ try {
     // Set default variable.
     $stt = 0;
     $courses = [];
-
-    $per_page = optional_param('perpage', 20, PARAM_INT);
-    $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];

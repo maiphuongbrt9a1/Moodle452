@@ -43,6 +43,7 @@ try {
     // --- Start code to render Search Input ---
 
     $search_context = new stdClass();
+    $search_context->method = 'get'; // Method for the search form
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_children_course_list_management'); // Placeholder text for the search input
@@ -251,8 +252,10 @@ try {
             // You might want to add a link to student's profile overview and course detail.
             $course_detail_url = new moodle_url('/course/view.php', ['id' => $student->courseid]);
             $student_profile_url = new moodle_url('/user/profile.php', ['id' => $student->userid]);
-            $view_course_detail_action = html_writer::link($course_detail_url, get_string('view_course_detail', 'local_children_course_list_management'));
-
+            $view_course_detail_action = $OUTPUT->action_icon(
+                $course_detail_url,
+                new pix_icon('i/hide', get_string('view_course_detail', 'local_children_course_list_management'))
+            );
             // Get the class address.
             // If the course has a physical address, we will show it.
             // If the course has an online address, we will show it.

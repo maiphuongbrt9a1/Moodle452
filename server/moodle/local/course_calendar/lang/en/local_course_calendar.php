@@ -102,3 +102,6 @@ $string['summarychoosedatetime'] = 'Please choose date and time of class section
 $string['endtimemustbeafterstarttime'] = 'End time must be after start time.';
 $string['findroom'] = 'Find Room';
 $string['back'] = 'Prev Step';
+$string['find_available_room'] = 'These are available rooms for your class section. Please choose one of them.';
+$string['starttimemustbeafternow'] = 'Start time must be after now.';
+$string['classdurationmustbegreaterthantimeslot'] = 'Class duration must be greater than time slot - 45 minutes.';

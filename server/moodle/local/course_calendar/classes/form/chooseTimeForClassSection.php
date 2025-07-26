@@ -46,7 +46,11 @@ class chooseTimeForClassSection extends \moodleform
             $mform->setType('selected_teachers[]', PARAM_INT);
         }
 
-        // Thời gian bắt đầu (Start Date and Time)
+        // Get the search query from the URL parameters.
+        $search_query = optional_param('searchquery', '', PARAM_TEXT);
+        $mform->addElement('hidden', 'searchquery', $search_query);
+        $mform->setType('searchquery', PARAM_TEXT);
+
         $mform->addElement('date_time_selector', 'starttime', 'Thời gian bắt đầu');
         $mform->setDefault('starttime', time()); // Mặc định là thời gian hiện tại
         $mform->addRule('starttime', get_string('required', 'moodle'), 'required', null, 'client');
@@ -62,10 +66,16 @@ class chooseTimeForClassSection extends \moodleform
 
     public function validation($data, $files)
     {
+        $class_duration = 90 * 60;
+        $time_slot = 45 * 60;
         $errors = parent::validation($data, $files);
         if (isset($data['starttime']) && isset($data['endtime'])) {
             if ($data['endtime'] < $data['starttime']) {
                 $errors['endtime'] = get_string('endtimemustbeafterstarttime', 'local_course_calendar');
+            }
+
+            if ($data['endtime'] - $data['starttime'] < $time_slot) {
+                $errors['endtime'] = get_string('classdurationmustbegreaterthantimeslot', 'local_course_calendar');
             }
         }
 

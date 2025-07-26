@@ -33,6 +33,29 @@ try {
     require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
     $PAGE->requires->css('/local/course_calendar/style/style.css');
     $PAGE->requires->js('/local/course_calendar/js/lib.js');
+    $per_page = optional_param('perpage', 20, PARAM_INT);
+    $current_page = optional_param('page', 0, PARAM_INT);
+    try {
+        $courses = required_param('selected_courses', PARAM_INT);
+    } catch (Exception $e) {
+        dlog($e->getTrace());
+        $params = [];
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', $params);
+        redirect($base_url, "You must select one course.", 0, \core\output\notification::NOTIFY_ERROR);
+    }
+
+    try {
+        $teachers = required_param_array('selected_teachers', PARAM_INT);
+    } catch (Exception $e) {
+        dlog($e->getTrace());
+        $params = [];
+        if (isset($courses)) {
+            $params['selected_courses'] = $courses;
+        }
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
+        redirect($base_url, "You must select at least one teacher.", 0, \core\output\notification::NOTIFY_ERROR);
+    }
+
 
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
@@ -86,8 +109,6 @@ try {
     //         $settingnode->add_node($foonode);
     //     }
     // }
-    $courses = optional_param('selected_courses', null, PARAM_INT);
-    $teachers = optional_param_array('selected_teachers', [], PARAM_INT);
 
     // form to search time
     $start_class_time = time();
@@ -108,13 +129,56 @@ try {
         $end_class_time = $fromform->endtime;
         $selected_teachers = $fromform->selected_teachers;
         $selected_courses = $fromform->selected_courses;
+        $search_query = $fromform->searchquery;
+        $SESSION->start_class_time = $start_class_time;
+        $SESSION->end_class_time = $end_class_time;
+
+        $params = [];
+        if (isset($selected_courses)) {
+            $params['selected_courses'] = $selected_courses;
+        }
+
+        if (!empty($selected_teachers) and isset($selected_teachers)) {
+            foreach ($selected_teachers as $teacherid) {
+                // Add hidden input for each selected teacher.
+                $params['selected_teachers[]'] = $teacherid;
+            }
+        }
+
+        if (!empty($start_class_time) and !empty($end_class_time)) {
+            $params['starttime'] = $start_class_time;
+            $params['endtime'] = $end_class_time;
+        }
+
+        if (!empty($search_query)) {
+            $params['searchquery'] = $search_query;
+        }
+
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
+
+
+        redirect(
+            $base_url,
+            get_string('find_available_room', 'local_course_calendar'),
+            0,
+            \core\output\notification::NOTIFY_SUCCESS
+        );
 
     } else {
+        // default data for the form
         $data = new stdClass();
+        if (isset($SESSION->start_class_time) and isset($SESSION->end_class_time)) {
+            $start_class_time = $SESSION->start_class_time;
+            $end_class_time = $SESSION->end_class_time;
+            unset($SESSION->start_class_time);
+            unset($SESSION->end_class_time);
+        }
+
         $data->starttime = $start_class_time;
         $data->endtime = $end_class_time;
-        $data->selected_teachers = $teachers;
-        $data->selected_courses = $courses;
+        $data->selected_teachers = required_param_array('selected_teachers', PARAM_INT);
+        $data->selected_courses = required_param('selected_courses', PARAM_INT);
+        $data->searchquery = optional_param('searchquery', '', PARAM_TEXT);
         $mform->set_data($data);
     }
 
@@ -127,11 +191,25 @@ try {
 
     // search box
     $search_context = new stdClass();
+    $search_context->method = 'get';
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_course_calendar'); // Placeholder text for the search input
 
     $search_query = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters.
+    $current_params = [];
+    $current_params[] = ['name' => 'selected_courses', 'value' => required_param('selected_courses', PARAM_INT)];
+    if (!empty($teachers) and isset($teachers)) {
+        foreach ($teachers as $teacherid) {
+            // Add hidden input for each selected teacher.
+            $current_params[] = ['name' => 'selected_teachers[]', 'value' => $teacherid];
+        }
+    }
+    if (!empty($start_class_time) and !empty($end_class_time)) {
+        $current_params[] = ['name' => 'starttime', 'value' => $start_class_time];
+        $current_params[] = ['name' => 'endtime', 'value' => $end_class_time];
+    }
+    $search_context->hiddenfields = $current_params;
 
     $search_context->value = $search_query; // Set the value of the search input to the current search query.
     $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
@@ -148,9 +226,6 @@ try {
     // Set default variable.
     $stt = 0;
     $available_room_address = [];
-
-    $per_page = optional_param('perpage', 20, PARAM_INT);
-    $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];
@@ -205,14 +280,16 @@ try {
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
         $params = [
-            'search_param_room_building' => $search_query,
-            'search_param_ward_address' => $search_query,
-            'search_param_district_address' => $search_query,
-            'search_param_province_address' => $search_query,
             'search_param_start_class_time' => $start_class_time,
             'search_param_end_class_time' => $end_class_time,
             'search_param_start_class_time_th1' => $start_class_time,
             'search_param_end_class_time_th1' => $end_class_time,
+            'search_param_room_building' => $search_query,
+            'search_param_room_number' => $search_query,
+            'search_param_room_floor' => $search_query,
+            'search_param_ward_address' => $search_query,
+            'search_param_district_address' => $search_query,
+            'search_param_province_address' => $search_query,
         ];
 
         $total_count_sql = "SELECT count(DISTINCT cr.id)
@@ -228,6 +305,8 @@ try {
                             AND 
                                 (
                                     cr.room_building like :search_param_room_building 
+                                    or cr.room_number like :search_param_room_number
+                                    or cr.room_floor like :search_param_room_floor
                                     or cr.ward_address like :search_param_ward_address
                                     or cr.district_address like :search_param_district_address
                                     or cr.province_address like :search_param_province_address
@@ -255,6 +334,8 @@ try {
                 AND
                     (
                         cr.room_building like :search_param_room_building 
+                        or cr.room_number like :search_param_room_number
+                        or cr.room_floor like :search_param_room_floor
                         or cr.ward_address like :search_param_ward_address
                         or cr.district_address like :search_param_district_address
                         or cr.province_address like :search_param_province_address
@@ -262,6 +343,9 @@ try {
                 ORDER BY cr.id ASC";
         $available_room_address = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
+
+    // Xóa các phòng không có sẵn trong khoảng thời gian đã chọn.
+    get_empty_rooms($available_room_address, $start_class_time, $end_class_time);
 
     // Display children list of parent on screen.
     if (!$available_room_address) {
@@ -288,10 +372,12 @@ try {
             $params['endtime'] = $end_class_time;
         }
 
-        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
         if (!empty($search_query)) {
-            $base_url->param('searchquery', $search_query);
+            $params['searchquery'] = $search_query;
         }
+
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
+
 
         // Display the list of children in a table.
         $table = new html_table();

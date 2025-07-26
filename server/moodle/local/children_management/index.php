@@ -40,18 +40,19 @@ try {
     // Add a button to add a new child.
     $addchildurl = new moodle_url('/local/children_management/add_child.php');
     echo '<div class="d-flex justify-content-end align-items-center">';
-    echo '<div><a class="btn btn-primary " href="'. $addchildurl->out() .'">Add new children</a></div>';
+    echo '<div><a class="btn btn-primary " href="' . $addchildurl->out() . '">Add new children</a></div>';
     echo '</div>';
 
     // --- Start code to render Search Input ---
 
     $search_context = new stdClass();
+    $search_context->method = 'get'; // Method for the search form
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_children_management'); // Placeholder text for the search input
-    
+
     $search_query = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters.
-    
+
     $search_context->value = $search_query; // Set the value of the search input to the current search query.
     $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
     $search_context->btnclass = 'btn-primary';
@@ -97,10 +98,10 @@ try {
                 ORDER BY children.childrenid, user.firstname, user.lastname ASC";
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
-    
+
     // if parent use search input, we need to filter the children list.
-    if(!empty($search_query)) {
-        
+    if (!empty($search_query)) {
+
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
@@ -126,7 +127,7 @@ try {
                                         or user.email like :searchparamemail
                                     )
                             ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
         $sql = "SELECT children.childrenid,
@@ -148,7 +149,7 @@ try {
                         or user.email like :searchparamemail
                     )
             ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        
+
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -159,12 +160,12 @@ try {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('div');
-        
+
         $base_url = new moodle_url('/local/children_management/index.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
-        
+
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
@@ -178,12 +179,14 @@ try {
             get_string('finished_course_number', 'local_children_management'),
             get_string('actions', 'local_children_management'),
         ];
-        $table->align = ['center', 'center', 'center','left', 'left', 'left', 'left' , 'left', 'center'];
+        $table->align = ['center', 'center', 'center', 'left', 'left', 'left', 'left', 'left', 'center'];
         foreach ($students as $student) {
             // You might want to add a link to student's profile overview etc.
             $profileurl = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
-            $actions = html_writer::link($profileurl, get_string('view_profile', 'local_children_management'));
-
+            $actions = $OUTPUT->action_icon(
+                $profileurl,
+                new pix_icon('i/hide', get_string('view_profile', 'local_children_management'))
+            );
             // Add to show total registered courses.
             $sql_register_course_by_user = "SELECT COUNT(DISTINCT c.id) number_of_unique_registered_courses
                 FROM {user} u
@@ -192,7 +195,7 @@ try {
                 JOIN {context} ctx ON ctx.id = ra.contextid
                 JOIN {course} c ON c.id = ctx.instanceid
                 WHERE ctx.contextlevel = 50 AND u.id = :studentid";
-            
+
             // Add to show total finished courses.
             $sql_finished_course_by_user = "SELECT COUNT(DISTINCT u.id) number_of_unique_finished_courses
                 FROM {user} u
@@ -205,21 +208,21 @@ try {
 
             // Prepare the parameters for the SQL query
             $params = ['studentid' => $student->childrenid];
-            
+
             // Execute the SQL query to get the count of registered courses
             // for the current student.
             $registeredcourses = $DB->get_record_sql($sql_register_course_by_user, $params);
             $registeredcount = $registeredcourses ? $registeredcourses->number_of_unique_registered_courses : 0;
-            
+
             // Execute the SQL query to get the count of finished courses      
             // If no courses found, set count to 0.
-            $finishedcourses = $DB->get_record_sql($sql_finished_course_by_user, $params);      
+            $finishedcourses = $DB->get_record_sql($sql_finished_course_by_user, $params);
             $finishedcount = $finishedcourses ? $finishedcourses->number_of_unique_finished_courses : 0;
 
             // Get image for the student.            
             // Get the avatar URL for the student.
             $avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
-            
+
             // add no. for the table.
             $stt = $stt + 1;
 
@@ -229,12 +232,12 @@ try {
                 $stt,
                 $student->childrenid,
                 html_writer::tag('img', '', array(
-                            'src' => $avatar_url->get_url($PAGE),
-                            'alt' => 'Avatar image of ' . format_string($student->firstname) . " " . format_string($student->lastname),
-                            'width' => 40,
-                            'height' => 40,
-                            'class' => 'rounded-avatar'
-                        )),
+                    'src' => $avatar_url->get_url($PAGE),
+                    'alt' => 'Avatar image of ' . format_string($student->firstname) . " " . format_string($student->lastname),
+                    'width' => 40,
+                    'height' => 40,
+                    'class' => 'rounded-avatar'
+                )),
                 html_writer::link($profileurl, format_string($student->firstname) . " " . format_string($student->lastname)),
                 format_string($student->email),
                 format_string($student->phone1),
@@ -244,19 +247,19 @@ try {
             ];
         }
         echo html_writer::table($table);
-        
+
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
-        
+
         echo html_writer::end_tag('div');
     }
 
     echo $OUTPUT->footer();
 } catch (Exception $e) {
     dlog($e->getTrace());
-    
+
     echo "<pre>";
-        var_dump($e->getTrace());
+    var_dump($e->getTrace());
     echo "</pre>";
-    
+
     throw new \moodle_exception('error', 'local_children_management', '', null, $e->getMessage());
 }

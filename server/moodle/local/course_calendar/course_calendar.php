@@ -38,21 +38,21 @@ try {
     // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
-    $PAGE->set_context($context); 
+    $PAGE->set_context($context);
 
     // Thiết lập trang Moodle
     // Đặt URL cho trang hiện tại
-    $PAGE->set_url(new moodle_url('/local/course_calendar/course_calendar.php', [])); 
+    $PAGE->set_url(new moodle_url('/local/course_calendar/course_calendar.php', []));
     // Tiêu đề trang
-    $PAGE->set_title(get_string('course_calendar_list_title', 'local_course_calendar')); 
+    $PAGE->set_title(get_string('course_calendar_list_title', 'local_course_calendar'));
     $PAGE->set_heading(get_string('course_calendar_list_heading', 'local_course_calendar'));
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_list', 'local_course_calendar')); 
+    $PAGE->navbar->add(get_string('course_calendar_list', 'local_course_calendar'));
 
 
     // // add menu item to the settings navigation.
@@ -82,6 +82,7 @@ try {
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
     $search_context = new stdClass();
+    $search_context->method = 'get'; // Method for the search form
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_course_calendar'); // Placeholder text for the search input
@@ -122,18 +123,17 @@ try {
                             join mdl_course c on c.id = ctx.instanceid 
                             join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
                             join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
-                            join mdl_local_course_calendar_course_schedule course_schedule on course_schedule.id = course_section.course_schedule_id
                             WHERE c.id != 1 
                                 and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                                 and ctx.contextlevel = 50   
-                            ORDER BY course_schedule.class_begin_time, 
+                            ORDER BY course_section.class_begin_time, 
                                     c.id, 
                                     user.id,
                                     user.firstname, 
                                     user.lastname ASC";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
-        $sql = "SELECT concat (user.id, c.id, course_schedule.class_begin_time) id,
+        $sql = "SELECT concat (user.id, c.id, course_section.class_begin_time) id,
                         user.id userid, 
                         user.firstname user_firstname, 
                         user.lastname user_lastname, 
@@ -146,8 +146,8 @@ try {
                         course_room.district_address,
                         course_room.province_address,
                         course_room.room_online_url,
-                        course_schedule.class_begin_time,
-                        course_schedule.class_end_time
+                        course_section.class_begin_time,
+                        course_section.class_end_time
                 FROM mdl_user user 
                 join mdl_role_assignments ra on ra.userid = user.id
                 join mdl_role r on r.id = ra.roleid
@@ -155,11 +155,10 @@ try {
                 join mdl_course c on c.id = ctx.instanceid 
                 join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
                 join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
-                join mdl_local_course_calendar_course_schedule course_schedule on course_schedule.id = course_section.course_schedule_id
                 WHERE c.id != 1 
                     and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                     and ctx.contextlevel = 50    
-                ORDER BY course_schedule.class_begin_time, 
+                ORDER BY course_section.class_begin_time, 
                         c.id, 
                         user.id,
                         user.firstname, 
@@ -168,25 +167,25 @@ try {
     }
 
     // if admin use search input, we need to filter the course calendar list.
-    if(!empty($search_query)) {
-        
+    if (!empty($search_query)) {
+
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
         $params = [
             'search_param_course_id' => $search_query,
-            'search_param_course_name'=> $search_query,
-            'search_param_user_firstname'=> $search_query,
-            'search_param_user_lastname'=> $search_query,
-            'search_param_room_building'=> $search_query,
-            'search_param_room_floor'=> $search_query,
-            'search_param_room_number'=> $search_query,
-            'search_param_ward_address'=> $search_query,
-            'search_param_district_address'=> $search_query,
-            'search_param_province_address'=> $search_query,
-            'search_param_room_online_url'=> $search_query,
-            'search_param_class_begin_time'=> $search_query,
-            'search_param_class_end_time'=> $search_query
+            'search_param_course_name' => $search_query,
+            'search_param_user_firstname' => $search_query,
+            'search_param_user_lastname' => $search_query,
+            'search_param_room_building' => $search_query,
+            'search_param_room_floor' => $search_query,
+            'search_param_room_number' => $search_query,
+            'search_param_ward_address' => $search_query,
+            'search_param_district_address' => $search_query,
+            'search_param_province_address' => $search_query,
+            'search_param_room_online_url' => $search_query,
+            'search_param_class_begin_time' => $search_query,
+            'search_param_class_end_time' => $search_query
         ];
 
         $total_count_sql = "SELECT count(*)
@@ -196,8 +195,7 @@ try {
                             join mdl_context ctx on ctx.id = ra.contextid
                             join mdl_course c on c.id = ctx.instanceid 
                             join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
-                            join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
-                            join mdl_local_course_calendar_course_schedule course_schedule on course_schedule.id = course_section.course_schedule_id
+                            join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id            
                             WHERE c.id != 1 
                                 and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                                 and ctx.contextlevel = 50   
@@ -214,18 +212,18 @@ try {
                                         or course_section.district_address like :search_param_district_address
                                         or course_section.province_address like :search_param_province_address
                                         or course_room.online_url like :search_param_room_online_url
-                                        or course_schedule.class_begin_time like :search_param_class_begin_time
-                                        or course_schedule.class_end_time like :search_param_class_end_time
+                                        or course_section.class_begin_time like :search_param_class_begin_time
+                                        or course_section.class_end_time like :search_param_class_end_time
                                     )
-                            ORDER BY course_schedule.class_begin_time, 
+                            ORDER BY course_section.class_begin_time, 
                                     c.id, 
                                     user.id,
                                     user.firstname, 
                                     user.lastname ASC";
-        
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT concat (user.id, c.id, course_schedule.class_begin_time) id,
+        $sql = "SELECT concat (user.id, c.id, course_section.class_begin_time) id,
                         user.id userid, 
                         user.firstname user_firstname, 
                         user.lastname user_lastname, 
@@ -238,8 +236,8 @@ try {
                         course_room.district_address,
                         course_room.province_address,
                         course_room.room_online_url,
-                        course_schedule.class_begin_time,
-                        course_schedule.class_end_time
+                        course_section.class_begin_time,
+                        course_section.class_end_time
                 FROM mdl_user user 
                 join mdl_role_assignments ra on ra.userid = user.id
                 join mdl_role r on r.id = ra.roleid
@@ -247,7 +245,6 @@ try {
                 join mdl_course c on c.id = ctx.instanceid 
                 join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
                 join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
-                join mdl_local_course_calendar_course_schedule course_schedule on course_schedule.id = course_section.course_schedule_id
                 WHERE c.id != 1 
                     and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                     and ctx.contextlevel = 50   
@@ -264,10 +261,10 @@ try {
                             or course_section.district_address like :search_param_district_address
                             or course_section.province_address like :search_param_province_address
                             or course_room.online_url like :search_param_room_online_url
-                            or course_schedule.class_begin_time like :search_param_class_begin_time
-                            or course_schedule.class_end_time like :search_param_class_end_time
+                            or course_section.class_begin_time like :search_param_class_begin_time
+                            or course_section.class_end_time like :search_param_class_end_time
                         )
-                ORDER BY course_schedule.class_begin_time, 
+                ORDER BY course_section.class_begin_time, 
                         c.id, 
                         user.id,
                         user.firstname, 
@@ -283,12 +280,12 @@ try {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('div');
-        
+
         $base_url = new moodle_url('/local/course_calendar/course_calendar.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
-        
+
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
@@ -298,9 +295,9 @@ try {
             get_string('start_time', 'local_course_calendar'),
             get_string('end_time', 'local_course_calendar'),
             get_string('address', 'local_course_calendar'),
-            
+
         ];
-        $table->align = ['center', 'left', 'center','center', 'center', 'center'];
+        $table->align = ['center', 'left', 'center', 'center', 'center', 'center'];
         foreach ($courses as $course) {
             // add no. for the table.
             $stt = $stt + 1;
@@ -338,9 +335,9 @@ try {
             ];
         }
         echo html_writer::table($table);
-        
+
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
-        
+
         echo html_writer::end_tag('div');
     }
 
@@ -350,10 +347,10 @@ try {
 
 } catch (Exception $e) {
     dlog($e->getTrace());
-    
+
     echo "<pre>";
-        var_dump($e->getTrace());
+    var_dump($e->getTrace());
     echo "</pre>";
-    
+
     throw new \moodle_exception('error', 'local_course_calendar', '', null, $e->getMessage());
 }

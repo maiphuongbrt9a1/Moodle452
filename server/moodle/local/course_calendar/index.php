@@ -36,21 +36,21 @@ try {
     // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
-    $PAGE->set_context($context); 
+    $PAGE->set_context($context);
 
     // Thiết lập trang Moodle
     // Đặt URL cho trang hiện tại
-    $PAGE->set_url(new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->set_url(new moodle_url('/local/course_calendar/index.php', []));
     // Tiêu đề trang
-    $PAGE->set_title(get_string('course_calendar_title', 'local_course_calendar')); 
+    $PAGE->set_title(get_string('course_calendar_title', 'local_course_calendar'));
     $PAGE->set_heading(get_string('course_list', 'local_course_calendar'));
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
 
     // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', [])); 
+    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
 
     // Thêm breadcrumb cho trang hiện tại
     $PAGE->navbar->add(get_string('course_list', 'local_course_calendar'));
@@ -82,13 +82,14 @@ try {
     // Add a button to add a new course schedule.
     $add_new_course_schedule = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
     echo '<div class="d-flex justify-content-end align-items-center">';
-    echo '<div><a class="btn btn-primary " href="'. $add_new_course_schedule->out() .'">+ Add new schedule</a></div>';
+    echo '<div><a class="btn btn-primary " href="' . $add_new_course_schedule->out() . '">+ Add new schedule</a></div>';
     echo '</div>';
 
 
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
     $search_context = new stdClass();
+    $search_context->method = 'get'; // Method for the search form
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_course_calendar'); // Placeholder text for the search input
@@ -135,14 +136,14 @@ try {
     }
 
     // if parent use search input, we need to filter the children list.
-    if(!empty($search_query)) {
-        
+    if (!empty($search_query)) {
+
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
         $params = [
             'searchparamcourseid' => $search_query,
-            'searchparamcoursename'=> $search_query
+            'searchparamcoursename' => $search_query
         ];
 
         $total_count_sql = "SELECT count(*)
@@ -155,7 +156,7 @@ try {
                                         
                                     )
                             ORDER BY c.category, c.fullname ASC";
-        
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
         $sql = "SELECT *
@@ -177,12 +178,12 @@ try {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('div');
-        
+
         $base_url = new moodle_url('/local/course_calendar/index.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
-        
+
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
@@ -195,14 +196,14 @@ try {
             get_string('section_number', 'local_course_calendar'),
             get_string('actions', 'local_course_calendar'),
         ];
-        $table->align = ['center', 'left', 'center','center', 'center', 'center' , 'center'];
+        $table->align = ['center', 'left', 'center', 'center', 'center', 'center', 'center'];
         foreach ($courses as $course) {
             // add no. for the table.
             $stt = $stt + 1;
 
             // You might want to add a link to course's profile overview and course detail.
             $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->id]);
-    
+
             $edit_course_schedule_action = null;
             $view_course_detail_action = null;
             // If the user has permission to edit the course, add an edit link.
@@ -230,7 +231,7 @@ try {
                             and role.shortname = 'student'
                             and context.contextlevel = 50 
                     ORDER BY course.id ASC";
-            
+
             // get total lesson, chapter, section of this course.
             $sql_total_lesson_of_course = "SELECT *
                                             FROM {local_course_calendar_total_course_lesson} c
@@ -238,26 +239,26 @@ try {
                                             ORDER BY c.createtime DESC";
 
             $params = ['courseid' => $course->id];
-            
+
             $total_students = $DB->count_records_sql($sql, $params);
-            
+
             // get record latest containing total lesson, chapter, section of this course.
             $records = $DB->get_records_sql($sql_total_lesson_of_course, $params);
-            
+
             $total_lesson_of_course = 0;
             $total_chapter_of_course = 0;
             $total_section_of_course = 0;
-            
+
             foreach ($records as $record) {
                 // get total lesson for this course.
                 $total_lesson_of_course = $record->total_course_lesson;
-    
+
                 // get total chapter for this course.
                 $total_chapter_of_course = $record->total_course_chapter;
-                
+
                 // get total section for this course.
                 $total_section_of_course = $record->total_course_section;
-                
+
                 break; // We only need the first record.                
             }
 
@@ -275,9 +276,9 @@ try {
             ];
         }
         echo html_writer::table($table);
-        
+
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
-        
+
         echo html_writer::end_tag('div');
     }
 
@@ -287,11 +288,10 @@ try {
 
 } catch (Exception $e) {
     dlog($e->getTrace());
-    
+
     echo "<pre>";
-        var_dump($e->getTrace());
+    var_dump($e->getTrace());
     echo "</pre>";
-    
+
     throw new \moodle_exception('error', 'local_course_calendar', '', null, $e->getMessage());
 }
- 

@@ -43,12 +43,13 @@ try {
     // --- Start code to render Search Input ---
 
     $search_context = new stdClass();
+    $search_context->method = 'get'; // Method for the search form
     $search_context->action = $PAGE->url; // Action URL for the search form
     $search_context->inputname = 'searchquery';
     $search_context->searchstring = get_string('searchitems', 'local_children_course_list_management'); // Placeholder text for the search input
-    
+
     $search_query = optional_param('searchquery', '', PARAM_TEXT); // Get the search query from the URL parameters.
-    
+
     $search_context->value = $search_query; // Set the value of the search input to the current search query.
     $search_context->extraclasses = 'my-2'; // Additional CSS classes for styling
     $search_context->btnclass = 'btn-primary';
@@ -65,7 +66,7 @@ try {
     $parentid = $USER->id;
     $stt = 0;
     $students = [];
-    
+
     $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
@@ -107,10 +108,10 @@ try {
                 ORDER BY children.childrenid, user.firstname, user.lastname ASC";
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
-    
+
     // if parent use search input, we need to filter the children list.
-    if(!empty($search_query)) {
-        
+    if (!empty($search_query)) {
+
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
@@ -121,7 +122,7 @@ try {
             'searchparamfirstname' => $search_query,
             'searchparamlastname' => $search_query,
             'searchparamemail' => $search_query,
-            'searchparamcoursename'=> $search_query
+            'searchparamcoursename' => $search_query
         ];
 
         $total_count_sql = "SELECT COUNT(*)
@@ -145,7 +146,7 @@ try {
                                         
                                     )
                             ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        
+
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
         $sql = "SELECT CONCAT(children.childrenid, children.parentid, c.id) id,
@@ -177,7 +178,7 @@ try {
                         or c.fullname like :searchparamcoursename
                     )
             ORDER BY children.childrenid, user.firstname, user.lastname ASC";
-        
+
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -188,12 +189,12 @@ try {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
         echo html_writer::start_tag('div');
-        
+
         $base_url = new moodle_url('/local/children_course_list_management/index.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
-        
+
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
@@ -207,7 +208,7 @@ try {
             get_string('average_score', 'local_children_course_list_management'),
             get_string('actions', 'local_children_course_list_management'),
         ];
-        $table->align = ['center', 'center', 'center','left', 'left', 'left' , 'left', 'center'];
+        $table->align = ['center', 'center', 'center', 'left', 'left', 'left', 'left', 'center'];
         foreach ($students as $student) {
             // add no. for the table.
             $stt = $stt + 1;
@@ -215,8 +216,11 @@ try {
             // You might want to add a link to student's profile overview and course detail.
             $course_detail_url = new moodle_url('/course/view.php', ['id' => $student->courseid]);
             $student_profile_url = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
-            $view_course_detail_action = html_writer::link($course_detail_url, get_string('view_course_detail', 'local_children_course_list_management'));
 
+            $view_course_detail_action = $OUTPUT->action_icon(
+                $course_detail_url,
+                new pix_icon('i/hide', get_string('view_course_detail', 'local_children_course_list_management'))
+            );
             $start_datetime = (new DateTime())->setTimestamp($student->course_start_date);
             $end_datetime = (new DateTime())->setTimestamp($student->course_end_date);
 
@@ -268,8 +272,7 @@ try {
                                  and context.contextlevel = 50 
                                  and course.id = :student_course_id";
                 $params = ['student_course_id' => $student->courseid];
-            }
-            else { 
+            } else {
                 $sql = "SELECT  CONCAT(teacher.id, role.id, course.id) id ,
                                 teacher.id teacherid , 
                                 teacher.firstname teacher_firstname, 
@@ -287,13 +290,15 @@ try {
                                  and context.contextlevel = 50 
                                  and course.id = :student_course_id
                                  and (teacher.firstname like :searchparamteachername or teacher.lastname like :searchparamteachername)";
-                $params = ['student_course_id' => $student->courseid,
-                            'searchparamteachername'=> $search_query];
+                $params = [
+                    'student_course_id' => $student->courseid,
+                    'searchparamteachername' => $search_query
+                ];
             }
             // Get all teachers of this student in current course.
             $teachers = $DB->get_records_sql($sql, $params);
-            
-            if (!empty($teachers)) {    
+
+            if (!empty($teachers)) {
                 foreach ($teachers as $teacher) {
                     // add to show teacher full name.
                     $teacher_profile_url = new moodle_url('/user/profile.php', ['id' => $teacher->teacherid]);
@@ -305,24 +310,24 @@ try {
             // Get image for the student.            
             // Get the avatar URL for the student.
             $student_avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
-            
+
             $course_score = grade_get_course_grade($student->childrenid, $student->courseid);
             $average_score = $course_score->grade ? $course_score->grade : 0;
-    
+
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 $stt,
                 html_writer::link($course_detail_url, format_string($student->course_name)),
                 html_writer::tag('img', '', array(
-                            'src' => $student_avatar_url->get_url($PAGE),
-                            'alt' => 'Avatar image of ' . format_string($student->children_firstname) . " " . format_string($student->children_lastname),
-                            'width' => 40,
-                            'height' => 40,
-                            'class' => 'rounded-avatar'
-                        )),
+                    'src' => $student_avatar_url->get_url($PAGE),
+                    'alt' => 'Avatar image of ' . format_string($student->children_firstname) . " " . format_string($student->children_lastname),
+                    'width' => 40,
+                    'height' => 40,
+                    'class' => 'rounded-avatar'
+                )),
                 html_writer::link($student_profile_url, format_string($student->children_firstname) . " " . format_string($student->children_lastname)),
-                implode(', ',  $teachers_fullname),
+                implode(', ', $teachers_fullname),
                 $course_study_days,
                 $course_total_days,
                 $average_score,
@@ -330,19 +335,19 @@ try {
             ];
         }
         echo html_writer::table($table);
-        
+
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
-        
+
         echo html_writer::end_tag('div');
     }
 
     echo $OUTPUT->footer();
 } catch (Exception $e) {
     dlog($e->getTrace());
-    
+
     echo "<pre>";
-        var_dump($e->getTrace());
+    var_dump($e->getTrace());
     echo "</pre>";
-    
+
     throw new \moodle_exception('error', 'local_children_course_list_management', '', null, $e->getMessage());
 }
