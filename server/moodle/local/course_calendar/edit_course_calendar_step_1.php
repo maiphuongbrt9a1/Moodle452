@@ -25,6 +25,7 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+use local_course_calendar\helper as LocalCourseCalendarHelper;
 
 try {
     // Yêu cầu người dùng đăng nhập
@@ -114,6 +115,27 @@ try {
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];
+
+    // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+    $valid_sort_columns = [
+        'fullname',
+        'total_student_number',
+        'total_course_section',
+        'total_course_chapter'
+    ];
+
+    $sort_directions = ['asc', 'desc'];
+
+    $sort = optional_param('sort', 'fullname', PARAM_ALPHANUMEXT);
+    $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+    if (!in_array($sort, $valid_sort_columns)) {
+        $sort = 'fullname';
+    }
+
+    if (!in_array($direction, $sort_directions)) {
+        $direction = 'asc';
+    }
 
     // Get all children of current parent account.
     if (empty($search_query)) {

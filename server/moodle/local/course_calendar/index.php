@@ -24,6 +24,7 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+use local_course_calendar\helper as LocalCourseCalendarHelper;
 
 try {
     // Yêu cầu người dùng đăng nhập
@@ -117,20 +118,62 @@ try {
     $offset = $current_page * $per_page;
     $params = [];
 
+    // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+    $valid_sort_columns = [
+        'fullname',
+        'total_student_number',
+        'total_course_section',
+        'total_course_chapter'
+    ];
+
+    $sort_directions = ['asc', 'desc'];
+
+    $sort = optional_param('sort', 'fullname', PARAM_ALPHANUMEXT);
+    $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+    if (!in_array($sort, $valid_sort_columns)) {
+        $sort = 'fullname';
+    }
+
+    if (!in_array($direction, $sort_directions)) {
+        $direction = 'asc';
+    }
+
     // Get all children of current parent account.
     if (empty($search_query)) {
         $params = [];
 
         $total_count_sql = "SELECT count(*)
                             FROM mdl_course c
-                            where c.id != 1
-                            ORDER BY c.category, c.fullname ASC";
+                            where c.id != 1";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
-        $sql = "SELECT *
+        $sql = "SELECT 
+                    c.id, 
+                    c.category, 
+                    c.fullname, 
+                    c.startdate, 
+                    c.enddate, 
+                    course_lesson.total_course_chapter, 
+                    course_lesson.total_course_section,
+                    (
+                        SELECT count(*)
+                        from mdl_user user
+                        join mdl_role_assignments ra on ra.userid = user.id
+                        join mdl_role role on role.id = ra.roleid
+                        join mdl_context context on context.id = ra.contextid
+                        join mdl_course course on course.id = context.instanceid
+                        where course.id != 1 and course.id = c.id
+                                and role.shortname = 'student'
+                                and context.contextlevel = 50 
+                    ) as total_student_number
                 FROM mdl_course c
+                left join (
+                            SELECT *
+                            FROM mdl_local_course_calendar_total_course_lesson course_lesson
+                            ) as course_lesson on c.id = course_lesson.id 
                 where c.id != 1
-                ORDER BY c.category, c.fullname ASC";
+                ORDER BY {$sort} {$direction}";
         $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -153,19 +196,40 @@ try {
                                         c.id like :searchparamcourseid 
                                         or c.fullname like :searchparamcoursename
                                         
-                                    )
-                            ORDER BY c.category, c.fullname ASC";
+                                    )";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT *
+        $sql = "SELECT 
+                    c.id, 
+                    c.category, 
+                    c.fullname, 
+                    c.startdate, 
+                    c.enddate, 
+                    course_lesson.total_course_chapter, 
+                    course_lesson.total_course_section,
+                    (
+                        SELECT count(*)
+                        from mdl_user user
+                        join mdl_role_assignments ra on ra.userid = user.id
+                        join mdl_role role on role.id = ra.roleid
+                        join mdl_context context on context.id = ra.contextid
+                        join mdl_course course on course.id = context.instanceid
+                        where course.id != 1 and course.id = c.id
+                                and role.shortname = 'student'
+                                and context.contextlevel = 50 
+                    ) as total_student_number
                 FROM mdl_course c
+                left join (
+                            SELECT *
+                            FROM mdl_local_course_calendar_total_course_lesson course_lesson
+                            ) as course_lesson on c.id = course_lesson.id 
                 where c.id != 1
                 and (
                         c.id like :searchparamcourseid 
                         or c.fullname like :searchparamcoursename
                     )
-                ORDER BY c.category, c.fullname ASC";
+                ORDER BY {$sort} {$direction}";
 
         $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
@@ -187,14 +251,40 @@ try {
         $table = new html_table();
         $table->head = [
             get_string('stt', 'local_course_calendar'),
-            get_string('course_full_name', 'local_course_calendar'),
-            get_string('student_number', 'local_course_calendar'),
-            get_string('chapter_number', 'local_course_calendar'),
-            get_string('lesson_number', 'local_course_calendar'),
-            get_string('section_number', 'local_course_calendar'),
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'fullname',
+                get_string('course_full_name', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'total_student_number',
+                get_string('student_number', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'total_course_chapter',
+                get_string('chapter_number', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'total_course_section',
+                get_string('section_number', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
             get_string('actions', 'local_course_calendar'),
         ];
-        $table->align = ['center', 'left', 'center', 'center', 'center', 'center', 'center'];
+        $table->align = ['center', 'left', 'center', 'center', 'center', 'center'];
         foreach ($courses as $course) {
             // add no. for the table.
             $stt = $stt + 1;
@@ -218,58 +308,14 @@ try {
                 new pix_icon('i/hide', get_string('view_course_detail', 'local_course_calendar'))
             );
 
-            // Count student number in this course.
-            $sql = "SELECT count(*)
-                    from {user} user
-                    join {role_assignments} ra on ra.userid = user.id
-                    join {role} role on role.id = ra.roleid
-                    join {context} context on context.id = ra.contextid
-                    join {course} course on course.id = context.instanceid
-                    where course.id != 1 and course.id = :courseid
-                            and role.shortname = 'student'
-                            and context.contextlevel = 50 
-                    ORDER BY course.id ASC";
-
-            // get total lesson, chapter, section of this course.
-            $sql_total_lesson_of_course = "SELECT *
-                                            FROM {local_course_calendar_total_course_lesson} c
-                                            where c.courseid != 1 and c.courseid = :courseid
-                                            ORDER BY c.createtime DESC";
-
-            $params = ['courseid' => $course->id];
-
-            $total_students = $DB->count_records_sql($sql, $params);
-
-            // get record latest containing total lesson, chapter, section of this course.
-            $records = $DB->get_records_sql($sql_total_lesson_of_course, $params);
-
-            $total_lesson_of_course = 0;
-            $total_chapter_of_course = 0;
-            $total_section_of_course = 0;
-
-            foreach ($records as $record) {
-                // get total lesson for this course.
-                $total_lesson_of_course = $record->total_course_lesson;
-
-                // get total chapter for this course.
-                $total_chapter_of_course = $record->total_course_chapter;
-
-                // get total section for this course.
-                $total_section_of_course = $record->total_course_section;
-
-                break; // We only need the first record.                
-            }
-
-
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 $stt,
                 html_writer::link($course_detail_url, format_string($course->fullname)),
-                $total_students,
-                $total_chapter_of_course,
-                $total_lesson_of_course,
-                $total_section_of_course,
+                $course->total_student_number ? $course->total_student_number : 0,
+                $course->total_course_chapter ? $course->total_course_chapter : 0,
+                $course->total_course_section ? $course->total_course_section : 0,
                 $view_course_detail_action . ' ' . $edit_course_schedule_action
             ];
         }
