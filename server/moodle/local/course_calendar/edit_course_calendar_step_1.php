@@ -32,7 +32,6 @@ try {
     require_capability('local/course_calendar:edit', context_system::instance()); // Kiểm tra quyền truy cập
     $PAGE->requires->css('/local/course_calendar/style/style.css');
     $PAGE->requires->js('/local/course_calendar/js/lib.js');
-    $selected_courses_from_request = optional_param('selected_courses', null, PARAM_INT);
     $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
 
@@ -40,7 +39,6 @@ try {
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
 
-    // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
     $PAGE->set_context($context);
@@ -176,21 +174,19 @@ try {
     } else {
         // If there are children, display them in a table.
         // and parent does not need to search for children.
-        echo html_writer::start_tag('form', ['action' => 'edit_course_calendar_step_2.php', 'method' => 'get']);
-
+        echo html_writer::start_tag(
+            'form',
+            [
+                'action' => 'edit_course_calendar_step_11_prev_course_section.php',
+                'method' => 'get'
+            ]
+        );
 
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
         if (!empty($search_query)) {
             $base_url->param('searchquery', $search_query);
         }
 
-        if (isset($selected_courses_from_request)) {
-            echo html_writer::empty_tag('input', [
-                'type' => 'hidden',
-                'name' => 'selected_courses',
-                'value' => $selected_courses_from_request,
-            ]);
-        }
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [

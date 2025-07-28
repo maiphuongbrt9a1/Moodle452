@@ -33,7 +33,6 @@ try {
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
 
-    // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
     $PAGE->set_context($context);
@@ -188,7 +187,6 @@ try {
         $table = new html_table();
         $table->head = [
             get_string('stt', 'local_course_calendar'),
-            // get_string('course_avatar', 'local_course_calendar'),
             get_string('course_full_name', 'local_course_calendar'),
             get_string('student_number', 'local_course_calendar'),
             get_string('chapter_number', 'local_course_calendar'),

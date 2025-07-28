@@ -48,7 +48,6 @@ try {
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB, $USER;
 
-    // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
     $PAGE->set_context($context);
@@ -329,6 +328,9 @@ try {
         echo '<div class="d-flex justify-content-end align-items-center">';
         echo '<div class="me-2">';
         $params = [];
+        if (isset($courses)) {
+            $params['selected_courses'] = $courses;
+        }
         $back_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', $params);
         echo '<div class="d-flex justify-content-end align-items-center">';
         echo '<div><a class="btn btn-secondary " href="' . $back_url->out() . '">Back</a></div>';

@@ -26,6 +26,7 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+use local_course_calendar\helper as LocalCourseCalendarHelper;
 
 try {
     // Yêu cầu người dùng đăng nhập
@@ -35,7 +36,6 @@ try {
     // Khai báo các biến toàn cục
     global $PAGE, $OUTPUT, $DB;
 
-    // $context = context_course::instance(SITEID); // Lấy ngữ cảnh của trang hệ thống
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
     $PAGE->set_context($context);
@@ -111,6 +111,28 @@ try {
     $offset = $current_page * $per_page;
     $params = [];
 
+    // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+    $valid_sort_columns = [
+        'course_fullname',
+        'user_lastname',
+        'class_begin_time',
+        'class_end_time',
+        'room_number'
+    ];
+
+    $sort_directions = ['asc', 'desc'];
+
+    $sort = optional_param('sort', 'course_fullname', PARAM_ALPHANUMEXT);
+    $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+    if (!in_array($sort, $valid_sort_columns)) {
+        $sort = 'course_fullname';
+    }
+
+    if (!in_array($direction, $sort_directions)) {
+        $direction = 'asc';
+    }
+
     // Get all course with teacher and room information.
     if (empty($search_query)) {
         $params = [];
@@ -126,11 +148,7 @@ try {
                             WHERE c.id != 1 
                                 and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                                 and ctx.contextlevel = 50   
-                            ORDER BY course_section.class_begin_time, 
-                                    c.id, 
-                                    user.id,
-                                    user.firstname, 
-                                    user.lastname ASC";
+                            ";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
         $sql = "SELECT concat (user.id, c.id, course_section.class_begin_time) id,
@@ -158,11 +176,7 @@ try {
                 WHERE c.id != 1 
                     and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                     and ctx.contextlevel = 50    
-                ORDER BY course_section.class_begin_time, 
-                        c.id, 
-                        user.id,
-                        user.firstname, 
-                        user.lastname ASC";
+                ORDER BY {$sort} {$direction}";
         $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -214,12 +228,7 @@ try {
                                         or course_room.online_url like :search_param_room_online_url
                                         or course_section.class_begin_time like :search_param_class_begin_time
                                         or course_section.class_end_time like :search_param_class_end_time
-                                    )
-                            ORDER BY course_section.class_begin_time, 
-                                    c.id, 
-                                    user.id,
-                                    user.firstname, 
-                                    user.lastname ASC";
+                                    )";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
@@ -264,11 +273,7 @@ try {
                             or course_section.class_begin_time like :search_param_class_begin_time
                             or course_section.class_end_time like :search_param_class_end_time
                         )
-                ORDER BY course_section.class_begin_time, 
-                        c.id, 
-                        user.id,
-                        user.firstname, 
-                        user.lastname ASC";
+                ORDER BY {$sort} {$direction}";
 
         $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
@@ -290,12 +295,45 @@ try {
         $table = new html_table();
         $table->head = [
             get_string('stt', 'local_course_calendar'),
-            get_string('course_full_name', 'local_course_calendar'),
-            get_string('teacher_full_name', 'local_course_calendar'),
-            get_string('start_time', 'local_course_calendar'),
-            get_string('end_time', 'local_course_calendar'),
-            get_string('address', 'local_course_calendar'),
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'course_fullname',
+                get_string('course_full_name', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
 
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'user_lastname',
+                get_string('teacher_full_name', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'class_begin_time',
+                get_string('start_time', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'class_end_time',
+                get_string('end_time', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'room_number',
+                get_string('address', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
         ];
         $table->align = ['center', 'left', 'center', 'center', 'center', 'center'];
         foreach ($courses as $course) {

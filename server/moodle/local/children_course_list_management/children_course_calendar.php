@@ -27,6 +27,7 @@ require_once($CFG->dirroot . '/local/children_course_list_management/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
 require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->dirroot . '/grade/querylib.php');
+use local_children_course_list_management\helper as ChildrenCourseListHelper;
 
 try {
     require_login();
@@ -73,6 +74,29 @@ try {
     $offset = $current_page * $per_page;
     $params = [];
 
+    // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+    $valid_sort_columns = [
+        'course_fullname',
+        'user_firstname',
+        'user_lastname',
+        'class_begin_time',
+        'class_end_time',
+        'room_number'
+    ];
+
+    $sort_directions = ['asc', 'desc'];
+
+    $sort = optional_param('sort', 'course_fullname', PARAM_ALPHANUMEXT);
+    $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+    if (!in_array($sort, $valid_sort_columns)) {
+        $sort = 'course_fullname';
+    }
+
+    if (!in_array($direction, $sort_directions)) {
+        $direction = 'asc';
+    }
+
     // Get all children of current parent account and show course calendar of children.
     // If parent does not use search input, we will get all children of current parent account.
     $search_query = trim($search_query);
@@ -89,11 +113,7 @@ try {
                             join {local_course_calendar_course_section} course_section on course_section.courseid = c.id
                             join {local_course_calendar_course_room} course_room on course_room.id = course_section.course_room_id
                             WHERE children.parentid = :parentid and r.shortname = 'student' and ctx.contextlevel = 50         
-                            ORDER BY c.id,
-                                    course_section.class_begin_time, 
-                                    children.childrenid, 
-                                    user.firstname, 
-                                    user.lastname ASC";
+                            ";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
         $sql = "SELECT concat (user.id, c.id, course_section.class_begin_time) id,
@@ -120,11 +140,7 @@ try {
                 join {local_course_calendar_course_section} course_section on course_section.courseid = c.id
                 join {local_course_calendar_course_room} course_room on course_room.id = course_section.course_room_id
                 WHERE children.parentid = :parentid and r.shortname = 'student' and ctx.contextlevel = 50
-                ORDER BY c.id,
-                        course_section.class_begin_time, 
-                        children.childrenid, 
-                        user.firstname, 
-                        user.lastname ASC";
+                ORDER BY {$sort} {$direction}";
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -165,12 +181,7 @@ try {
                                         or user.email like :searchparamemail
                                         or c.fullname like :searchparamcoursename
                                         
-                                    )
-                            ORDER BY c.id,
-                                    course_section.class_begin_time, 
-                                    children.childrenid, 
-                                    user.firstname, 
-                                    user.lastname ASC";
+                                    )";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
@@ -210,11 +221,7 @@ try {
                             or c.fullname like :searchparamcoursename
                             
                         )
-                ORDER BY c.id,
-                        course_section.class_begin_time, 
-                        children.childrenid, 
-                        user.firstname, 
-                        user.lastname ASC";
+                ORDER BY {$sort} {$direction}";
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -235,16 +242,51 @@ try {
         $table = new html_table();
         $table->head = [
             get_string('stt', 'local_children_course_list_management'),
-            get_string('course_full_name', 'local_children_course_list_management'),
-            get_string('student_avatar', 'local_children_course_list_management'),
-            get_string('student_fullname', 'local_children_course_list_management'),
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'course_fullname',
+                get_string('course_full_name', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
+
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'user_lastname',
+                get_string('student_fullname', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
+
             get_string('teacher_fullname', 'local_children_course_list_management'),
-            get_string('class_start_time', 'local_children_course_list_management'),
-            get_string('class_end_time', 'local_children_course_list_management'),
-            get_string('class_address', 'local_children_course_list_management'),
+
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'class_begin_time',
+                get_string('class_start_time', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
+
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'class_end_time',
+                get_string('class_end_time', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
+
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'room_number',
+                get_string('class_address', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
+
             get_string('actions', 'local_children_course_list_management'),
         ];
-        $table->align = ['center', 'center', 'center', 'left', 'left', 'left', 'left', 'left', 'center'];
+        $table->align = ['center', 'center', 'left', 'left', 'left', 'left', 'left', 'center'];
         foreach ($students as $student) {
             // add no. for the table.
             $stt = $stt + 1;
@@ -336,17 +378,25 @@ try {
             $table->data[] = [
                 $stt,
                 html_writer::link($course_detail_url, format_string($student->course_fullname)),
-                html_writer::tag('img', '', array(
-                    'src' => $student_avatar_url->get_url($PAGE),
-                    'alt' => 'Avatar image of ' . format_string($student->user_firstname) . " " . format_string($student->user_lastname),
-                    'width' => 40,
-                    'height' => 40,
-                    'class' => 'rounded-avatar'
-                )),
-                html_writer::link($student_profile_url, format_string($student->user_firstname) . " " . format_string($student->user_lastname)),
+                html_writer::tag(
+                    'img',
+                    '',
+                    array(
+                        'src' => $student_avatar_url->get_url($PAGE),
+                        'alt' => 'Avatar image of ' . format_string($student->user_firstname) . " " . format_string($student->user_lastname),
+                        'width' => 40,
+                        'height' => 40,
+                        'class' => 'rounded-avatar'
+                    )
+                )
+                . html_writer::link(
+                    $student_profile_url,
+                    format_string($student->user_firstname) . " " . format_string($student->user_lastname),
+                    ['class' => 'ms-2']
+                ),
                 implode(', ', $teachers_fullname),
-                $class_start_time->format('D, d-m-Y H:i:s'),
-                $class_end_time->format('D, d-m-Y H:i:s'),
+                $class_start_time->format('D, d-m-Y H:i'),
+                $class_end_time->format('D, d-m-Y H:i'),
                 $class_address,
                 $view_course_detail_action,
             ];

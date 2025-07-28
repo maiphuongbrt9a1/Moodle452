@@ -22,6 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace local_course_calendar;
+
+use moodle_url;
+use html_writer;
+use core\output\pix_icon;
+
 /**
  * Summary of TIME_ZONE
  * Define the timezone for the course calendar. 'Asia/Ho_Chi_Minh'
@@ -3380,4 +3386,49 @@ class TimetableGenerator
 
     return $time_table;
   }
+}
+
+class helper
+{
+  /**
+   * Generates a sortable table header link with an arrow icon indicating the current sort direction.
+   * @param object $current_page The current page object containing the URL.
+   * @param string $column_name The name of the column to sort.
+   * @param string $display_column_name The display name of the column.
+   * @param string $current_sort_column The currently sorted column.
+   * @param string $current_direction The current sort direction ('asc' or 'desc').
+   * @return string HTML output for the sortable header link with an arrow icon. 
+   */
+  public static function make_sort_table_header_helper(
+    $current_page,
+    $column_name,
+    $display_column_name,
+    $current_sort_column,
+    $current_direction
+  ) {
+    global $OUTPUT;
+    $new_direction = '';
+    if ($current_sort_column === $column_name and $current_direction === 'asc') {
+      $new_direction = 'desc';
+    } else {
+      $new_direction = 'asc';
+    }
+
+    $new_url = new moodle_url($current_page->url, ['sort' => $column_name, 'direction' => $new_direction]);
+
+    $arrow_up = new pix_icon('t/sort_asc', $display_column_name, 'core', ['class' => 'icon-inline']);
+    $arrow_down = new pix_icon('t/sort_desc', $display_column_name, 'core', ['class' => 'icon-inline']);
+    $arrow = $arrow_up;
+
+    if ($current_sort_column === $column_name) {
+      // Mũi tên lên/xuống
+      $arrow = ($current_direction === 'asc') ? $arrow_up : $arrow_down;
+    }
+
+    return $display_column_name . ' ' . $OUTPUT->action_icon(
+      $new_url,
+      $arrow
+    );
+  }
+
 }

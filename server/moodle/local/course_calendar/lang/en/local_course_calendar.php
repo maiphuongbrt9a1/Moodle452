@@ -105,3 +105,7 @@ $string['back'] = 'Prev Step';
 $string['find_available_room'] = 'These are available rooms for your class section. Please choose one of them.';
 $string['starttimemustbeafternow'] = 'Start time must be after now.';
 $string['classdurationmustbegreaterthantimeslot'] = 'Class duration must be greater than time slot - 45 minutes.';
+$string['starttimeorendtimecannotbeinthepast'] = 'Start time or end time cannot be in the past.';
+$string['classdurationmustbesmallerthan'] = 'Class duration must be smaller than {$a} minutes.';
+$string['choose_time_for_class_section'] = 'Choose Time for Class Section';
+$string['previous_course_section_schedule_information:'] = 'Previous Course Section Schedule Information: {$a}';

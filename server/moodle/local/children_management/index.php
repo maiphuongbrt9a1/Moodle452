@@ -25,6 +25,7 @@
 require('../../config.php');
 require_once($CFG->dirroot . '/local/children_management/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+use local_children_management\helper as ChildrenManagementHelper;
 
 try {
     require_login();
@@ -75,6 +76,30 @@ try {
     $offset = $current_page * $per_page;
     $params = [];
 
+    // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+    $valid_sort_columns = [
+        'childrenid',
+        'firstname',
+        'lastname',
+        'email',
+        'phone1',
+        'registed_course_number',
+        'finished_course_number'
+    ];
+
+    $sort_directions = ['asc', 'desc'];
+
+    $sort = optional_param('sort', 'childrenid', PARAM_ALPHANUMEXT);
+    $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+    if (!in_array($sort, $valid_sort_columns)) {
+        $sort = 'childrenid';
+    }
+
+    if (!in_array($direction, $sort_directions)) {
+        $direction = 'asc';
+    }
+
     // Get all children of current parent account.
     if (empty($search_query)) {
         $params = ['parentid' => $parentid];
@@ -82,8 +107,7 @@ try {
         $total_count_sql = "SELECT COUNT(*)
                             FROM {children_and_parent_information} children
                             JOIN {user} user on user.id = children.childrenid
-                            WHERE children.parentid = :parentid
-                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+                            WHERE children.parentid = :parentid";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
         $sql = "SELECT children.childrenid,
@@ -91,11 +115,35 @@ try {
                         user.firstname,
                         user.lastname,
                         user.email,
-                        user.phone1
+                        user.phone1,
+                        (
+                            SELECT COUNT(DISTINCT c.id) registed_course_number
+                                FROM {user} u
+                                JOIN {role_assignments} ra ON ra.userid = u.id
+                                JOIN {role} r ON r.id = ra.roleid
+                                JOIN {context} ctx ON ctx.id = ra.contextid
+                                JOIN {course} c ON c.id = ctx.instanceid
+                                WHERE ctx.contextlevel = 50 
+                                    AND u.id = children.childrenid
+                                group by u.id
+                        ) as registed_course_number,
+                        (
+                            SELECT COUNT(DISTINCT c.id) finished_course_number
+                                FROM {user} u
+                                JOIN {role_assignments} ra ON ra.userid = u.id
+                                JOIN {role} r ON r.id = ra.roleid
+                                JOIN {context} ctx ON ctx.id = ra.contextid
+                                JOIN {course} c ON c.id = ctx.instanceid
+                                WHERE ctx.contextlevel = 50 
+                                    AND u.id = children.childrenid 
+                                    and c.enddate > 0 
+                                    and c.enddate < UNIX_TIMESTAMP()
+                                group by u.id
+                        ) as finished_course_number
                 FROM {children_and_parent_information} children
                 JOIN {user} user on user.id = children.childrenid
                 WHERE children.parentid = :parentid
-                ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+                ORDER BY {$sort} {$direction}";
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -125,8 +173,7 @@ try {
                                         or user.firstname like :searchparamfirstname
                                         or user.lastname like :searchparamlastname
                                         or user.email like :searchparamemail
-                                    )
-                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+                                    )";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
@@ -136,7 +183,31 @@ try {
                     user.firstname,
                     user.lastname,
                     user.email,
-                    user.phone1
+                    user.phone1,
+                    (
+                        SELECT COUNT(DISTINCT c.id) registed_course_number
+                            FROM {user} u
+                            JOIN {role_assignments} ra ON ra.userid = u.id
+                            JOIN {role} r ON r.id = ra.roleid
+                            JOIN {context} ctx ON ctx.id = ra.contextid
+                            JOIN {course} c ON c.id = ctx.instanceid
+                            WHERE ctx.contextlevel = 50 
+                                AND u.id = children.childrenid
+                            group by u.id
+                    ) as registed_course_number,
+                    (
+                        SELECT COUNT(DISTINCT c.id) finished_course_number
+                            FROM {user} u
+                            JOIN {role_assignments} ra ON ra.userid = u.id
+                            JOIN {role} r ON r.id = ra.roleid
+                            JOIN {context} ctx ON ctx.id = ra.contextid
+                            JOIN {course} c ON c.id = ctx.instanceid
+                            WHERE ctx.contextlevel = 50 
+                                AND u.id = children.childrenid 
+                                and c.enddate > 0 
+                                and c.enddate < UNIX_TIMESTAMP()
+                            group by u.id
+                    ) as finished_course_number
             FROM {children_and_parent_information} children
             JOIN {user} user on user.id = children.childrenid
             WHERE children.parentid = :parentid 
@@ -148,7 +219,7 @@ try {
                         or user.lastname like :searchparamlastname
                         or user.email like :searchparamemail
                     )
-            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+            ORDER BY {$sort} {$direction}";
 
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
@@ -170,16 +241,56 @@ try {
         $table = new html_table();
         $table->head = [
             get_string('stt', 'local_children_management'),
-            get_string('studentid', 'local_children_management'),
-            get_string('avatar', 'local_children_management'),
-            get_string('fullname', 'local_children_management'),
-            get_string('email', 'local_children_management'),
-            get_string('phone1', 'local_children_management'),
-            get_string('registed_course_number', 'local_children_management'),
-            get_string('finished_course_number', 'local_children_management'),
+
+            ChildrenManagementHelper::make_sort_table_header_helper(
+                $PAGE,
+                'childrenid',
+                get_string('studentid', 'local_children_management'),
+                $sort,
+                $direction
+            ),
+            ChildrenManagementHelper::make_sort_table_header_helper(
+                $PAGE,
+                'lastname',
+                get_string('fullname', 'local_children_management'),
+                $sort,
+                $direction
+            ),
+
+            ChildrenManagementHelper::make_sort_table_header_helper(
+                $PAGE,
+                'email',
+                get_string('email', 'local_children_management'),
+                $sort,
+                $direction
+            ),
+
+            ChildrenManagementHelper::make_sort_table_header_helper(
+                $PAGE,
+                'phone1',
+                get_string('phone1', 'local_children_management'),
+                $sort,
+                $direction
+            ),
+
+            ChildrenManagementHelper::make_sort_table_header_helper(
+                $PAGE,
+                'registed_course_number',
+                get_string('registed_course_number', 'local_children_management'),
+                $sort,
+                $direction
+            ),
+
+            ChildrenManagementHelper::make_sort_table_header_helper(
+                $PAGE,
+                'finished_course_number',
+                get_string('finished_course_number', 'local_children_management'),
+                $sort,
+                $direction
+            ),
             get_string('actions', 'local_children_management'),
         ];
-        $table->align = ['center', 'center', 'center', 'left', 'left', 'left', 'left', 'left', 'center'];
+        $table->align = ['center', 'center', 'left', 'left', 'center', 'center', 'center', 'center'];
         foreach ($students as $student) {
             // You might want to add a link to student's profile overview etc.
             $profileurl = new moodle_url('/user/profile.php', ['id' => $student->childrenid]);
@@ -187,37 +298,6 @@ try {
                 $profileurl,
                 new pix_icon('i/hide', get_string('view_profile', 'local_children_management'))
             );
-            // Add to show total registered courses.
-            $sql_register_course_by_user = "SELECT COUNT(DISTINCT c.id) number_of_unique_registered_courses
-                FROM {user} u
-                JOIN {role_assignments} ra ON ra.userid = u.id
-                JOIN {role} r ON r.id = ra.roleid
-                JOIN {context} ctx ON ctx.id = ra.contextid
-                JOIN {course} c ON c.id = ctx.instanceid
-                WHERE ctx.contextlevel = 50 AND u.id = :studentid";
-
-            // Add to show total finished courses.
-            $sql_finished_course_by_user = "SELECT COUNT(DISTINCT u.id) number_of_unique_finished_courses
-                FROM {user} u
-                JOIN {role_assignments} ra ON ra.userid = u.id
-                JOIN {role} r ON r.id = ra.roleid
-                JOIN {context} ctx ON ctx.id = ra.contextid
-                JOIN {course} c ON c.id = ctx.instanceid
-                WHERE ctx.contextlevel = 50 AND u.id = :studentid and c.enddate > 0 and c.enddate < UNIX_TIMESTAMP()
-                group by u.id";
-
-            // Prepare the parameters for the SQL query
-            $params = ['studentid' => $student->childrenid];
-
-            // Execute the SQL query to get the count of registered courses
-            // for the current student.
-            $registeredcourses = $DB->get_record_sql($sql_register_course_by_user, $params);
-            $registeredcount = $registeredcourses ? $registeredcourses->number_of_unique_registered_courses : 0;
-
-            // Execute the SQL query to get the count of finished courses      
-            // If no courses found, set count to 0.
-            $finishedcourses = $DB->get_record_sql($sql_finished_course_by_user, $params);
-            $finishedcount = $finishedcourses ? $finishedcourses->number_of_unique_finished_courses : 0;
 
             // Get image for the student.            
             // Get the avatar URL for the student.
@@ -231,18 +311,26 @@ try {
             $table->data[] = [
                 $stt,
                 $student->childrenid,
-                html_writer::tag('img', '', array(
-                    'src' => $avatar_url->get_url($PAGE),
-                    'alt' => 'Avatar image of ' . format_string($student->firstname) . " " . format_string($student->lastname),
-                    'width' => 40,
-                    'height' => 40,
-                    'class' => 'rounded-avatar'
-                )),
-                html_writer::link($profileurl, format_string($student->firstname) . " " . format_string($student->lastname)),
+                html_writer::tag(
+                    'img',
+                    '',
+                    array(
+                        'src' => $avatar_url->get_url($PAGE),
+                        'alt' => 'Avatar image of ' . format_string($student->firstname) . " " . format_string($student->lastname),
+                        'width' => 40,
+                        'height' => 40,
+                        'class' => 'rounded-avatar'
+                    )
+                )
+                . html_writer::link(
+                    $profileurl,
+                    format_string($student->firstname) . " " . format_string($student->lastname),
+                    ['class' => 'ms-2']
+                ),
                 format_string($student->email),
                 format_string($student->phone1),
-                $registeredcount,
-                $finishedcount,
+                $student->registed_course_number ? $student->registed_course_number : 0,
+                $student->finished_course_number ? $student->finished_course_number : 0,
                 $actions,
             ];
         }

@@ -21,7 +21,11 @@
  * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace local_children_management;
 
+use moodle_url;
+use html_writer;
+use core\output\pix_icon;
 /**
  * Extend the user navigation to add a link to the children management page.
  * @param mixed $navigation The user navigation object to extend.
@@ -46,7 +50,8 @@
 //     }
 // }
 
-function local_children_management_extend_settings_navigation($settingsnav, $context) {
+function local_children_management_extend_settings_navigation($settingsnav, $context)
+{
     global $CFG, $PAGE;
 
     // Only add this settings item on non-site course pages.
@@ -78,7 +83,8 @@ function local_children_management_extend_settings_navigation($settingsnav, $con
 }
 
 // Hàm gửi email OTP
-function local_children_management_send_otp_email(string $recipientemail, string $otpcode): bool {
+function local_children_management_send_otp_email(string $recipientemail, string $otpcode): bool
+{
     global $CFG, $DB;
 
     // Lấy thông tin người nhận
@@ -104,4 +110,49 @@ function local_children_management_send_otp_email(string $recipientemail, string
     );
 
     return $emailresult;
+}
+
+class helper
+{
+    /**
+     * Generates a sortable table header link with an arrow icon indicating the current sort direction.
+     * @param object $current_page The current page object containing the URL.
+     * @param string $column_name The name of the column to sort.
+     * @param string $display_column_name The display name of the column.
+     * @param string $current_sort_column The currently sorted column.
+     * @param string $current_direction The current sort direction ('asc' or 'desc').
+     * @return string HTML output for the sortable header link with an arrow icon. 
+     */
+    public static function make_sort_table_header_helper(
+        $current_page,
+        $column_name,
+        $display_column_name,
+        $current_sort_column,
+        $current_direction
+    ) {
+        global $OUTPUT;
+        $new_direction = '';
+        if ($current_sort_column === $column_name and $current_direction === 'asc') {
+            $new_direction = 'desc';
+        } else {
+            $new_direction = 'asc';
+        }
+
+        $new_url = new moodle_url($current_page->url, ['sort' => $column_name, 'direction' => $new_direction]);
+
+        $arrow_up = new pix_icon('t/sort_asc', $display_column_name, 'core', ['class' => 'icon-inline']);
+        $arrow_down = new pix_icon('t/sort_desc', $display_column_name, 'core', ['class' => 'icon-inline']);
+        $arrow = $arrow_up;
+
+        if ($current_sort_column === $column_name) {
+            // Mũi tên lên/xuống
+            $arrow = ($current_direction === 'asc') ? $arrow_up : $arrow_down;
+        }
+
+        return $display_column_name . ' ' . $OUTPUT->action_icon(
+            $new_url,
+            $arrow
+        );
+    }
+
 }

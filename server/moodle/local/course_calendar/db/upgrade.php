@@ -155,6 +155,77 @@ function xmldb_local_course_calendar_upgrade($oldversion): bool
         // Course_calendar savepoint reached.
         upgrade_plugin_savepoint(true, 20250606017, 'local', 'course_calendar');
     }
+
+    if ($oldversion < 20250606018) {
+
+        // Define field class_begin_time to be added to local_course_calendar_course_schedule.
+        $table = new xmldb_table('local_course_calendar_course_section');
+        // ban đầu nếu không có ai dạy thì là người admin. Hiện tại admin có id = 2. Nhưng để đảm bảo thì lần đầu nếu không có dữ liệu thì nó là 0  để biết đây là lỗi dữ liệu
+        $field = new xmldb_field(
+            'editing_teacher_primary_teacher',
+            XMLDB_TYPE_INTEGER,
+            '10',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            0,
+        );
+
+        // Conditionally launch add field class_begin_time.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field(
+            'non_editing_teacher_secondary_teacher',
+            XMLDB_TYPE_INTEGER,
+            '10',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            0
+        );
+
+        // Conditionally launch add field class_begin_time.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Course_calendar savepoint reached.
+        upgrade_plugin_savepoint(true, 20250606018, 'local', 'course_calendar');
+
+    }
+
+    if ($oldversion < 20250606019) {
+
+        // Define key created_user_fk (foreign) to be added to local_course_calendar_course_section.
+        $table = new xmldb_table('local_course_calendar_course_section');
+        $key = new xmldb_key('editing_teacher_primary_teacher', XMLDB_KEY_FOREIGN, ['editing_teacher_primary_teacher'], 'user', ['id']);
+
+        // Launch add key created_user_fk.
+        $dbman->add_key($table, $key);
+
+        $key = new xmldb_key('non_editing_teacher_secondary_teacher', XMLDB_KEY_FOREIGN, ['non_editing_teacher_secondary_teacher'], 'user', ['id']);
+
+        // Launch add key created_user_fk.
+        $dbman->add_key($table, $key);
+
+        $index = new xmldb_index('editing_teacher_primary_teacher_idx', XMLDB_INDEX_NOTUNIQUE, ['editing_teacher_primary_teacher']);
+
+        // Conditionally launch add index created_user_id_idx.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        $index = new xmldb_index('non_editing_teacher_secondary_teacher_idx', XMLDB_INDEX_NOTUNIQUE, ['non_editing_teacher_secondary_teacher']);
+
+        // Conditionally launch add index created_user_id_idx.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        // Course_calendar savepoint reached.
+        upgrade_plugin_savepoint(true, 20250606019, 'local', 'course_calendar');
+    }
+
     // Everything has succeeded to here. Return true.
     return true;
 }

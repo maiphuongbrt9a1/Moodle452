@@ -77,6 +77,14 @@ class chooseTimeForClassSection extends \moodleform
             if ($data['endtime'] - $data['starttime'] < $time_slot) {
                 $errors['endtime'] = get_string('classdurationmustbegreaterthantimeslot', 'local_course_calendar');
             }
+
+            if ($data['endtime'] - $data['starttime'] > $class_duration) {
+                $errors['endtime'] = get_string('classdurationmustbesmallerthan', 'local_course_calendar', $class_duration / 60);
+            }
+
+            if ($data['endtime'] <= time()) {
+                $errors['endtime'] = get_string('starttimeorendtimecannotbeinthepast', 'local_course_calendar');
+            }
         }
 
         return $errors;

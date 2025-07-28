@@ -27,7 +27,7 @@ require_once($CFG->dirroot . '/local/children_course_list_management/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
 require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->dirroot . '/grade/querylib.php');
-
+use local_children_course_list_management\helper as ChildrenCourseListHelper;
 try {
     require_login();
     require_capability('local/children_course_list_management:view', context_system::instance());
@@ -73,6 +73,29 @@ try {
     $offset = $current_page * $per_page;
     $params = [];
 
+    // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+    $valid_sort_columns = [
+        'course_name',
+        'children_firstname',
+        'children_lastname',
+        'course_total_days',
+        'course_study_days',
+        'average_score'
+    ];
+
+    $sort_directions = ['asc', 'desc'];
+
+    $sort = optional_param('sort', 'course_name', PARAM_ALPHANUMEXT);
+    $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+    if (!in_array($sort, $valid_sort_columns)) {
+        $sort = 'course_name';
+    }
+
+    if (!in_array($direction, $sort_directions)) {
+        $direction = 'asc';
+    }
+
     // Get all children of current parent account.
     if (empty($search_query)) {
         $params = ['parentid' => $parentid];
@@ -84,8 +107,9 @@ try {
                             join {role} r on r.id = ra.roleid
                             join {context} ctx on ctx.id = ra.contextid
                             join {course} c on c.id = ctx.instanceid 
-                            WHERE children.parentid = :parentid and r.shortname = 'student' and ctx.contextlevel = 50
-                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+                            WHERE children.parentid = :parentid 
+                                and r.shortname = 'student' 
+                                and ctx.contextlevel = 50";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
         $sql = "SELECT CONCAT(children.childrenid, children.parentid, c.id) id,
@@ -97,15 +121,25 @@ try {
                         c.id courseid,
                         c.fullname course_name,
                         c.startdate course_start_date,
-                        c.enddate course_end_date
+                        c.enddate course_end_date,            
+                        CEIL((c.enddate - c.startdate) / 86400) AS course_total_days,
+                        CASE
+                            WHEN c.startdate <= UNIX_TIMESTAMP() AND UNIX_TIMESTAMP() <= c.enddate 
+                                THEN ceil((UNIX_TIMESTAMP() - c.startdate) / 86400)
+                            WHEN UNIX_TIMESTAMP() > c.enddate 
+                                THEN ceil((c.enddate - c.startdate) / 86400)
+                            ELSE 0
+                        END AS course_study_days
                 FROM {children_and_parent_information} children
                 JOIN {user} user on user.id = children.childrenid
                 join {role_assignments} ra on ra.userid = children.childrenid
                 join {role} r on r.id = ra.roleid
                 join {context} ctx on ctx.id = ra.contextid
                 join {course} c on c.id = ctx.instanceid 
-                WHERE children.parentid = :parentid and r.shortname = 'student' and ctx.contextlevel = 50
-                ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+                WHERE children.parentid = :parentid 
+                    and r.shortname = 'student' 
+                    and ctx.contextlevel = 50
+                ORDER BY {$sort} {$direction}";
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -144,8 +178,7 @@ try {
                                         or user.email like :searchparamemail
                                         or c.fullname like :searchparamcoursename
                                         
-                                    )
-                            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+                                    )";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
@@ -158,7 +191,15 @@ try {
                         c.id courseid,
                         c.fullname course_name,
                         c.startdate course_start_date,
-                        c.enddate course_end_date
+                        c.enddate course_end_date,            
+                        CEIL((c.enddate - c.startdate) / 86400) AS course_total_days,
+                        CASE
+                            WHEN c.startdate <= UNIX_TIMESTAMP() AND UNIX_TIMESTAMP() <= c.enddate 
+                                THEN ceil((UNIX_TIMESTAMP() - c.startdate) / 86400)
+                            WHEN UNIX_TIMESTAMP() > c.enddate 
+                                THEN ceil((c.enddate - c.startdate) / 86400)
+                            ELSE 0
+                        END AS course_study_days
                 FROM {children_and_parent_information} children
                 JOIN {user} user on user.id = children.childrenid
                 join {role_assignments} ra on ra.userid = children.childrenid
@@ -177,7 +218,7 @@ try {
                         or user.email like :searchparamemail
                         or c.fullname like :searchparamcoursename
                     )
-            ORDER BY children.childrenid, user.firstname, user.lastname ASC";
+            ORDER BY {$sort} {$direction}";
 
         $students = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
@@ -199,16 +240,41 @@ try {
         $table = new html_table();
         $table->head = [
             get_string('stt', 'local_children_course_list_management'),
-            get_string('course_full_name', 'local_children_course_list_management'),
-            get_string('student_avatar', 'local_children_course_list_management'),
-            get_string('student_fullname', 'local_children_course_list_management'),
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'course_name',
+                get_string('course_full_name', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'children_lastname',
+                get_string('student_fullname', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
             get_string('teacher_fullname', 'local_children_course_list_management'),
-            get_string('study_time', 'local_children_course_list_management'),
-            get_string('course_total_time', 'local_children_course_list_management'),
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'course_study_days',
+                get_string('study_time', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
+
+            ChildrenCourseListHelper::make_sort_table_header_helper(
+                $PAGE,
+                'course_total_days',
+                get_string('course_total_time', 'local_children_course_list_management'),
+                $sort,
+                $direction
+            ),
+
             get_string('average_score', 'local_children_course_list_management'),
             get_string('actions', 'local_children_course_list_management'),
         ];
-        $table->align = ['center', 'center', 'center', 'left', 'left', 'left', 'left', 'center'];
+        $table->align = ['center', 'left', 'left', 'left', 'left', 'left', 'center'];
         foreach ($students as $student) {
             // add no. for the table.
             $stt = $stt + 1;
@@ -221,31 +287,6 @@ try {
                 $course_detail_url,
                 new pix_icon('i/hide', get_string('view_course_detail', 'local_children_course_list_management'))
             );
-            $start_datetime = (new DateTime())->setTimestamp($student->course_start_date);
-            $end_datetime = (new DateTime())->setTimestamp($student->course_end_date);
-
-            // Tính toán khoảng thời gian giữa hai ngày
-            $interval_total = $end_datetime->diff($start_datetime);
-
-            // Lấy tổng số ngày (tuyệt đối) từ khoảng thời gian
-            $course_total_days = $interval_total->days; // Lấy tổng số ngày không kể giờ, phút, giây
-
-            // --- 2. Tính thời gian đã học (Study Time) ---
-            $current_time = time(); // Lấy Unix timestamp hiện tại
-
-            // So sánh thời gian hiện tại với thời gian bắt đầu và kết thúc khóa học
-            if ($student->course_start_date <= $current_time && $current_time <= $student->course_end_date) {
-                // Nếu khóa học đang diễn ra, tính từ ngày bắt đầu đến ngày hiện tại
-                $current_datetime = (new DateTime())->setTimestamp($current_time);
-                $interval_study = $current_datetime->diff($start_datetime);
-                $course_study_days = $interval_study->days;
-            } else if ($current_time > $student->course_end_date) {
-                // Nếu khóa học đã kết thúc, thời gian học bằng tổng thời gian khóa học
-                $course_study_days = $course_total_days;
-            } else {
-                // Nếu khóa học chưa bắt đầu
-                $course_study_days = 0;
-            }
 
             // add sql to query teachers of this student in current course
             $teachers = [];
@@ -289,10 +330,11 @@ try {
                           where (role.shortname = 'teacher' or role.shortname = 'editingteacher')
                                  and context.contextlevel = 50 
                                  and course.id = :student_course_id
-                                 and (teacher.firstname like :searchparamteachername or teacher.lastname like :searchparamteachername)";
+                                 and (teacher.firstname like :searchparamteachername or teacher.lastname like :searchparamteachernameth2)";
                 $params = [
                     'student_course_id' => $student->courseid,
-                    'searchparamteachername' => $search_query
+                    'searchparamteachername' => $search_query,
+                    'searchparamteachernameth2' => $search_query
                 ];
             }
             // Get all teachers of this student in current course.
@@ -312,24 +354,32 @@ try {
             $student_avatar_url = \core_user::get_profile_picture(\core_user::get_user($student->childrenid, '*', MUST_EXIST));
 
             $course_score = grade_get_course_grade($student->childrenid, $student->courseid);
-            $average_score = $course_score->grade ? $course_score->grade : 0;
+            $average_score = $course_score->grade ? round($course_score->grade, 2) : 0;
 
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
                 $stt,
                 html_writer::link($course_detail_url, format_string($student->course_name)),
-                html_writer::tag('img', '', array(
-                    'src' => $student_avatar_url->get_url($PAGE),
-                    'alt' => 'Avatar image of ' . format_string($student->children_firstname) . " " . format_string($student->children_lastname),
-                    'width' => 40,
-                    'height' => 40,
-                    'class' => 'rounded-avatar'
-                )),
-                html_writer::link($student_profile_url, format_string($student->children_firstname) . " " . format_string($student->children_lastname)),
+                html_writer::tag(
+                    'img',
+                    '',
+                    array(
+                        'src' => $student_avatar_url->get_url($PAGE),
+                        'alt' => 'Avatar image of ' . format_string($student->children_firstname) . " " . format_string($student->children_lastname),
+                        'width' => 40,
+                        'height' => 40,
+                        'class' => 'rounded-avatar'
+                    )
+                )
+                . html_writer::link(
+                    $student_profile_url,
+                    format_string($student->children_firstname) . " " . format_string($student->children_lastname),
+                    ['class' => 'ms-2']
+                ),
                 implode(', ', $teachers_fullname),
-                $course_study_days,
-                $course_total_days,
+                $student->course_study_days,
+                $student->course_total_days,
                 $average_score,
                 $view_course_detail_action,
             ];
