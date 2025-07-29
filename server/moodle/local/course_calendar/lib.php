@@ -27,6 +27,9 @@ namespace local_course_calendar;
 use moodle_url;
 use html_writer;
 use core\output\pix_icon;
+use stdClass;
+use Exception;
+
 
 /**
  * Summary of TIME_ZONE

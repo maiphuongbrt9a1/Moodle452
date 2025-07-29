@@ -109,3 +109,4 @@ $string['starttimeorendtimecannotbeinthepast'] = 'Start time or end time cannot 
 $string['classdurationmustbesmallerthan'] = 'Class duration must be smaller than {$a} minutes.';
 $string['choose_time_for_class_section'] = 'Choose Time for Class Section';
 $string['previous_course_section_schedule_information:'] = 'Previous Course Section Schedule Information: {$a}';
+$string['no_prev_course_section_schedule_found'] = 'No previous course section schedule found';

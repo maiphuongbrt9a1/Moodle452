@@ -27,7 +27,8 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
-
+use local_course_calendar\helper as LocalCourseCalendarHelper;
+use local_course_calendar as LocalCourseCalendar;
 try {
     // Yêu cầu người dùng đăng nhập
     require_login();
@@ -129,6 +130,26 @@ try {
     $offset = $current_page * $per_page;
     $params = [];
 
+    // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+    $valid_sort_columns = [
+        'id',
+        'lastname',
+        'email'
+    ];
+
+    $sort_directions = ['asc', 'desc'];
+
+    $sort = optional_param('sort', 'id', PARAM_ALPHANUMEXT);
+    $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+    if (!in_array($sort, $valid_sort_columns)) {
+        $sort = 'id';
+    }
+
+    if (!in_array($direction, $sort_directions)) {
+        $direction = 'asc';
+    }
+
     // Get all teacher of central.
     if (empty($search_query)) {
         $params = [];
@@ -219,16 +240,6 @@ try {
         // and parent does not need to search for children.
         echo html_writer::start_tag('form', ['action' => 'edit_course_calendar_step_3.php', 'method' => 'get']);
 
-        $params = [];
-        if (isset($courses)) {
-            $params['selected_courses'] = $courses;
-        }
-        if (!empty($search_query)) {
-            $params['searchquery'] = $search_query;
-        }
-
-        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
-
         $manager = '';
         $sql_get_manager = "SELECT  user.id, user.firstname, user.lastname, user.email
                                     from mdl_user user
@@ -251,14 +262,34 @@ try {
                 'onchange' => 'toggleAllCheckboxes(this)',
             ]),
             get_string('stt', 'local_course_calendar'),
-            get_string('teacher_id', 'local_course_calendar'),
-            get_string('teacher_avatar', 'local_course_calendar'),
-            get_string('teacher_full_name', 'local_course_calendar'),
-            get_string('teacher_email', 'local_course_calendar'),
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'id',
+                get_string('teacher_id', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'lastname',
+                get_string('teacher_full_name', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'email',
+                get_string('teacher_email', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
             get_string('teacher_major', 'local_course_calendar'),
             get_string('manager', 'local_course_calendar')
         ];
-        $table->align = ['center', 'center', 'center', 'left', 'left', 'left', 'left', 'left'];
+        $table->align = ['center', 'center', 'left', 'left', 'left', 'left', 'left'];
         foreach ($teachers as $teacher) {
             // You might want to add a link to teacher's profile overview etc.
             $profileurl = new moodle_url('/user/profile.php', ['id' => $teacher->id]);
@@ -303,14 +334,22 @@ try {
                 ]),
                 $stt,
                 $teacher->id,
-                html_writer::tag('img', '', array(
-                    'src' => $avatar_url->get_url($PAGE),
-                    'alt' => 'Avatar image of ' . format_string($teacher->firstname) . " " . format_string($teacher->lastname),
-                    'width' => 40,
-                    'height' => 40,
-                    'class' => 'rounded-avatar'
-                )),
-                html_writer::link($profileurl, format_string($teacher->firstname) . " " . format_string($teacher->lastname)),
+                html_writer::tag(
+                    'img',
+                    '',
+                    array(
+                        'src' => $avatar_url->get_url($PAGE),
+                        'alt' => 'Avatar image of ' . format_string($teacher->firstname) . " " . format_string($teacher->lastname),
+                        'width' => 40,
+                        'height' => 40,
+                        'class' => 'rounded-avatar'
+                    )
+                )
+                . html_writer::link(
+                    $profileurl,
+                    format_string($teacher->firstname) . " " . format_string($teacher->lastname),
+                    ['class' => 'ms-2']
+                ),
                 format_string($teacher->email),
                 // Join the major names with a comma.
                 implode(', ', $teacher_major_name),
@@ -341,6 +380,16 @@ try {
         echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('next_step', 'local_course_calendar')));
         echo '</div>';
         echo '</div>';
+
+        $params = [];
+        if (isset($courses)) {
+            $params['selected_courses'] = $courses;
+        }
+        if (!empty($search_query)) {
+            $params['searchquery'] = $search_query;
+        }
+
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
 
         echo html_writer::end_tag('form');
 

@@ -26,6 +26,8 @@ require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
 require_once($CFG->dirroot . '/local/course_calendar/classes/form/chooseTimeForClassSection.php');
+use local_course_calendar as LocalCourseCalendar;
+use local_course_calendar\helper as LocalCourseCalendarHelper;
 
 try {
     // Yêu cầu người dùng đăng nhập
@@ -236,6 +238,27 @@ try {
         $offset = $current_page * $per_page;
         $params = [];
 
+        // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+        $valid_sort_columns = [
+            'room_number',
+            'room_floor',
+            'room_building',
+            'ward_address'
+        ];
+
+        $sort_directions = ['asc', 'desc'];
+
+        $sort = optional_param('sort', 'room_number', PARAM_ALPHANUMEXT);
+        $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+        if (!in_array($sort, $valid_sort_columns)) {
+            $sort = 'room_number';
+        }
+
+        if (!in_array($direction, $sort_directions)) {
+            $direction = 'asc';
+        }
+
         // Get all room available of central.
         if (empty($search_query)) {
             $params = [
@@ -356,7 +379,7 @@ try {
         }
 
         // Xóa các phòng không có sẵn trong khoảng thời gian đã chọn.
-        get_empty_rooms($available_room_address, $start_class_time, $end_class_time);
+        \local_course_calendar\get_empty_rooms($available_room_address, $start_class_time, $end_class_time);
 
         // Display children list of parent on screen.
         if (!$available_room_address) {
@@ -375,39 +398,44 @@ try {
                 ]
             );
 
-            $params = [];
-            if (isset($courses)) {
-                $params['selected_courses'] = $courses;
-            }
-
-            if (!empty($selected_teachers) and isset($selected_teachers)) {
-                foreach ($selected_teachers as $teacherid) {
-                    // Add hidden input for each selected teacher.
-                    $params['selected_teachers[]'] = $teacherid;
-                }
-            }
-
-            if (!empty($start_class_time) and !empty($end_class_time)) {
-                $params['starttime'] = $start_class_time;
-                $params['endtime'] = $end_class_time;
-            }
-
-            if (!empty($search_query)) {
-                $params['searchquery'] = $search_query;
-            }
-
-            $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
-
 
             // Display the list of children in a table.
             $table = new html_table();
             $table->head = [
                 html_writer::empty_tag('div'),
                 get_string('stt', 'local_course_calendar'),
-                get_string('building', 'local_course_calendar'),
-                get_string('floor', 'local_course_calendar'),
-                get_string('room', 'local_course_calendar'),
-                get_string('address', 'local_course_calendar')
+                LocalCourseCalendarHelper::make_sort_table_header_helper(
+                    $PAGE,
+                    'room_building',
+                    get_string('building', 'local_course_calendar'),
+                    $sort,
+                    $direction
+                ),
+
+                LocalCourseCalendarHelper::make_sort_table_header_helper(
+                    $PAGE,
+                    'room_floor',
+                    get_string('floor', 'local_course_calendar'),
+                    $sort,
+                    $direction
+                ),
+
+                LocalCourseCalendarHelper::make_sort_table_header_helper(
+                    $PAGE,
+                    'room_number',
+                    get_string('room', 'local_course_calendar'),
+                    $sort,
+                    $direction
+                ),
+
+                LocalCourseCalendarHelper::make_sort_table_header_helper(
+                    $PAGE,
+                    'ward_address',
+                    get_string('address', 'local_course_calendar'),
+                    $sort,
+                    $direction
+                ),
+
             ];
             $table->align = ['center', 'center', 'left', 'left', 'left', 'left'];
             foreach ($available_room_address as $room_address) {
@@ -489,6 +517,29 @@ try {
             ));
             echo '</div>';
             echo '</div>';
+
+            $params = [];
+            if (isset($courses)) {
+                $params['selected_courses'] = $courses;
+            }
+
+            if (!empty($teachers) and isset($teachers)) {
+                foreach ($teachers as $teacherid) {
+                    // Add hidden input for each selected teacher.
+                    $params['selected_teachers[]'] = $teacherid;
+                }
+            }
+
+            if (!empty($start_class_time) and !empty($end_class_time)) {
+                $params['starttime'] = $start_class_time;
+                $params['endtime'] = $end_class_time;
+            }
+
+            if (!empty($search_query)) {
+                $params['searchquery'] = $search_query;
+            }
+
+            $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
 
             echo html_writer::end_tag('form');
 

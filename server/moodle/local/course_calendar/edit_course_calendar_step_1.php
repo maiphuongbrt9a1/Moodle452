@@ -26,6 +26,7 @@ require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
 use local_course_calendar\helper as LocalCourseCalendarHelper;
+use local_course_calendar as LocalCourseCalendar;
 
 try {
     // Yêu cầu người dùng đăng nhập
@@ -119,18 +120,18 @@ try {
     // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
     $valid_sort_columns = [
         'fullname',
-        'total_student_number',
-        'total_course_section',
-        'total_course_chapter'
+        'course_category_name',
+        'enddate',
+        'startdate'
     ];
 
     $sort_directions = ['asc', 'desc'];
 
-    $sort = optional_param('sort', 'fullname', PARAM_ALPHANUMEXT);
+    $sort = optional_param('sort', 'course_category_name', PARAM_ALPHANUMEXT);
     $direction = optional_param('direction', 'asc', PARAM_ALPHA);
 
     if (!in_array($sort, $valid_sort_columns)) {
-        $sort = 'fullname';
+        $sort = 'course_category_name';
     }
 
     if (!in_array($direction, $sort_directions)) {
@@ -142,15 +143,20 @@ try {
         $params = [];
 
         $total_count_sql = "SELECT count(*)
-                            FROM mdl_course c
-                            where c.id != 1
-                            ORDER BY c.category, c.fullname ASC";
+                            FROM {course} c
+                            where c.id != 1 and c.enddate > UNIX_TIMESTAMP(NOW())";
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
-        $sql = "SELECT *
-                FROM mdl_course c
-                where c.id != 1
-                ORDER BY c.category, c.fullname ASC";
+        $sql = "SELECT c.id courseid, 
+                       c.fullname fullname, 
+                       c.startdate startdate,
+                       c.enddate enddate,
+                       course_category.name course_category_name,
+                       course_category.id course_category_id
+                FROM {course} c
+                join {course_categories} course_category on c.category = course_category.id
+                where c.id != 1 and c.enddate > UNIX_TIMESTAMP(NOW())
+                ORDER BY {$sort} {$direction}";
         $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -166,26 +172,33 @@ try {
         ];
 
         $total_count_sql = "SELECT count(*)
-                            FROM mdl_course c
-                            where c.id != 1
+                            FROM {course} c
+                            where c.id != 1 
+                                and c.enddate > UNIX_TIMESTAMP(NOW())
                                 and 
                                     (
                                         c.id like :searchparamcourseid 
                                         or c.fullname like :searchparamcoursename
                                         
-                                    )
-                            ORDER BY c.category, c.fullname ASC";
+                                    )";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
-        $sql = "SELECT *
-                FROM mdl_course c
-                where c.id != 1
-                and (
-                        c.id like :searchparamcourseid 
-                        or c.fullname like :searchparamcoursename
-                    )
-                ORDER BY c.category, c.fullname ASC";
+        $sql = "SELECT c.id courseid, 
+                       c.fullname fullname, 
+                       c.startdate startdate,
+                       c.enddate enddate,
+                       course_category.name course_category_name,
+                       course_category.id course_category_id
+                FROM {course} c
+                join {course_categories} course_category on c.category = course_category.id
+                where c.id != 1 
+                    and c.enddate > UNIX_TIMESTAMP(NOW())
+                    and (
+                            c.id like :searchparamcourseid 
+                            or c.fullname like :searchparamcoursename
+                        )
+                ORDER BY {$sort} {$direction}";
 
         $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
@@ -204,20 +217,43 @@ try {
             ]
         );
 
-        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
-        if (!empty($search_query)) {
-            $base_url->param('searchquery', $search_query);
-        }
-
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
             html_writer::empty_tag('div'),
             get_string('stt', 'local_course_calendar'),
-            get_string('course_category', 'local_course_calendar'),
-            get_string('course_full_name', 'local_course_calendar'),
-            get_string('start_date', 'local_course_calendar'),
-            get_string('end_date', 'local_course_calendar'),
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'course_category_name',
+                get_string('course_category', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'fullname',
+                get_string('course_full_name', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'startdate',
+                get_string('start_date', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'enddate',
+                get_string('end_date', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
             get_string('user_created_course', 'local_course_calendar')
         ];
         $table->align = ['center', 'center', 'left', 'left', 'center', 'center', 'center'];
@@ -226,10 +262,7 @@ try {
             $stt = $stt + 1;
 
             // You might want to add a link to course's profile overview and course detail.
-            $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->id]);
-
-            // Get course category name.
-            $course_category = $DB->get_record('course_categories', ['id' => $course->category]);
+            $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->courseid]);
 
             // Get course creator's name.
             $course_creators = [];
@@ -248,7 +281,7 @@ try {
                         and user.suspended = 0
                         and context.contextlevel = 50 
                     ORDER BY user.id ASC";
-            $params = ['courseid' => $course->id];
+            $params = ['courseid' => $course->courseid];
             $course_creators = $DB->get_records_sql($sql, $params);
 
             if (!empty($course_creators)) {
@@ -266,12 +299,12 @@ try {
             $table->data[] = [
                 html_writer::empty_tag('input', [
                     'type' => 'radio',
-                    'value' => $course->id,
+                    'value' => $course->courseid,
                     'class' => 'select-radio',
                     'name' => 'selected_courses',
                 ]),
                 $stt,
-                $course_category->name,
+                $course->course_category_name,
                 html_writer::link($course_detail_url, format_string($course->fullname)),
                 date('D, d-m-Y', $course->startdate),
                 date('D, d-m-Y', $course->enddate),
@@ -294,8 +327,12 @@ try {
         echo '</div>';
         echo '</div>';
 
-        echo html_writer::end_tag('form');
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
+        if (!empty($search_query)) {
+            $base_url->param('searchquery', $search_query);
+        }
 
+        echo html_writer::end_tag('form');
         echo $OUTPUT->paging_bar($total_records, $current_page, $per_page, $base_url);
 
     }

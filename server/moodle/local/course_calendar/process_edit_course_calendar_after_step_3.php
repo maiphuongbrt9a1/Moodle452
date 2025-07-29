@@ -26,6 +26,8 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+use local_course_calendar\helper as LocalCourseCalendarHelper;
+use local_course_calendar as LocalCourseCalendar;
 
 try {
     // Yêu cầu người dùng đăng nhập
@@ -114,7 +116,7 @@ try {
         redirect($base_url, "You must select start time and end time and must be press find room button.", 0, \core\output\notification::NOTIFY_ERROR);
     }
 
-    create_manual_calendar($courses, $teachers, $room_addresses, $start_time, $end_time);
+    \local_course_calendar\create_manual_calendar($courses, $teachers, $room_addresses, $start_time, $end_time);
     echo $OUTPUT->header();
     // $calendar = create_automatic_calendar_by_genetic_algorithm();
     // $timeTable = new TimetableGenerator();

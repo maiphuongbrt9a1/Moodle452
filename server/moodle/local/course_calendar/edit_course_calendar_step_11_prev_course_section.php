@@ -25,6 +25,8 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+use local_course_calendar\helper as LocalCourseCalendarHelper;
+use local_course_calendar as LocalCourseCalendar;
 
 try {
     // Yêu cầu người dùng đăng nhập
@@ -163,6 +165,26 @@ try {
     $offset = $current_page * $per_page;
     $params = [];
 
+    // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
+    $valid_sort_columns = [
+        'class_begin_time',
+        'class_end_time',
+        'room_number'
+    ];
+
+    $sort_directions = ['asc', 'desc'];
+
+    $sort = optional_param('sort', 'class_begin_time', PARAM_ALPHANUMEXT);
+    $direction = optional_param('direction', 'asc', PARAM_ALPHA);
+
+    if (!in_array($sort, $valid_sort_columns)) {
+        $sort = 'class_begin_time';
+    }
+
+    if (!in_array($direction, $sort_directions)) {
+        $direction = 'asc';
+    }
+
     // Get all children of current parent account.
     if (empty($search_query)) {
         $params = [
@@ -281,7 +303,18 @@ try {
 
     // Display children list of parent on screen.
     if (!$course_section_schedule_information) {
-        echo $OUTPUT->notification(get_string('no_course_found', 'local_course_calendar'), 'info');
+        echo $OUTPUT->notification(get_string('no_prev_course_section_schedule_found', 'local_course_calendar'), 'info');
+        $params = [];
+        if (isset($selected_courses_from_request)) {
+            $params['selected_courses'] = $selected_courses_from_request;
+        }
+
+        // Add a button to continue.
+        $continue_button = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
+        echo '<div class="d-flex justify-content-end align-items-center">';
+        echo '<div><a class="btn btn-primary " href="' . $continue_button->out() . '">Continue</a></div>';
+        echo '</div>';
+
     } else {
 
         // If there are children, display them in a table.
@@ -293,25 +326,36 @@ try {
                 'method' => 'get'
             ]
         );
-        $params = [];
-
-        if (isset($selected_courses_from_request)) {
-            $params['selected_courses'] = $selected_courses_from_request;
-        }
-
-        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_11_prev_course_section.php', []);
-        if (!empty($search_query)) {
-            $base_url->param('searchquery', $search_query);
-        }
 
         // Display the list of children in a table.
         $table = new html_table();
         $table->head = [
             get_string('stt', 'local_course_calendar'),
-            get_string('start_date', 'local_course_calendar'),
-            get_string('end_date', 'local_course_calendar'),
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'class_begin_time',
+                get_string('start_date', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'class_end_time',
+                get_string('end_date', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
+
             get_string('teacher_full_name', 'local_course_calendar'),
-            get_string('address', 'local_course_calendar')
+
+            LocalCourseCalendarHelper::make_sort_table_header_helper(
+                $PAGE,
+                'room_number',
+                get_string('address', 'local_course_calendar'),
+                $sort,
+                $direction
+            ),
         ];
         $table->align = ['center', 'center', 'left', 'left', 'center'];
         foreach ($course_section_schedule_information as $course_section) {
@@ -366,6 +410,17 @@ try {
         );
         echo '</div>';
         echo '</div>';
+
+        $params = [];
+
+        if (isset($selected_courses_from_request)) {
+            $params['selected_courses'] = $selected_courses_from_request;
+        }
+
+        $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_11_prev_course_section.php', []);
+        if (!empty($search_query)) {
+            $base_url->param('searchquery', $search_query);
+        }
 
         echo html_writer::end_tag('form');
 
