@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<libraries>
+    <library>
+        <location>thirdparty/vendor/autoload.php</location>
+        <name>Composer Autoload</name>
+        <version>6.5.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/composer/</location>
+        <name>Composer</name>
+        <version>6.5.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/aws/</location>
+        <name>Aws</name>
+        <version>1.0.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/guzzlehttp/guzzle</location>
+        <name>Guzzle</name>
+        <version>6.5.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/guzzlehttp/promises</location>
+        <name>Promises</name>
+        <version>1.7.0</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/guzzlehttp/psr7</location>
+        <name>PSR7</name>
+        <version>3.6.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/psr/http-message</location>
+        <name>PSR HTTP Message</name>
+        <version>1.0.1</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/symfony</location>
+        <name>PSR HTTP Message</name>
+        <version>4.4</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>amd/src/intltelInput</location>
+        <name>International Telephone Input</name>
+        <version>17.0.13</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/psr</location>
+        <name>PSR</name>
+        <version>1.0.1</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/aws/aws-sdk-php</location>
+        <name>AWS Php sdk</name>
+        <version>1.0.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/twilio</location>
+        <name>Twilio sdk</name>
+        <version>1.0.2</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/vendor/mtdowling</location>
+        <name>mtdowling</name>
+        <version>2.6</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+</libraries>
