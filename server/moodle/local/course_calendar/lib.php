@@ -2374,12 +2374,12 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
       $params['selected_courses'] = $courses;
     }
 
-    if (!empty($teachers) and isset($teachers)) {
-      foreach ($teachers as $teacherid) {
-        // Add hidden input for each selected teacher.
-        $params['selected_teachers[]'] = $teacherid;
-      }
-    }
+    // if (!empty($teachers) and isset($teachers)) {
+    //   foreach ($teachers as $teacherid) {
+    //     // Add hidden input for each selected teacher.
+    //     $params['selected_teachers[]'] = $teacherid;
+    //   }
+    // }
     $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
     redirect($base_url, "You must select one room.", 0, \core\output\notification::NOTIFY_ERROR);
   }
@@ -2390,12 +2390,12 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
       $params['selected_courses'] = $courses;
     }
 
-    if (!empty($teachers) and isset($teachers)) {
-      foreach ($teachers as $teacherid) {
-        // Add hidden input for each selected teacher.
-        $params['selected_teachers[]'] = $teacherid;
-      }
-    }
+    // if (!empty($teachers) and isset($teachers)) {
+    //   foreach ($teachers as $teacherid) {
+    //     // Add hidden input for each selected teacher.
+    //     $params['selected_teachers[]'] = $teacherid;
+    //   }
+    // }
 
     $SESSION->start_class_time = $start_time;
     $SESSION->end_class_time = $end_time;
@@ -2411,12 +2411,12 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
         $params['selected_courses'] = $courses;
       }
 
-      if (!empty($teachers) and isset($teachers)) {
-        foreach ($teachers as $teacherid) {
-          // Add hidden input for each selected teacher.
-          $params['selected_teachers[]'] = $teacherid;
-        }
-      }
+      // if (!empty($teachers) and isset($teachers)) {
+      //   foreach ($teachers as $teacherid) {
+      //     // Add hidden input for each selected teacher.
+      //     $params['selected_teachers[]'] = $teacherid;
+      //   }
+      // }
 
       $SESSION->start_class_time = $start_time;
       $SESSION->end_class_time = $end_time;
@@ -2444,12 +2444,101 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
   $new_course_section->is_makeup = 0;
   $new_course_section->is_accepted = 1;
   $new_course_section->visible = 1;
+  if (count($teachers) >= 2) {
+    $new_course_section->editing_teacher_primary_teacher = $teachers[0];
+    $new_course_section->non_editing_teacher_secondary_teacher = $teachers[1];
+  } else {
+    $new_course_section->editing_teacher_primary_teacher = $teachers[0];
+    $new_course_section->non_editing_teacher_secondary_teacher = 0;
+  }
 
   // Chèn bản ghi vào bảng
   try {
     $inserted_id = $DB->insert_record('local_course_calendar_course_section', $new_course_section);
 
     if ($inserted_id !== false) {
+      // Thông báo lịch dạy thay đổi đến học viên 
+      $sql = "SELECT  user.*
+              from {user} user
+              join {role_assignments} ra on ra.userid = user.id
+              join {role} r on r.id = ra.roleid
+              join {context} ctx on ctx.id = ra.contextid
+              join {course} c on c.id = ctx.instanceid 
+              join {local_course_calendar_course_section} cs on c.id = cs.courseid 
+              join {local_course_calendar_course_room} cr on cs.course_room_id = cr.id
+              where cs.courseid = :course_section_id
+                      and cs.class_begin_time = :course_section_class_begin_time
+                      and cs.class_end_time = :course_section_class_end_time";
+      $params = [
+        'course_section_id' => $courses,
+        'course_section_class_begin_time' => $start_time,
+        'course_section_class_end_time' => $end_time
+      ];
+      $students = $DB->get_records_sql($sql, $params);
+
+      // xử lý việc gửi otp code 
+      $from = get_admin();
+      $subject = 'You have new class section from central.';
+      $th1_sub_message = 'First teacher name: '
+        . $DB->get_field('user', 'firstname', ['id' => $teachers[0]])
+        . $DB->get_field('user', 'lastname', ['id' => $teachers[0]]);
+      $th2_sub_message = ' ';
+      if (count($teachers) >= 2) {
+        $th2_sub_message = 'Second teacher name: '
+          . $DB->get_field('user', 'firstname', ['id' => $teachers[1]])
+          . $DB->get_field('user', 'lastname', ['id' => $teachers[1]]);
+      }
+
+      $message = 'Course name: ' . $DB->get_field('course', 'fullname', ['id' => $courses])
+        . "\n"
+        . $th1_sub_message
+        . "\n"
+        . $th2_sub_message
+        . "\n"
+        . 'Room number: ' . $DB->get_field('local_course_calendar_course_room', 'room_number', ['id' => $room_addresses])
+        . "\n"
+        . 'Floor: ' . $DB->get_field('local_course_calendar_course_room', 'room_floor', ['id' => $room_addresses])
+        . "\n"
+        . 'Building: ' . $DB->get_field('local_course_calendar_course_room', 'room_building', ['id' => $room_addresses])
+        . "\n"
+        . 'Address: ' . $DB->get_field('local_course_calendar_course_room', 'ward_address', ['id' => $room_addresses])
+        . ' ' . $DB->get_field('local_course_calendar_course_room', 'ward_address', ['id' => $room_addresses])
+        . ' ' . $DB->get_field('local_course_calendar_course_room', 'district_address', ['id' => $room_addresses])
+        . ' ' . $DB->get_field('local_course_calendar_course_room', 'province_address', ['id' => $room_addresses])
+        . "\n"
+        . 'Start class time: ' . date('D, d-m-Y H:i', $start_time)
+        . "\n"
+        . 'End class time: ' . date('D, d-m-Y H:i', $end_time);
+
+      foreach ($students as $student) {
+        $to = $student;
+
+        if (email_to_user($to, $from, $subject, $message)) {
+          $msg = "Email to user successfully";
+        } else {
+          $msg = 'Email to user failure.';
+        }
+
+      }
+
+      // gửi tin nhắn thông báo đến cho giảng viên
+      foreach ($teachers as $teacher) {
+        $to = $DB->get_record('user', ['id' => $teacher]);
+        if (email_to_user($to, $from, $subject, $message)) {
+          $msg = "Email to user successfully";
+        } else {
+          $msg = 'Email to user failure.';
+        }
+      }
+
+      unset($SESSION->edit_course_calendar_step_11_prev_course_section_form_selected_course);
+      unset($SESSION->edit_course_calendar_step_3_form_selected_teachers);
+      unset($SESSION->edit_course_calendar_step_3_form_selected_room_address);
+      unset($SESSION->edit_course_calendar_step_3_form_selected_starttime);
+      unset($SESSION->edit_course_calendar_step_3_form_selected_endtime);
+      unset($SESSION->start_class_time);
+      unset($SESSION->end_class_time);
+
       redirect(
         new moodle_url(
           '/local/course_calendar/edit_course_calendar_step_1.php',
@@ -2466,12 +2555,12 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
         $params['selected_courses'] = $courses;
       }
 
-      if (!empty($teachers) and isset($teachers)) {
-        foreach ($teachers as $teacherid) {
-          // Add hidden input for each selected teacher.
-          $params['selected_teachers[]'] = $teacherid;
-        }
-      }
+      // if (!empty($teachers) and isset($teachers)) {
+      //   foreach ($teachers as $teacherid) {
+      //     // Add hidden input for each selected teacher.
+      //     $params['selected_teachers[]'] = $teacherid;
+      //   }
+      // }
 
       if (!empty($start_class_time) and !empty($end_class_time)) {
         $params['starttime'] = $start_class_time;
@@ -3407,7 +3496,8 @@ class helper
     $column_name,
     $display_column_name,
     $current_sort_column,
-    $current_direction
+    $current_direction,
+    $param_array = []
   ) {
     global $OUTPUT;
     $new_direction = '';
@@ -3417,7 +3507,8 @@ class helper
       $new_direction = 'asc';
     }
 
-    $new_url = new moodle_url($current_page->url, ['sort' => $column_name, 'direction' => $new_direction]);
+    $param_array += ['sort' => $column_name, 'direction' => $new_direction];
+    $new_url = new moodle_url($current_page->url, $param_array);
 
     $arrow_up = new pix_icon('t/sort_asc', $display_column_name, 'core', ['class' => 'icon-inline']);
     $arrow_down = new pix_icon('t/sort_desc', $display_column_name, 'core', ['class' => 'icon-inline']);

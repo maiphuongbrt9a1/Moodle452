@@ -96,6 +96,13 @@ try {
                 redirect(new moodle_url('/local/children_management/add_child.php', []), 'Error: Add new children with children ID: ' . $data->childrenid . ' failed', 0, \core\output\notification::NOTIFY_ERROR);
             }
 
+            unset($SESSION->add_child_form_parentid);
+            unset($SESSION->add_child_form_childrenid);
+            unset($SESSION->add_child_form_createtime);
+            unset($SESSION->add_child_form_lastmodifytime);
+            unset($SESSION->add_child_form_otp_code);
+            unset($SESSION->add_child_form_otp_code_expiration_time);
+            unset($SESSION->add_child_form_email);
         }
 
     } else {

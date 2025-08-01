@@ -162,8 +162,7 @@ try {
                             join {course} course on course.id = context.instanceid
                             where course.id != 1
                                     and (role.shortname = 'teacher' or role.shortname = 'editingteacher')
-                                    and context.contextlevel = 50 
-                            ORDER BY user.id ASC";
+                                    and context.contextlevel = 50";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
 
@@ -176,7 +175,7 @@ try {
                 where course.id != 1
                         and (role.shortname = 'teacher' or role.shortname = 'editingteacher')
                         and context.contextlevel = 50 
-                ORDER BY user.id ASC";
+                ORDER BY {$sort} {$direction}";
         $teachers = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -207,8 +206,7 @@ try {
                                             or user.firstname like :search_param_teacher_firstname
                                             or user.lastname like :search_param_teacher_lastname
                                             
-                                        )    
-                            ORDER BY user.id ASC";
+                                        )";
 
         $total_records = $DB->count_records_sql($total_count_sql, $params);
         // Process the search query.
@@ -228,7 +226,7 @@ try {
                                 or user.lastname like :search_param_teacher_lastname
                                 
                             )
-                ORDER BY user.id ASC";
+                ORDER BY {$sort} {$direction}";
         $teachers = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -267,7 +265,8 @@ try {
                 'id',
                 get_string('teacher_id', 'local_course_calendar'),
                 $sort,
-                $direction
+                $direction,
+                ['selected_courses' => $courses]
             ),
 
             LocalCourseCalendarHelper::make_sort_table_header_helper(
@@ -275,7 +274,8 @@ try {
                 'lastname',
                 get_string('teacher_full_name', 'local_course_calendar'),
                 $sort,
-                $direction
+                $direction,
+                ['selected_courses' => $courses]
             ),
 
             LocalCourseCalendarHelper::make_sort_table_header_helper(
@@ -283,7 +283,8 @@ try {
                 'email',
                 get_string('teacher_email', 'local_course_calendar'),
                 $sort,
-                $direction
+                $direction,
+                ['selected_courses' => $courses]
             ),
 
             get_string('teacher_major', 'local_course_calendar'),
@@ -370,7 +371,7 @@ try {
         if (isset($courses)) {
             $params['selected_courses'] = $courses;
         }
-        $back_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', $params);
+        $back_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_11_prev_course_section.php', $params);
         echo '<div class="d-flex justify-content-end align-items-center">';
         echo '<div><a class="btn btn-secondary " href="' . $back_url->out() . '">Back</a></div>';
         echo '</div>';

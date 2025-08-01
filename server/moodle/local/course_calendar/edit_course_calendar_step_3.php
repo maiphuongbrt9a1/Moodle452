@@ -47,7 +47,21 @@ try {
     }
 
     try {
-        $teachers = required_param_array('selected_teachers', PARAM_INT);
+        $teachers = optional_param_array('selected_teachers', [], PARAM_INT);
+        if (empty($teachers)) {
+            if (isset($SESSION->edit_course_calendar_step_3_form_selected_teachers)) {
+                $teachers = $SESSION->edit_course_calendar_step_3_form_selected_teachers;
+            } else {
+                $params = [];
+                if (isset($courses)) {
+                    $params['selected_courses'] = $courses;
+                }
+                $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
+                redirect($base_url, "You must select at least one teacher.", 0, \core\output\notification::NOTIFY_ERROR);
+            }
+        } else {
+            $SESSION->edit_course_calendar_step_3_form_selected_teachers = $teachers;
+        }
     } catch (Exception $e) {
         dlog($e->getTrace());
         $params = [];
@@ -140,12 +154,12 @@ try {
             $params['selected_courses'] = $selected_courses;
         }
 
-        if (!empty($selected_teachers) and isset($selected_teachers)) {
-            foreach ($selected_teachers as $teacherid) {
-                // Add hidden input for each selected teacher.
-                $params['selected_teachers[]'] = $teacherid;
-            }
-        }
+        // if (!empty($selected_teachers) and isset($selected_teachers)) {
+        //     foreach ($selected_teachers as $teacherid) {
+        //         // Add hidden input for each selected teacher.
+        //         $params['selected_teachers[]'] = $teacherid;
+        //     }
+        // }
 
         if (!empty($start_class_time) and !empty($end_class_time)) {
             $params['starttime'] = $start_class_time;
@@ -177,13 +191,12 @@ try {
         if (isset($SESSION->start_class_time) and isset($SESSION->end_class_time)) {
             $start_class_time = $SESSION->start_class_time;
             $end_class_time = $SESSION->end_class_time;
-            unset($SESSION->start_class_time);
-            unset($SESSION->end_class_time);
+            
         }
 
         $data->starttime = $start_class_time;
         $data->endtime = $end_class_time;
-        $data->selected_teachers = required_param_array('selected_teachers', PARAM_INT);
+        $data->selected_teachers = $teachers;
         $data->selected_courses = required_param('selected_courses', PARAM_INT);
         $data->searchquery = optional_param('searchquery', '', PARAM_TEXT);
         $mform->set_data($data);
@@ -298,7 +311,7 @@ try {
                                 or (:search_param_end_class_time_th1 <= cs.class_begin_time) 
                                 or (cs.class_begin_time is null and cs.class_end_time is null)
                             )
-                        order by cr.id asc";
+                        order by {$sort} {$direction}";
             $available_room_address = $DB->get_records_sql($sql, $params, $offset, $per_page);
         }
 
@@ -369,7 +382,7 @@ try {
                                 or cr.district_address like :search_param_district_address
                                 or cr.province_address like :search_param_province_address
                             )
-                        ORDER BY cr.id ASC";
+                        ORDER BY {$sort} {$direction}";
             $available_room_address = $DB->get_records_sql(
                 $sql,
                 $params,
@@ -409,7 +422,8 @@ try {
                     'room_building',
                     get_string('building', 'local_course_calendar'),
                     $sort,
-                    $direction
+                    $direction,
+                    ['selected_courses' => $courses]
                 ),
 
                 LocalCourseCalendarHelper::make_sort_table_header_helper(
@@ -417,7 +431,8 @@ try {
                     'room_floor',
                     get_string('floor', 'local_course_calendar'),
                     $sort,
-                    $direction
+                    $direction,
+                    ['selected_courses' => $courses]
                 ),
 
                 LocalCourseCalendarHelper::make_sort_table_header_helper(
@@ -425,7 +440,8 @@ try {
                     'room_number',
                     get_string('room', 'local_course_calendar'),
                     $sort,
-                    $direction
+                    $direction,
+                    ['selected_courses' => $courses]
                 ),
 
                 LocalCourseCalendarHelper::make_sort_table_header_helper(
@@ -433,7 +449,8 @@ try {
                     'ward_address',
                     get_string('address', 'local_course_calendar'),
                     $sort,
-                    $direction
+                    $direction,
+                    ['selected_courses' => $courses]
                 ),
 
             ];
@@ -523,12 +540,14 @@ try {
                 $params['selected_courses'] = $courses;
             }
 
-            if (!empty($teachers) and isset($teachers)) {
-                foreach ($teachers as $teacherid) {
-                    // Add hidden input for each selected teacher.
-                    $params['selected_teachers[]'] = $teacherid;
-                }
-            }
+            // if (!empty($teachers) and isset($teachers)) {
+            //     foreach ($teachers as $teacherid) {
+            //         // Add hidden input for each selected teacher.
+            //         $params['selected_teachers[]'] = $teacherid;
+            //     }
+            // }
+
+            // Please use this value in session var.
 
             if (!empty($start_class_time) and !empty($end_class_time)) {
                 $params['starttime'] = $start_class_time;

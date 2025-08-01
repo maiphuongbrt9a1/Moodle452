@@ -39,6 +39,7 @@ try {
 
     try {
         $selected_courses_from_request = required_param('selected_courses', PARAM_INT);
+        $SESSION->edit_course_calendar_step_11_prev_course_section_form_selected_course = $selected_courses_from_request;
     } catch (Exception $e) {
         dlog($e->getTrace());
         $params = [];
@@ -213,13 +214,7 @@ try {
                         from {local_course_calendar_course_room} cr
                         join {local_course_calendar_course_section} cs on cr.id = cs.course_room_id
                         where cs.courseid = :search_param_courseid
-                        order by cs.modifiedtime desc,
-                                cs.createdtime desc, 
-                                cs.class_begin_time desc, 
-                                cs.class_end_time desc, 
-                                cr.room_building asc, 
-                                cr.room_floor asc, 
-                                cr.room_number asc";
+                        order by {$sort} {$direction}";
         $course_section_schedule_information = $DB->get_records_sql($sql, $params, $offset, $per_page);
     }
 
@@ -285,13 +280,7 @@ try {
                                 or cs.province_address like :search_param_start_class_time
                                 or cs.province_address like :search_param_end_class_time
                             )
-                        order by cs.modifiedtime desc,
-                                cs.createdtime desc, 
-                                cs.class_begin_time desc, 
-                                cs.class_end_time desc, 
-                                cr.room_building asc, 
-                                cr.room_floor asc, 
-                                cr.room_number asc";
+                        order by {$sort} {$direction}";
 
         $course_section_schedule_information = $DB->get_records_sql(
             $sql,
@@ -336,7 +325,8 @@ try {
                 'class_begin_time',
                 get_string('start_date', 'local_course_calendar'),
                 $sort,
-                $direction
+                $direction,
+                ['selected_courses' => $selected_courses_from_request]
             ),
 
             LocalCourseCalendarHelper::make_sort_table_header_helper(
@@ -344,7 +334,8 @@ try {
                 'class_end_time',
                 get_string('end_date', 'local_course_calendar'),
                 $sort,
-                $direction
+                $direction,
+                ['selected_courses' => $selected_courses_from_request]
             ),
 
             get_string('teacher_full_name', 'local_course_calendar'),
@@ -354,7 +345,8 @@ try {
                 'room_number',
                 get_string('address', 'local_course_calendar'),
                 $sort,
-                $direction
+                $direction,
+                ['selected_courses' => $selected_courses_from_request]
             ),
         ];
         $table->align = ['center', 'center', 'left', 'left', 'center'];
@@ -362,7 +354,67 @@ try {
             // add no. for the table.
             $stt = $stt + 1;
 
-            $teacher_full_name = "Võ Mai Phương";
+            // add sql to query teachers in current course
+            $teachers = [];
+            $teachers_fullname = [];
+
+            // search teachers by name.
+            // If search query is empty, we will get all teachers in current course.
+            if (empty($search_query)) {
+
+                $sql = "SELECT  concat(teacher.id, cs.courseid, cs.id) id, 
+                                teacher.id teacherid, 
+                                teacher.firstname teacher_firstname, 
+                                teacher.lastname teacher_lastname,
+                                cs.class_begin_time,
+                                cs.class_end_time
+                        from {user} teacher
+                        join {local_course_calendar_course_section} cs 
+                            on teacher.id = cs.editing_teacher_primary_teacher 
+                                or teacher.id = cs.non_editing_teacher_secondary_teacher
+                        join {local_course_calendar_course_room} cr on cs.course_room_id = cr.id
+                        where cs.courseid = :course_section_id
+                                and cs.class_begin_time = :course_section_class_begin_time
+                                and cs.class_end_time = :course_section_class_end_time";
+                $params = [
+                    'course_section_id' => $course_section->courseid,
+                    'course_section_class_begin_time' => $course_section->class_begin_time,
+                    'course_section_class_end_time' => $course_section->class_end_time
+                ];
+            } else {
+                $sql = "SELECT  concat(teacher.id, cs.courseid, cs.id) id, 
+                                teacher.id teacherid, 
+                                teacher.firstname teacher_firstname, 
+                                teacher.lastname teacher_lastname
+                        from {user} teacher
+                        join {local_course_calendar_course_section} cs 
+                            on teacher.id = cs.editing_teacher_primary_teacher 
+                                or teacher.id = cs.non_editing_teacher_secondary_teacher
+                        join {local_course_calendar_course_room} cr on cs.course_room_id = cr.id
+                        where cs.courseid = :course_section_id
+                            and cs.class_begin_time = :course_section_class_begin_time
+                            and cs.class_end_time = :course_section_class_end_time
+                            and (teacher.firstname like :searchparamteachername 
+                                or teacher.lastname like :searchparamteachername)";
+                $params = [
+                    'course_section_id' => $course_section->courseid,
+                    'course_section_class_begin_time' => $course_section->class_begin_time,
+                    'course_section_class_end_time' => $course_section->class_end_time,
+                    'searchparamteachername' => $search_query
+                ];
+            }
+            // Get all teachers in current course.
+            $teachers = $DB->get_records_sql($sql, $params);
+
+            if (!empty($teachers)) {
+                foreach ($teachers as $teacher) {
+                    // add to show teacher full name.
+                    $teacher_profile_url = new moodle_url('/user/profile.php', ['id' => $teacher->teacherid]);
+                    $teacher_fullname = html_writer::link($teacher_profile_url, format_string($teacher->teacher_firstname) . " " . format_string($teacher->teacher_lastname));
+
+                    $teachers_fullname[] = $teacher_fullname;
+                }
+            }
 
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
@@ -370,7 +422,7 @@ try {
                 $stt,
                 date('D, d/m/Y H:i', $course_section->class_begin_time),
                 date('D, d/m/Y H:i', $course_section->class_end_time),
-                $teacher_full_name,
+                implode(', ', $teachers_fullname),
                 $course_section->room_building
                 . ', Floor ' . $course_section->room_floor
                 . ', Room ' . $course_section->room_number

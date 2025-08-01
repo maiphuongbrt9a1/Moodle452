@@ -26,6 +26,7 @@ class chooseTimeForClassSection extends \moodleform
      */
     public function definition()
     {
+        global $SESSION;
         $duration = 90 * 60;
         $mform = $this->_form;
 
@@ -39,7 +40,20 @@ class chooseTimeForClassSection extends \moodleform
 
         // Get the teachers from the URL.
         $teachers = optional_param_array('selected_teachers', [], PARAM_INT);
-
+        if (empty($teachers)) {
+            if (isset($SESSION->edit_course_calendar_step_3_form_selected_teachers)) {
+                $teachers = $SESSION->edit_course_calendar_step_3_form_selected_teachers;
+            } else {
+                $params = [];
+                if (isset($courses)) {
+                    $params['selected_courses'] = $courses;
+                }
+                $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
+                redirect($base_url, "You must select at least one teacher.", 0, \core\output\notification::NOTIFY_ERROR);
+            }
+        } else {
+            $SESSION->edit_course_calendar_step_3_form_selected_teachers = $teachers;
+        }
         // Add a hidden field to store the courseid.
         foreach ($teachers as $teacher) {
             $mform->addElement('hidden', 'selected_teachers[]', $teacher);

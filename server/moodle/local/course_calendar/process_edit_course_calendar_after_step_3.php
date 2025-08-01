@@ -62,7 +62,21 @@ try {
 
     try {
         // teachers is array with format [teacherid, teacherid, teacherid,....]
-        $teachers = required_param_array('selected_teachers', PARAM_INT);
+        $teachers = optional_param_array('selected_teachers', [], PARAM_INT);
+        if (empty($teachers)) {
+            if (isset($SESSION->edit_course_calendar_step_3_form_selected_teachers)) {
+                $teachers = $SESSION->edit_course_calendar_step_3_form_selected_teachers;
+            } else {
+                $params = [];
+                if (isset($courses)) {
+                    $params['selected_courses'] = $courses;
+                }
+                $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', $params);
+                redirect($base_url, "You must select at least one teacher.", 0, \core\output\notification::NOTIFY_ERROR);
+            }
+        } else {
+            $SESSION->edit_course_calendar_step_3_form_selected_teachers = $teachers;
+        }
     } catch (Exception $e) {
         dlog($e->getTrace());
         $params = [];
@@ -76,6 +90,7 @@ try {
     // room_address is roomid.
     try {
         $room_addresses = required_param('selected_room_addresses', PARAM_INT);
+        $SESSION->edit_course_calendar_step_3_form_selected_room_address = $room_addresses;
 
     } catch (Exception $e) {
         dlog($e->getTrace());
@@ -84,12 +99,12 @@ try {
             $params['selected_courses'] = $courses;
         }
 
-        if (!empty($teachers) and isset($teachers)) {
-            foreach ($teachers as $teacherid) {
-                // Add hidden input for each selected teacher.
-                $params['selected_teachers[]'] = $teacherid;
-            }
-        }
+        // if (!empty($teachers) and isset($teachers)) {
+        //     foreach ($teachers as $teacherid) {
+        //         // Add hidden input for each selected teacher.
+        //         $params['selected_teachers[]'] = $teacherid;
+        //     }
+        // }
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
         redirect($base_url, "You must select one room.", 0, \core\output\notification::NOTIFY_ERROR);
     }
@@ -98,6 +113,8 @@ try {
         // start_time and endtime is Unix timestamp. It is an integer number.
         $start_time = required_param('starttime', PARAM_INT);
         $end_time = required_param('endtime', PARAM_INT);
+        $SESSION->edit_course_calendar_step_3_form_selected_starttime = $start_time;
+        $SESSION->edit_course_calendar_step_3_form_selected_endtime = $end_time;
 
     } catch (Exception $e) {
         dlog($e->getTrace());
@@ -106,12 +123,12 @@ try {
             $params['selected_courses'] = $courses;
         }
 
-        if (!empty($teachers) and isset($teachers)) {
-            foreach ($teachers as $teacherid) {
-                // Add hidden input for each selected teacher.
-                $params['selected_teachers[]'] = $teacherid;
-            }
-        }
+        // if (!empty($teachers) and isset($teachers)) {
+        //     foreach ($teachers as $teacherid) {
+        //         // Add hidden input for each selected teacher.
+        //         $params['selected_teachers[]'] = $teacherid;
+        //     }
+        // }
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
         redirect($base_url, "You must select start time and end time and must be press find room button.", 0, \core\output\notification::NOTIFY_ERROR);
     }
