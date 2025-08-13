@@ -114,7 +114,24 @@ const DATES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
  * define available class sesstions ['7:30','8:15','9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15']
  * @var array 
  */
-const AVAILABLE_CLASS_SESSIONS = ['7:30', '8:15', '9:00', '9:45', '10:30', '11:15', '13:30', '14:15', '15:00', '15:45', '17:30', '18:15', '19:00', '19:45', '20:30', '21:15'];
+const AVAILABLE_CLASS_SESSIONS = [
+  '7:30',
+  '8:15',
+  '9:00',
+  '9:45',
+  '10:30',
+  '11:15',
+  '13:30',
+  '14:15',
+  '15:00',
+  '15:45',
+  '17:30',
+  '18:15',
+  '19:00',
+  '19:45',
+  '20:30',
+  '21:15'
+];
 /**
  * STT Tiết | Khung giờ |         Buổi ||
  *Tiết 0            7h30 - 8h15       Buổi Sáng ||
@@ -3593,6 +3610,218 @@ class time_table_generator
     $this->latest_end_date_timestamp = $latest_end_date_timestamp;
   }
 
+  /**
+   * So sánh phần giờ của hai timestamp, xác định xem giờ của timestamp đầu tiên có sớm hơn giờ của timestamp thứ hai không.
+   *
+   * Hàm này bỏ qua phần ngày và chỉ so sánh phần giờ, phút, giây trong timestamp.
+   * Thích hợp cho các trường hợp chỉ cần so sánh dựa trên thời gian (không bao gồm ngày).
+   *
+   * @param int $timestamp_1 Timestamp đầu tiên (Unix timestamp).
+   * @param int $timestamp_2 Timestamp thứ hai (Unix timestamp).
+   * @return bool Trả về true nếu phần giờ của timestamp đầu tiên sớm hơn phần giờ của timestamp thứ hai; ngược lại trả về false.
+   */
+  public function is_smaller_hour_and_minute($timestamp_1, $timestamp_2)
+  {
+    // Giả sử bạn có hai timestamp
+    $timestamp1 = $timestamp_1;
+    $timestamp2 = $timestamp_2;
+
+    // Tạo đối tượng DateTime từ timestamp
+    $date1 = new \DateTime();
+    $date1->setTimestamp($timestamp1);
+
+    $date2 = new \DateTime();
+    $date2->setTimestamp($timestamp2);
+
+    // Tạo các đối tượng DateTime mới chỉ với phần giờ
+// Sử dụng ngày gốc để tránh các vấn đề liên quan đến timezone
+    $hour_only1 = new \DateTime($date1->format('H:i'));
+    $hour_only2 = new \DateTime($date2->format('H:i'));
+
+    // So sánh hai đối tượng
+    if ($hour_only1 < $hour_only2) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Compares the hour part of two timestamps, determining if the hour of the first timestamp is greater than the hour of the second.
+   *
+   * This function ignores the date part and only compares the hour, minute, and second components of the timestamps.
+   * It is suitable for scenarios where you need to compare based solely on time, without considering the date.
+   *
+   * @param int $timestamp_1 The first timestamp (Unix timestamp).
+   * @param int $timestamp_2 The second timestamp (Unix timestamp).
+   * @return bool Returns true if the hour part of the first timestamp is greater than the hour part of the second timestamp; otherwise, returns false.
+   */
+  public function is_greater_hour_and_minute($timestamp_1, $timestamp_2)
+  {
+    // Giả sử bạn có hai timestamp
+    $timestamp1 = $timestamp_1;
+    $timestamp2 = $timestamp_2;
+
+    // Tạo đối tượng DateTime từ timestamp
+    $date1 = new \DateTime();
+    $date1->setTimestamp($timestamp1);
+
+    $date2 = new \DateTime();
+    $date2->setTimestamp($timestamp2);
+
+    // Tạo các đối tượng DateTime mới chỉ với phần giờ
+// Sử dụng ngày gốc để tránh các vấn đề liên quan đến timezone
+    $hour_only1 = new \DateTime($date1->format('H:i'));
+    $hour_only2 = new \DateTime($date2->format('H:i'));
+
+    // So sánh hai đối tượng
+    if ($hour_only1 > $hour_only2) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Compares two timestamps to determine if they represent the same time (ignoring the date part).
+   *
+   * @param int $timestamp_1 The first timestamp.
+   * @param int $timestamp_2 The second timestamp.
+   * @return bool Returns true if the time parts of the two timestamps are identical; otherwise, returns false.
+   */
+  public function is_equal_hour_and_minute($timestamp_1, $timestamp_2)
+  {
+    // Giả sử bạn có hai timestamp
+    $timestamp1 = $timestamp_1;
+    $timestamp2 = $timestamp_2;
+
+    // Tạo đối tượng DateTime từ timestamp
+    $date1 = new \DateTime();
+    $date1->setTimestamp($timestamp1);
+
+    $date2 = new \DateTime();
+    $date2->setTimestamp($timestamp2);
+
+    // Tạo các đối tượng DateTime mới chỉ với phần giờ
+// Sử dụng ngày gốc để tránh các vấn đề liên quan đến timezone
+    $hour_only1 = new \DateTime($date1->format('H:i'));
+    $hour_only2 = new \DateTime($date2->format('H:i'));
+
+    // So sánh hai đối tượng
+    if ($hour_only1 == $hour_only2) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * So sánh phần ngày - tháng - năm của hai timestamp, xác định xem ngày - tháng - năm của timestamp đầu tiên có sớm hơn ngày - tháng - năm của timestamp thứ hai không.
+   *
+   * Hàm này chỉ so sánh phần ngày - tháng - năm, trong timestamp.
+   * Thích hợp cho các trường hợp chỉ cần so sánh dựa trên thời gian .
+   *
+   * @param int $timestamp_1 Timestamp đầu tiên (Unix timestamp).
+   * @param int $timestamp_2 Timestamp thứ hai (Unix timestamp).
+   * @return bool Trả về true nếu phần ngày - tháng - năm của timestamp đầu tiên sớm hơn phần ngày - tháng - năm của timestamp thứ hai; ngược lại trả về false.
+   */
+  public function is_smaller_day($timestamp_1, $timestamp_2)
+  {
+    // Giả sử bạn có hai timestamp
+    $timestamp1 = $timestamp_1;
+    $timestamp2 = $timestamp_2;
+
+    // Tạo đối tượng DateTime từ timestamp
+    $date1 = new \DateTime();
+    $date1->setTimestamp($timestamp1);
+
+    $date2 = new \DateTime();
+    $date2->setTimestamp($timestamp2);
+
+    // Tạo các đối tượng DateTime mới chỉ với phần ngày - tháng - năm
+// Sử dụng ngày gốc để tránh các vấn đề liên quan đến timezone
+    $day_only1 = new \DateTime($date1->format('d-m-Y'));
+    $day_only2 = new \DateTime($date2->format('d-m-Y'));
+
+    // So sánh hai đối tượng
+    if ($day_only1 < $day_only2) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Compares the date-month-year part of two timestamps, determining if the date-month-year of the first timestamp is greater than the date-month-year of the second.
+   *
+   * This function only compares the date-month-yearcomponents of the timestamps.
+   * It is suitable for scenarios where you need to compare based solely on time
+   *
+   * @param int $timestamp_1 The first timestamp (Unix timestamp).
+   * @param int $timestamp_2 The second timestamp (Unix timestamp).
+   * @return bool Returns true if the date-month-year part of the first timestamp is greater than the date-month-year part of the second timestamp; otherwise, returns false.
+   */
+  public function is_greater_day($timestamp_1, $timestamp_2)
+  {
+    // Giả sử bạn có hai timestamp
+    $timestamp1 = $timestamp_1;
+    $timestamp2 = $timestamp_2;
+
+    // Tạo đối tượng DateTime từ timestamp
+    $date1 = new \DateTime();
+    $date1->setTimestamp($timestamp1);
+
+    $date2 = new \DateTime();
+    $date2->setTimestamp($timestamp2);
+
+    // Tạo các đối tượng DateTime mới chỉ với phần ngày - tháng - năm
+// Sử dụng ngày gốc để tránh các vấn đề liên quan đến timezone
+    $day_only1 = new \DateTime($date1->format('d-m-Y'));
+    $day_only2 = new \DateTime($date2->format('d-m-Y'));
+
+    // So sánh hai đối tượng
+    if ($day_only1 > $day_only2) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Compares two timestamps to determine if they represent the same time (ignoring the date part).
+   *
+   * @param int $timestamp_1 The first timestamp.
+   * @param int $timestamp_2 The second timestamp.
+   * @return bool Returns true if the time parts of the two timestamps are identical; otherwise, returns false.
+   */
+  public function is_equal_day($timestamp_1, $timestamp_2)
+  {
+    // Giả sử bạn có hai timestamp
+    $timestamp1 = $timestamp_1;
+    $timestamp2 = $timestamp_2;
+
+    // Tạo đối tượng DateTime từ timestamp
+    $date1 = new \DateTime();
+    $date1->setTimestamp($timestamp1);
+
+    $date2 = new \DateTime();
+    $date2->setTimestamp($timestamp2);
+
+    // Tạo các đối tượng DateTime mới chỉ với phần ngày - tháng - năm
+// Sử dụng ngày gốc để tránh các vấn đề liên quan đến timezone
+    $day_only1 = new \DateTime($date1->format('d-m-Y'));
+    $day_only2 = new \DateTime($date2->format('d-m-Y'));
+
+    // So sánh hai đối tượng
+    if ($day_only1 == $day_only2) {
+      return true;
+    }
+
+    return false;
+  }
+
   public function get_time_slot_array()
   {
     return $this->time_slot_array;
@@ -3605,20 +3834,18 @@ class time_table_generator
   public function format_time_table($time_slot_array)
   {
     $calendar = [];
-    // fix here to day=>room=>session format;
-    // fixed need check again.
-    /////////////////////////////////////////
+
     for ($i = 0; $i < $this->number_day; $i++) {
       $calendar[] = [];
       for ($j = 0; $j < $this->number_room; $j++) {
         $calendar[$i][] = [];
         for ($k = 0; $k < $this->number_class_sessions; $k++) {
           foreach ($time_slot_array as $time_slot) {
-
-            /// sai ở đây kiểm tra lại nó time_slot->date == $i. Hiện tại date ở đây là timestamp mà ngày đố đại diện
-            // $timestamp >>>> $i nhiều lần.
-
-            if ($time_slot->date == $i and $time_slot->room == $j and $time_slot->session == $k) {
+            if (
+              ($time_slot->date - $this->earliest_start_date_timestamp) / 86400 == $i
+              and $time_slot->room == $j
+              and $time_slot->session == $k
+            ) {
               $calendar[$i][$j][] = new course_session_information(
                 $time_slot->course_session_information->courseid,
                 $time_slot->course_session_information->course_name,
@@ -3763,13 +3990,20 @@ class time_table_generator
     // Lấy ra các course mà chưa được tạo lịch học 
     global $DB;
     $courses_not_schedule = [];
-    $courses_not_schedule_sql = "SELECT c.id courseid, c.category, c.shortname, c.startdate, 
-                                        c.enddate, c.visible, cc.class_duration, cc.number_course_session_weekly, 
-                                        cc.number_student_on_course, tcl.total_course_section
+    $courses_not_schedule_sql = "SELECT distinct c.id courseid, 
+                                        c.category, 
+                                        c.shortname, 
+                                        c.startdate, 
+                                        c.enddate, 
+                                        c.visible, 
+                                        cc.class_duration, 
+                                        cc.number_course_session_weekly, 
+                                        cc.number_student_on_course, 
+                                        tcl.total_course_section
                                 FROM {local_course_calendar_course_section} cs
                                 RIGHT JOIN {course} c on cs.courseid = c.id
                                 join {local_course_calendar_course_config_for_calendar} cc on cc.courseid = c.id
-                                join {local_course_calendar_total_course_lesson} tcl on tcl.courseid = c.id
+                                left join {local_course_calendar_total_course_lesson} tcl on tcl.courseid = c.id
                                 WHERE cs.courseid is null 
                                       and c.id != 1 
                                       and c.visible = 1 
@@ -3794,6 +4028,11 @@ class time_table_generator
       // Sao cho danh sách course này sẽ gồm các course * tổng số buổi học của course đó
 
       $course_array[] = $course;
+      if (empty($course->total_course_section)) {
+        $course->total_course_section = 1;
+        continue;
+      }
+
       if ($course->total_course_section > 1) {
         for ($j = 0; $j < $course->total_course_section - 1; $j++) {
           $course_array[] = $course;
@@ -4019,13 +4258,83 @@ class time_table_generator
 
   }
 
-  public function previous_process_edit_time_slot_array(&$time_slot_array)
+  public function previous_process_edit_time_slot_array(&$time_slot_array, $room_array)
   {
     global $DB;
     // tiến hành xử lý việc đặt trước chỗ cho các khóa học hay các sự kiện đã được đặt trước đó 
     // các time_slot tại đây không được thay đổi trong suốt quá trình đặt lịch.
+    $courses_schedule = [];
+    $courses_schedule_sql = "SELECT cs.id,
+                                    c.id courseid, 
+                                    c.category,
+                                    cr.id course_room_id, 
+                                    c.shortname, 
+                                    c.startdate, 
+                                    c.enddate, 
+                                    c.visible, 
+                                    cc.class_duration, 
+                                    cc.number_course_session_weekly, 
+                                    cc.number_student_on_course, 
+                                    tcl.total_course_section, 
+                                    cs.class_begin_time, 
+                                    cs.class_end_time
+                                FROM {local_course_calendar_course_section} cs
+                                RIGHT JOIN {course} c on cs.courseid = c.id
+                                join {local_course_calendar_course_config_for_calendar} cc on cc.courseid = c.id
+                                left join {local_course_calendar_total_course_lesson} tcl on tcl.courseid = c.id
+                                left join {local_course_calendar_course_room} cr on cr.id = cs.course_room_id
+                                WHERE cs.courseid is not null 
+                                      and c.id != 1 
+                                      and c.visible = 1 
+                                      and c.enddate >= UNIX_TIMESTAMP(NOW())";
+    $params = [];
+    $courses_schedule = $DB->get_records_sql($courses_schedule_sql, $params);
 
+    // đánh dấu các tiết đã bị chiếm dụng và thuật toán xếp thời khóa biểu sẽ không thay đổi các vị trí này khi xếp.
 
+    foreach ($time_slot_array as $time_slot) {
+      foreach ($courses_schedule as $course) {
+        if ($room_array[$time_slot->room]->id == $course->course_room_id) {
+          $class_start = $course->class_begin_time;
+          $class_end = $course->class_end_time;
+          if (date("d-m-Y", $class_start) == date("d-m-Y", $time_slot->date)) {
+            $time_slot_start_session_timestamp = strtotime(
+              date("d-m-Y", $time_slot->date) . " " . AVAILABLE_CLASS_SESSIONS[$time_slot->session]
+            );
+
+            $time_slot_end_session_timestamp = $time_slot_start_session_timestamp;
+            if ($time_slot->session + 1 < count(AVAILABLE_CLASS_SESSIONS)) {
+              $time_slot_end_session_timestamp = strtotime(
+                date("d-m-Y", $time_slot->date) . " " . AVAILABLE_CLASS_SESSIONS[$time_slot->session + 1]
+              );
+            } else {
+              $time_slot_end_session_timestamp = strtotime(
+                date("d-m-Y", $time_slot->date) . " " . AVAILABLE_CLASS_SESSIONS[$time_slot->session]
+              ) + TIME_SLOT_DURATION;
+            }
+
+            if (
+              $class_start < $class_end
+              and $class_end <= $time_slot_start_session_timestamp
+              and $time_slot_start_session_timestamp < $time_slot_end_session_timestamp
+            ) {
+              $time_slot->is_not_allow_change = false;
+              break;
+            } else if (
+              $time_slot_end_session_timestamp <= $class_start
+              and $class_start < $class_end
+              and $time_slot_start_session_timestamp < $time_slot_end_session_timestamp
+            ) {
+              $time_slot->is_not_allow_change = false;
+              break;
+            } else {
+              $time_slot->is_not_allow_change = true;
+              break;
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -4070,7 +4379,9 @@ class time_table_generator
         for ($k = 0; $k < $number_class_sessions; $k++) {
           $time_slot_array[] = new time_slot(
             $j,
-            $i * 24 * 60 * 60 + $earliest_start_date_timestamp,
+            strtotime(
+              date("d-m-Y", $i * 24 * 60 * 60 + $earliest_start_date_timestamp) . " " . AVAILABLE_CLASS_SESSIONS[$k]
+            ),
             $k,
             new course_session_information(),
             $time_slot_index,
@@ -4085,7 +4396,7 @@ class time_table_generator
     }
 
     // gọi database ở đây để đánh dấu các time_slot đã được các khóa học trước hoặc các sự kiện trên hệ thống đặt chỗ trước.
-    $this->previous_process_edit_time_slot_array($time_slot_array);
+    $this->previous_process_edit_time_slot_array($time_slot_array, $available_rooms);
 
     // hai biến này dùng để giới hạn lại số lần gọi đệ quy để xử lý bài toán.
     // độ sâu tối đa mà thuật toán có thể gọi đến là 16 - theo hướng dẫn của giải thuật fet application - file doc
