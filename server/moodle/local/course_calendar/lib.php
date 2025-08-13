@@ -73,7 +73,7 @@ const MAX_LEVEL_RECURSIVE = 16;
 // CÀI ĐẶT CÁC LUẬT RÀNG BUỘC CHO XỬ LÝ THỜI KHÓA BIỂU
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////// GIẢI THUẬT ĐỂ GIẢI LÀ GIẢI THUẬT DI TRUYỀN////////////////////////////////////
+////////////////////////////OLD: NOT USE: GIẢI THUẬT ĐỂ GIẢI LÀ GIẢI THUẬT DI TRUYỀN////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -184,6 +184,8 @@ class course_session_information
   public $district;
 
   public $province;
+  public $total_number_course_section;
+  public $number_course_section_weekly;
 
   public function __construct(
     $courseid = null,
@@ -200,7 +202,9 @@ class course_session_information
     $building = null,
     $ward = null,
     $district = null,
-    $province = null
+    $province = null,
+    $total_number_course_section = null,
+    $number_course_section_weekly = null
   ) {
     $this->courseid = $courseid;
     $this->course_name = $course_name;
@@ -217,6 +221,8 @@ class course_session_information
     $this->ward = $ward;
     $this->district = $district;
     $this->province = $province;
+    $this->total_number_course_section = $total_number_course_section;
+    $this->number_course_section_weekly = $number_course_section_weekly;
   }
 
   public function set_value(
@@ -234,7 +240,9 @@ class course_session_information
     $building = null,
     $ward = null,
     $district = null,
-    $province = null
+    $province = null,
+    $total_number_course_section = null,
+    $number_course_section_weekly = null
   ) {
     $this->courseid = $courseid;
     $this->course_name = $course_name;
@@ -251,6 +259,8 @@ class course_session_information
     $this->ward = $ward;
     $this->district = $district;
     $this->province = $province;
+    $this->total_number_course_section = $total_number_course_section;
+    $this->number_course_section_weekly = $number_course_section_weekly;
   }
 
   public function get_copy()
@@ -270,7 +280,9 @@ class course_session_information
       $this->building,
       $this->ward,
       $this->district,
-      $this->province
+      $this->province,
+      $this->total_number_course_section,
+      $this->number_course_section_weekly
     );
     return $clone;
   }
@@ -286,6 +298,7 @@ class time_slot
 
   public $is_occupied;
   public $is_occupied_by_course_in_prev_time_slot;
+  public $is_not_allow_change;
 
   public function __construct(
     $room = null,
@@ -294,7 +307,8 @@ class time_slot
     $course_session_information = null,
     $time_slot_index = null,
     $is_occupied = null,
-    $is_occupied_by_course_in_prev_time_slot = null
+    $is_occupied_by_course_in_prev_time_slot = null,
+    $is_not_allow_change = null
   ) {
     $this->room = $room;
     $this->date = $date;
@@ -303,6 +317,7 @@ class time_slot
     $this->time_slot_index = $time_slot_index;
     $this->is_occupied = $is_occupied;
     $this->is_occupied_by_course_in_prev_time_slot = $is_occupied_by_course_in_prev_time_slot;
+    $this->is_not_allow_change = $is_not_allow_change;
   }
 
   public function set_value(
@@ -312,7 +327,8 @@ class time_slot
     $course_session_information = null,
     $time_slot_index = null,
     $is_occupied = null,
-    $is_occupied_by_course_in_prev_time_slot = null
+    $is_occupied_by_course_in_prev_time_slot = null,
+    $is_not_allow_change = null
   ) {
     $this->room = $room;
     $this->date = $date;
@@ -321,6 +337,8 @@ class time_slot
     $this->time_slot_index = $time_slot_index;
     $this->is_occupied = $is_occupied;
     $this->is_occupied_by_course_in_prev_time_slot = $is_occupied_by_course_in_prev_time_slot;
+    $this->is_not_allow_change = $is_not_allow_change;
+
   }
 
   public function get_copy()
@@ -332,7 +350,9 @@ class time_slot
       $this->course_session_information->get_copy(),
       $this->time_slot_index,
       $this->is_occupied,
-      $this->is_occupied_by_course_in_prev_time_slot
+      $this->is_occupied_by_course_in_prev_time_slot,
+      $this->is_not_allow_change
+
     );
 
     return $clone;
@@ -2703,7 +2723,7 @@ function create_automatic_calendar_by_genetic_algorithm()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////NEW ALGORITHM: RECURSIVE SWAP ALGORITHM////////////////////////////////////////
+//////////////////////////////OLD: NOT USE: ALGORITHM: RECURSIVE SWAP ALGORITHM///////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2882,62 +2902,53 @@ class TimetableGenerator
     // }
     $calendar = $this->format_time_table($deep_copy_time_slot_array);
 
-    // check condition
-    // log 
-    $a = true;
-    $b = true;
-    $c = true;
-    $d = true;
-    $e = true;
+    if (
+      compute_score_violation_of_rule_class_duration_in_one_session(
+        $time_slot->session,
+        $course->class_duration
+      ) == 0
+      and
+      compute_score_violation_of_rule_class_overtime(
+        $time_slot->session,
+        $time_slot->session + $course->class_duration - 1,
+        $course->class_duration
+      ) == 0
+      and compute_score_violation_of_rule_class_session_continuously(
+        $calendar
+      ) == 0
+      and
+      compute_score_violation_of_rule_duplicate_course_at_same_room_at_same_time(
+        $calendar,
+        $time_slot->room,
+        $time_slot->date,
+        $time_slot->session
+      ) == 0
+      and
+      compute_score_violation_of_rule_forbidden_session(
+        $time_slot->date,
+        $time_slot->session,
+        $course->class_duration
+      ) == 0
+      and compute_score_violation_of_rule_holiday($time_slot->date) == 0
+      and compute_score_violation_of_rule_largest_teaching_hours($calendar) == 0
+      and compute_score_violation_of_rule_not_enough_number_of_course_session_weekly(
+        $calendar,
+        $course->courseid,
+        $course->number_course_session_weekly
+      ) == 0
+      and compute_score_violation_of_rule_priority_order_of_class_session($calendar) == 0
+      and compute_score_violation_of_rule_room_gap_between_class_session($calendar) == 0
+      and compute_score_violation_of_rule_student_study_all_day($calendar) == 0
+      and compute_score_violation_of_rule_study_double_session_of_same_course_on_one_day(
+        $calendar,
+        $course->courseid
+      ) == 0
+      and compute_score_violation_of_rule_time_gap_between_class_session($calendar) == 0
+    ) {
+      return true;
+    }
 
-    // if (
-    $a = compute_score_violation_of_rule_class_duration_in_one_session(
-      $time_slot->session,
-      $course->class_duration
-    ) == 0;
-    // and 
-    $b = compute_score_violation_of_rule_class_overtime(
-      $time_slot->session,
-      $time_slot->session + $course->class_duration - 1,
-      $course->class_duration
-    ) == 0;
-    // and compute_score_violation_of_rule_class_session_continuously(
-    //   $calendar
-    // ) == 0
-    // and 
-    $c = compute_score_violation_of_rule_duplicate_course_at_same_room_at_same_time(
-      $calendar,
-      $time_slot->room,
-      $time_slot->date,
-      $time_slot->session
-    ) == 0;
-    // and 
-    $d = compute_score_violation_of_rule_forbidden_session(
-      $time_slot->date,
-      $time_slot->session,
-      $course->class_duration
-    ) == 0;
-    // and 
-    $e = compute_score_violation_of_rule_holiday($time_slot->date) == 0;
-    // and compute_score_violation_of_rule_largest_teaching_hours($calendar) == 0
-    // and compute_score_violation_of_rule_not_enough_number_of_course_session_weekly(
-    //   $calendar,
-    //   $course->courseid,
-    //   $course->number_course_session_weekly
-    // ) == 0
-    // and compute_score_violation_of_rule_priority_order_of_class_session($calendar) == 0
-    // and compute_score_violation_of_rule_room_gap_between_class_session($calendar) == 0
-    // and compute_score_violation_of_rule_student_study_all_day($calendar) == 0
-    // and compute_score_violation_of_rule_study_double_session_of_same_course_on_one_day(
-    //   $calendar,
-    //   $course->courseid
-    // ) == 0
-    // and compute_score_violation_of_rule_time_gap_between_class_session($calendar) == 0
-    // ) {
-    return true;
-    // }
-
-    // return false;
+    return false;
 
   }
 
@@ -3523,6 +3534,590 @@ class helper
       $new_url,
       $arrow
     );
+  }
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////NEW ALGORITHM: RECURSIVE SWAP/////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class time_table_generator
+{
+  private $course_array;
+  private $room_array;
+  private $time_slot_array;
+  private $teacher_and_non_teacher_array;
+  private $number_room;
+  private $number_day;
+  private $number_class_sessions;
+  private $max_level_recursive;
+  private $max_number_of_call_recursive;
+  private $level_recursive;
+  private $number_of_call_recursive;
+  private $earliest_start_date_timestamp;
+  private $latest_end_date_timestamp;
+
+  public function __construct(
+    $course_array = null,
+    $room_array = null,
+    $time_slot_array = null,
+    $number_room = null,
+    $number_day = null,
+    $number_class_sessions = null,
+    $max_level_recursive = null,
+    $max_number_of_call_recursive = null,
+    $number_of_call_recursive = null,
+    $teacher_and_non_teacher_array = null,
+    $level_recursive = null,
+    $earliest_start_date_timestamp = null,
+    $latest_end_date_timestamp = null,
+
+  ) {
+    $this->course_array = $course_array;
+    $this->room_array = $room_array;
+    $this->time_slot_array = $time_slot_array;
+    $this->number_room = $number_room;
+    $this->number_day = $number_day;
+    $this->number_class_sessions = $number_class_sessions;
+    $this->max_level_recursive = $max_level_recursive;
+    $this->max_number_of_call_recursive = $max_number_of_call_recursive;
+    $this->number_of_call_recursive = $number_of_call_recursive;
+    $this->teacher_and_non_teacher_array = $teacher_and_non_teacher_array;
+    $this->level_recursive = $level_recursive;
+    $this->earliest_start_date_timestamp = $earliest_start_date_timestamp;
+    $this->latest_end_date_timestamp = $latest_end_date_timestamp;
+  }
+
+  public function get_time_slot_array()
+  {
+    return $this->time_slot_array;
+  }
+  /**
+   * Summary of format_time_table
+   * Hàm này dùng để định dạng lại time_table theo format calendar[room][day][session].
+   * @return array Trả về mảng calendar là định dạng mới của time_table. Định dạng của calendar là calendar[room][day][session].
+   */
+  public function format_time_table($time_slot_array)
+  {
+    $calendar = [];
+    // fix here to day=>room=>session format;
+    // fixed need check again.
+    /////////////////////////////////////////
+    for ($i = 0; $i < $this->number_day; $i++) {
+      $calendar[] = [];
+      for ($j = 0; $j < $this->number_room; $j++) {
+        $calendar[$i][] = [];
+        for ($k = 0; $k < $this->number_class_sessions; $k++) {
+          foreach ($time_slot_array as $time_slot) {
+
+            /// sai ở đây kiểm tra lại nó time_slot->date == $i. Hiện tại date ở đây là timestamp mà ngày đố đại diện
+            // $timestamp >>>> $i nhiều lần.
+
+            if ($time_slot->date == $i and $time_slot->room == $j and $time_slot->session == $k) {
+              $calendar[$i][$j][] = new course_session_information(
+                $time_slot->course_session_information->courseid,
+                $time_slot->course_session_information->course_name,
+                $time_slot->course_session_information->course_session_length,
+                $time_slot->course_session_information->course_session_start_time,
+                $time_slot->course_session_information->course_session_end_time,
+                $time_slot->course_session_information->editting_teacherid,
+                $time_slot->course_session_information->non_editting_teacherid,
+                $time_slot->course_session_information->date,
+                $time_slot->course_session_information->random_room_stt,
+                $time_slot->course_session_information->room,
+                $time_slot->course_session_information->floor,
+                $time_slot->course_session_information->building,
+                $time_slot->course_session_information->ward,
+                $time_slot->course_session_information->district,
+                $time_slot->course_session_information->province
+              );
+
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return $calendar;
+  }
+
+  /**
+   * Summary of deep_copy_time_slot_array
+   * Hàm này dùng để sao chép sâu mảng dữ liệu time_slot_array[]
+   * @param mixed $time_slot_array
+   * @return time_slot[]
+   */
+  public function deep_copy_time_slot_array($time_slot_array)
+  {
+    $clone = [];
+    foreach ($time_slot_array as $time_slot) {
+      $clone[] = new time_slot(
+        $time_slot->room,
+        $time_slot->date,
+        $time_slot->session,
+        $time_slot->course_session_information->get_copy(),
+        $time_slot->time_slot_index,
+        $time_slot->is_occupied,
+        $time_slot->is_occupied_by_course_in_prev_time_slot,
+        $time_slot->is_not_allow_change,
+
+      );
+    }
+    return $clone;
+  }
+  /**
+   * Summary of deep_copy_course_array
+   * Hàm này dùng để copy lại tất cả các phần tử của mảng course array.
+   * @param mixed $course_array
+   * @return array
+   */
+  public function deep_copy_course_array($course_array)
+  {
+    $clone = [];
+    foreach ($course_array as $course) {
+      $clone[] = $course;
+    }
+    return $clone;
+  }
+
+  /**
+   * Summary of deep_copy_room_array
+   * Hàm này dùng để copy lại tất cả các phần tử của mảng room array.
+   * @param mixed $room_array
+   * @return array
+   */
+  public function deep_copy_room_array($room_array)
+  {
+    $clone = [];
+    foreach ($room_array as $room) {
+      $clone[] = $room;
+    }
+    return $clone;
+  }
+
+  /**
+   * Summary of teacher_and_non_teacher_array
+   * Hàm này dùng để copy lại tất cả các phần tử của mảng teacher and non teacher array.
+   * @param mixed $teacher_and_non_teacher_array
+   * @return array
+   */
+  public function deep_copy_teacher_and_non_teacher_array($teacher_and_non_teacher_array)
+  {
+    $clone = [];
+    foreach ($teacher_and_non_teacher_array as $teacher_and_non_teacher) {
+      $clone[] = $teacher_and_non_teacher;
+    }
+    return $clone;
+  }
+
+
+  public function insert_teacher_and_non_teacher_to_time_table()
+  {
+    // todo 
+  }
+
+
+  /**
+   * Summary of generate_time_table.
+   * Hàm này thực hiện việc khởi tạo time table và trực tiếp gọi hàm đệ quy để tạo timetable.
+   * @return void 
+   */
+  public function generate_time_table()
+  {
+    // Bước 1: Sort the activities, most difficult first. 
+    // Not critical step, but speeds up the algorithm maybe 10 times or more.
+
+    array_multisort(
+      array_column($this->course_array, 'total_course_section'),
+      SORT_DESC,
+      SORT_REGULAR,
+      array_column($this->course_array, 'class_duration'),
+      SORT_DESC,
+      SORT_REGULAR,
+      array_column($this->course_array, 'number_course_session_weekly'),
+      SORT_DESC,
+      SORT_REGULAR,
+      array_column($this->course_array, 'number_student_on_course'),
+      SORT_DESC,
+      SORT_REGULAR,
+      $this->course_array
+    );
+
+    // Bước 2: Try to place each activity (A_i) in an allowed time slot, following the above order, one at a time.
+    // Search for an available slot (T_j) for A_i, in which this activity can be placed respecting the constraints.
+    // If more slots are available, choose a random one. If none is available, do recursive swapping:
+
+    // to do
+
+  }
+
+
+  public function get_courses_not_schedule()
+  {
+    // Lấy ra các course mà chưa được tạo lịch học 
+    global $DB;
+    $courses_not_schedule = [];
+    $courses_not_schedule_sql = "SELECT c.id courseid, c.category, c.shortname, c.startdate, 
+                                        c.enddate, c.visible, cc.class_duration, cc.number_course_session_weekly, 
+                                        cc.number_student_on_course, tcl.total_course_section
+                                FROM {local_course_calendar_course_section} cs
+                                RIGHT JOIN {course} c on cs.courseid = c.id
+                                join {local_course_calendar_course_config_for_calendar} cc on cc.courseid = c.id
+                                join {local_course_calendar_total_course_lesson} tcl on tcl.courseid = c.id
+                                WHERE cs.courseid is null 
+                                      and c.id != 1 
+                                      and c.visible = 1 
+                                      and c.enddate >= UNIX_TIMESTAMP(NOW())";
+    $params = [];
+    $courses_not_schedule = $DB->get_records_sql($courses_not_schedule_sql, $params);
+
+    // Tạo dữ liệu course_list bao gồm những course ta sẽ cần xếp thời khóa biểu và cần sắp xếp chúng theo thứ tự ưu tiên
+    // Thứ tự ưu tiên là thời gian diễn ra buổi học (số tiết học trên một buổi)
+    // Số buổi học trên một tuần
+    // Phải tạo thêm course_list để lưu là vì khi chúng ta thực hiện thêm course vào trong thời khóa biểu sẽ cần xóa course đó ra 
+    // và khi cần unlocated course thì cần nơi để lưu trở lại.
+    // và ta cũng cần sort lại mảng course này để sắp xếp lại theo thứ tự ưu tiên
+    // nếu ta làm trên mảng chính luôn có thể sẽ gây sai sót dữ liệu.
+
+    // và cũng vì cái $course_not_schedule đang được đánh index theo cột đầu tiên là courseid ta không biết chắc các id này có theo thứ tự không
+    // nó sẽ khó cho quá trình duyệt qua mảng sẽ gây thiếu sót, khó khăn khi chỉ có thể dùng mỗi foreach.
+
+    $course_array = [];
+    foreach ($courses_not_schedule as $course) {
+      // xử lý danh sách course này để thêm vào các buổi học của cùng một course .
+      // Sao cho danh sách course này sẽ gồm các course * tổng số buổi học của course đó
+
+      $course_array[] = $course;
+      if ($course->total_course_section > 1) {
+        for ($j = 0; $j < $course->total_course_section - 1; $j++) {
+          $course_array[] = $course;
+        }
+      }
+    }
+
+    return $course_array;
+  }
+
+  public function get_available_rooms()
+  {
+    global $DB;
+    // Lấy ra các phòng học sẵn có của trung tâm
+    $available_rooms = $DB->get_records('local_course_calendar_course_room');
+
+    // Lưu lại các room vào mảng có index theo thứ tự từ 0->n
+    $room_array = [];
+    foreach ($available_rooms as $room) {
+      $room_array[] = $room;
+    }
+
+    return $room_array;
+  }
+
+  public function get_teacher_and_non_teacher_array()
+  {
+    global $DB;
+    // get teacher and non teacher information from database and save to teacher_and_non_teacher_array.
+    $sql = "SELECT DISTINCT (user.id) id, user.firstname, user.lastname, user.email, role.shortname
+            from {user} user
+            join {role_assignments} ra on ra.userid = user.id
+            join {role} role on role.id = ra.roleid
+            join {context} context on context.id = ra.contextid
+            join {course} course on course.id = context.instanceid
+            where course.id != 1
+                    and (role.shortname = 'teacher' or role.shortname = 'editingteacher')
+                    and context.contextlevel = 50";
+    $params = [];
+    $teacher_and_non_teacher_array = $DB->get_records_sql($sql, $params);
+
+    return $teacher_and_non_teacher_array;
+  }
+
+  public function get_number_day()
+  {
+    return $this->number_day;
+  }
+
+  public function print_time_table()
+  {
+    global $DB;
+
+    $timeTable = new \local_course_calendar\time_table_generator();
+    $timeTable = $timeTable->create_automatic_calendar_by_recursive_swap_algorithm();
+    $calendar = $timeTable->format_time_table($timeTable->get_time_slot_array());
+
+    $available_rooms = $DB->get_records('local_course_calendar_course_room');
+
+    $number_room = count($available_rooms);
+    $number_class_sessions = count(STT_CLASS_SESSIONS);
+    $number_day = $timeTable->get_number_day();
+
+    // --- In bảng thời khóa biểu ---
+    echo "<!DOCTYPE html>";
+    echo "<html lang='vi'>";
+    echo "<head>";
+    echo "    <meta charset='UTF-8'>";
+    echo "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+    echo "    <title>Bảng Thời Khóa Biểu</title>";
+    echo "    <style>";
+    echo "        table {";
+    echo "            width: 100%;";
+    echo "            border-collapse: collapse;";
+    echo "            margin-bottom: 20px;";
+    echo "        }";
+    echo "        th, td {";
+    echo "            border: 1px solid #ccc;";
+    echo "            padding: 8px;";
+    echo "            text-align: center;";
+    echo "            vertical-align: top;"; // Căn trên cho nội dung dài
+    echo "        }";
+    echo "        th {";
+    echo "            background-color: #f2f2f2;";
+    echo "        }";
+    echo "        .room-header {";
+    echo "            background-color: #e0e0e0;";
+    echo "            font-weight: bold;";
+    echo "        }";
+    echo "        .day-header {";
+    echo "            background-color: #f9f9f9;";
+    echo "            font-weight: bold;";
+    echo "        }";
+    echo "    </style>";
+    echo "</head>";
+    echo "<body>";
+
+    echo "<h2>Thời Khóa Biểu</h2>";
+
+    echo "<table>";
+    // Hàng tiêu đề cho các ngày
+    echo "<thead>";
+    echo "<tr>";
+    echo "<th>Phòng / Ngày</th>"; // Góc trên bên trái
+    for ($j = 0; $j < $number_day; $j++) {
+      switch ($j) {
+        case 0:
+          echo "<th class='day-header'>Thứ 2" . "</th>";
+          break;
+        case 1:
+          echo "<th class='day-header'>Thứ 3" . "</th>";
+
+          break;
+        case 2:
+          echo "<th class='day-header'>Thứ 4" . "</th>";
+
+          break;
+        case 3:
+          echo "<th class='day-header'>Thứ 5" . "</th>";
+
+          break;
+        case 4:
+          echo "<th class='day-header'>Thứ 6" . "</th>";
+
+          break;
+        case 5:
+          echo "<th class='day-header'>Thứ 7" . "</th>";
+          break;
+        case 6:
+          echo "<th class='day-header'>CN" . "</th>";
+          break;
+
+      }
+
+    }
+    echo "</tr>";
+    echo "</thead>";
+
+    // Nội dung bảng
+    echo "<tbody>";
+    for ($i = 0; $i < $number_room; $i++) {
+      echo "<tr>";
+      echo "<td class='room-header'>Phòng " . ($i + 1) . "</td>"; // Cột đầu tiên là tên phòng
+      for ($j = 0; $j < $number_day; $j++) {
+        echo "<td>";
+        // Duyệt qua các buổi học trong ngày và phòng hiện tại
+        if (!empty($calendar) and !empty($calendar[$j][$i])) {
+          $tiet = 1;
+          foreach ($calendar[$j][$i] as $k => $session_data) {
+            // Hiển thị nội dung buổi học.
+            // Bạn có thể format lại ở đây để hiển thị thông tin chi tiết hơn.
+            if (isset($session_data->courseid)) {
+              echo "<div>" . "Tiết " . $tiet . "</div>";
+              // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
+              echo "<div>" . $session_data->course_name . "</div>";
+            }
+            if ($k < $number_class_sessions - 1) {
+              echo "<hr style='border-top: 1px dashed #eee; margin: 5px 0;'>"; // Đường kẻ phân cách các buổi
+            }
+            $tiet++;
+          }
+        } else {
+          echo "<i>(Chưa có dữ liệu)</i>"; // Hiển thị khi không có dữ liệu
+        }
+        echo "</td>";
+      }
+      echo "</tr>";
+    }
+    echo "</tbody>";
+    echo "</table>";
+
+    echo "</body>";
+    echo "</html>";
+  }
+
+  public function edit_sync_start_date_and_end_date_for_course(&$course_array)
+  {
+    foreach ($course_array as $course) {
+      if (date("D", $course->startdate)) {
+        for ($i = 1; $i < 8; $i++) {
+          $temp_start_date = $course->startdate + $i * 24 * 60 * 60;
+          if (date("D", $temp_start_date) == "Mon") {
+            $course->startdate = $temp_start_date;
+            break;
+          }
+        }
+      }
+
+      if (date("D", $course->enddate)) {
+        for ($i = 1; $i < 8; $i++) {
+          $temp_end_date = $course->enddate + $i * 24 * 60 * 60;
+          if (date("D", $temp_end_date) == "Mon") {
+            $course->enddate = $temp_end_date;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  public function get_earliest_start_day($course_array)
+  {
+    $earliest_start_date = $course_array[0]->startdate;
+    foreach ($course_array as $course) {
+      if ($earliest_start_date > $course->startdate) {
+
+        $earliest_start_date = $course->startdate;
+
+      }
+    }
+    return $earliest_start_date;
+  }
+
+  public function get_latest_end_day($course_array)
+  {
+    $latest_end_date = $course_array[0]->enddate;
+    foreach ($course_array as $course) {
+      if ($latest_end_date < $course->enddate) {
+        $latest_end_date = $course->enddate;
+      }
+    }
+    return $latest_end_date;
+
+  }
+
+  public function previous_process_edit_time_slot_array(&$time_slot_array)
+  {
+    global $DB;
+    // tiến hành xử lý việc đặt trước chỗ cho các khóa học hay các sự kiện đã được đặt trước đó 
+    // các time_slot tại đây không được thay đổi trong suốt quá trình đặt lịch.
+
+
+  }
+
+  /**
+   * Summary of create_automatic_calendar_by_recursive_swap_algorithm
+   * Hàm này thực hiện việc truy xuất các dữ liệu cần thiết cho việc tạo thời khóa biểu và tiến hành gọi hàm 
+   * generate_time_table() để tạo thời khóa biểu.
+   * @return time_table_generator
+   */
+  public function create_automatic_calendar_by_recursive_swap_algorithm()
+  {
+    $course_array = $this->get_courses_not_schedule();
+    $available_rooms = $this->get_available_rooms();
+    $teacher_and_non_teacher_array = $this->get_teacher_and_non_teacher_array();
+
+
+    // các biến được chuẩn bị cho việc tạo mảng time slot
+    $number_courses_not_schedule = count($course_array);
+    $number_room = count($available_rooms);
+    $number_class_sessions = count(STT_CLASS_SESSIONS);
+
+    // ngày bắt đầu là ngày học của khóa học bắt đầu sớm nhất và nó phải là t2 của tuần kế tiếp
+    // ngày kết thúc là ngày kết thúc của khóa học kết thúc trễ nhất và nó là chủ nhật kế tiếp gần nhất
+    // Các khóa học khác cũng đều chỉnh sửa ngày bắt đầu là thứ 2 đầu tuần kế tiếp và ngày kết thúc như vậy. 
+
+    // Điều này làm cho các khóa học đều bắt đầu từ đầu tuần kế tiếp. 
+    // Tạo điều kiện thuận lợi cho tính lương, và công tác sau này.
+
+    $this->edit_sync_start_date_and_end_date_for_course($course_array);
+
+    $earliest_start_date_timestamp = $this->get_earliest_start_day($course_array);
+    $earliest_start_date_datetime = (new \DateTime())->setTimestamp($earliest_start_date_timestamp);
+
+    $latest_end_date_timestamp = $this->get_latest_end_day($course_array);
+    $latest_end_date_datetime = (new \DateTime())->setTimestamp($latest_end_date_timestamp);
+    $number_day = $earliest_start_date_datetime->diff($latest_end_date_datetime)->days + 1;
+
+    $time_slot_array = [];
+    $time_slot_index = 0;
+
+    for ($i = 0; $i < $number_day; $i++) {
+      for ($j = 0; $j < $number_room; $j++) {
+        for ($k = 0; $k < $number_class_sessions; $k++) {
+          $time_slot_array[] = new time_slot(
+            $j,
+            $i * 24 * 60 * 60 + $earliest_start_date_timestamp,
+            $k,
+            new course_session_information(),
+            $time_slot_index,
+            false,
+            false,
+            false,
+
+          );
+          $time_slot_index++;
+        }
+      }
+    }
+
+    // gọi database ở đây để đánh dấu các time_slot đã được các khóa học trước hoặc các sự kiện trên hệ thống đặt chỗ trước.
+    $this->previous_process_edit_time_slot_array($time_slot_array);
+
+    // hai biến này dùng để giới hạn lại số lần gọi đệ quy để xử lý bài toán.
+    // độ sâu tối đa mà thuật toán có thể gọi đến là 16 - theo hướng dẫn của giải thuật fet application - file doc
+    // Số lần có thể gọi đệ quy là bằng 2 * số hoạt động có thể có - trong bài toán này số hoạt động có thể có là $number_course_not_schedule.
+    $level_recursive = 0;
+    $max_level_recursive = 16;
+    $number_of_call_recursive = 0;
+    $max_number_of_call_recursive = 2 * $number_courses_not_schedule;
+
+    // Khởi tạo calendar kết quả
+    // Tạo calendar bằng giải thuật recursive swap
+    // Trả về kết quả.
+    $time_table = new time_table_generator(
+      $course_array,
+      $available_rooms,
+      $time_slot_array,
+      $number_room,
+      $number_day,
+      $number_class_sessions,
+      $max_level_recursive,
+      $max_number_of_call_recursive,
+      $number_of_call_recursive,
+      $teacher_and_non_teacher_array,
+      $level_recursive,
+      $earliest_start_date_timestamp,
+      $latest_end_date_timestamp,
+    );
+
+    $time_table->generate_time_table();
+    $time_table->insert_teacher_and_non_teacher_to_time_table();
+
+    return $time_table;
   }
 
 }
