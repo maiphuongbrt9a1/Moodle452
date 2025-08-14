@@ -204,6 +204,8 @@ class course_session_information
   public $total_number_course_section;
   public $number_course_section_weekly;
 
+  public $stt_course;
+
   public function __construct(
     $courseid = null,
     $course_name = null,
@@ -221,7 +223,8 @@ class course_session_information
     $district = null,
     $province = null,
     $total_number_course_section = null,
-    $number_course_section_weekly = null
+    $number_course_section_weekly = null,
+    $stt_course = null,
   ) {
     $this->courseid = $courseid;
     $this->course_name = $course_name;
@@ -240,6 +243,7 @@ class course_session_information
     $this->province = $province;
     $this->total_number_course_section = $total_number_course_section;
     $this->number_course_section_weekly = $number_course_section_weekly;
+    $this->stt_course = $stt_course;
   }
 
   public function set_value(
@@ -259,7 +263,9 @@ class course_session_information
     $district = null,
     $province = null,
     $total_number_course_section = null,
-    $number_course_section_weekly = null
+    $number_course_section_weekly = null,
+    $stt_course = null,
+
   ) {
     $this->courseid = $courseid;
     $this->course_name = $course_name;
@@ -278,6 +284,7 @@ class course_session_information
     $this->province = $province;
     $this->total_number_course_section = $total_number_course_section;
     $this->number_course_section_weekly = $number_course_section_weekly;
+    $this->stt_course = $stt_course;
   }
 
   public function get_copy()
@@ -299,7 +306,8 @@ class course_session_information
       $this->district,
       $this->province,
       $this->total_number_course_section,
-      $this->number_course_section_weekly
+      $this->number_course_section_weekly,
+      $this->stt_course,
     );
     return $clone;
   }
@@ -2235,8 +2243,8 @@ function genetic_algorithm($initial_calendar_community)
 
 /**
  * Extend the settings navigation for course calendar.
- * @param settings_navigation $settingsnav The settings navigation object.
- * @param context $context The context of the current page.
+ * @param \settings_navigation $settingsnav The settings navigation object.
+ * @param \context $context The context of the current page.
  */
 function local_course_calendar_extend_settings_navigation($settingsnav, $context)
 {
@@ -2248,17 +2256,17 @@ function local_course_calendar_extend_settings_navigation($settingsnav, $context
   }
 
   // Only let users with the appropriate capability see this settings item.
-  if (!has_capability('local/course_calendar:edit_total_lesson_for_course', context_course::instance($PAGE->course->id))) {
+  if (!has_capability('local/course_calendar:edit_total_lesson_for_course', \context_course::instance($PAGE->course->id))) {
     return;
   }
 
-  if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
+  if ($settingnode = $settingsnav->find('courseadmin', \navigation_node::TYPE_COURSE)) {
     $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
     $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
-    $foonode = navigation_node::create(
+    $foonode = \navigation_node::create(
       $strfoo,
       $url,
-      navigation_node::NODETYPE_LEAF,
+      \navigation_node::NODETYPE_LEAF,
       get_string('edit_total_lesson_for_course', 'local_course_calendar'),
       'edit_total_lesson_for_course',
       new pix_icon('i/edit', $strfoo)
@@ -2615,7 +2623,7 @@ function create_manual_calendar(int $courses, array $teachers, int $room_address
       );
       exit;
     }
-  } catch (moodle_exception $e) {
+  } catch (\moodle_exception $e) {
     dlog($e->getTrace());
     // Xử lý các lỗi từ database, ví dụ: ràng buộc duy nhất bị vi phạm
     \core\notification::error("Error inserting data: " . $e->getMessage());
@@ -3949,6 +3957,165 @@ class time_table_generator
     // todo 
   }
 
+  public function is_put_all_course_into_time_slot($course_array)
+  {
+    $number_course = count($course_array);
+    $count_number_placed_course = 0;
+
+    foreach ($course_array as $course) {
+      foreach ($this->time_slot_array as $time_slot) {
+        if (
+          !empty($time_slot->course_session_information)
+          and isset($time_slot->course_session_information->courseid)
+          and isset($time_slot->course_session_information->stt_course)
+          and isset($time_slot->is_occupied)
+          and isset($time_slot->is_occupied_by_course_in_prev_time_slot)
+          and $time_slot->course_session_information->courseid == $course->courseid
+          and $time_slot->course_session_information->stt_course == $course->stt_course
+          and $time_slot->is_occupied == true
+          and $time_slot->is_occupied_by_course_in_prev_time_slot == false
+        ) {
+          $count_number_placed_course++;
+        }
+      }
+
+    }
+
+    if ($count_number_placed_course == $number_course) {
+      return true;
+    }
+
+    return false;
+  }
+
+  //Định nghĩa hàm so sánh tùy chỉnh với hai tiêu chí
+  public function multi_criteria_sort($a, $b)
+  {
+    // Tiêu chí 1 (chính): So sánh số lượng lỗi
+    $error_count_a = count($a['errors']);
+    $error_count_b = count($b['errors']);
+
+    $primary_comparison = $error_count_a <=> $error_count_b;
+
+    // Nếu số lượng lỗi khác nhau, trả về kết quả ngay
+    if ($primary_comparison !== 0) {
+      return $primary_comparison;
+    }
+
+    // Tiêu chí 2 (phụ): Nếu số lượng lỗi bằng nhau, so sánh tổng số phần tử bị lỗi
+    $total_conflict_a = 0;
+    foreach ($a['errors'] as $error) {
+      $total_conflict_a += $error->number_time_slot_conflict;
+    }
+
+    $total_conflict_b = 0;
+    foreach ($b['errors'] as $error) {
+      $total_conflict_b += $error->number_time_slot_conflict;
+    }
+
+    return $total_conflict_a <=> $total_conflict_b;
+  }
+
+  public function check_position($time_slot, $course)
+  {
+    $new_time_slot_array = $this->deep_copy_time_slot_array($this->time_slot_array);
+    return $this->pseudo_put_course_to_time_slot($course, $time_slot, $new_time_slot_array);
+  }
+
+  public function is_time_slot_not_allow_change($time_slot)
+  {
+    if ($time_slot->is_not_allow_change) {
+      return true;
+    }
+
+    return false;
+  }
+
+  public function swap_course($course, $level_recursive, $number_of_call_recursive)
+  {
+    $best_time_slot_array = [];
+    foreach ($this->time_slot_array as $time_slot) {
+      new time_slot();
+      $slot_info = [
+        'original_time_slot_index' => $time_slot->time_slot_index,
+        'errors' => $this->pseudo_put_course_to_time_slot($course, $time_slot),
+      ];
+      $best_time_slot_array[] = $slot_info;
+    }
+
+    // Sử dụng usort() để sắp xếp mảng cái mảng này là toàn bộ mảng.
+    usort($best_time_slot_array, ['time_table_generator', 'multi_criteria_sort']);
+
+    // Sắp xếp cái mảng time_slot, với time_slot là một mảng con là phần tử của mảng cha là best_time_slot_array
+    for ($i = 0; $i < count($best_time_slot_array); $i++) {
+      array_multisort(
+        array_column($best_time_slot_array[$i]['errors'], 'number_time_slot_conflict'),
+        SORT_ASC,
+        SORT_REGULAR,
+        array_column($best_time_slot_array[$i]['errors'], 'error_type'),
+        SORT_ASC,
+        SORT_REGULAR,
+        $best_time_slot_array[$i]['errors']
+      );
+    }
+
+    $put_success = false;
+    foreach ($best_time_slot_array as $time_slot_contain_errors) {
+      if ($this->is_time_slot_not_allow_change($this->time_slot_array[$time_slot_contain_errors->original_time_slot_index])) {
+        continue;
+      }
+
+      $unlocate_course_array = [];
+      $time_slot = $this->time_slot_array[$time_slot_contain_errors->original_time_slot_index];
+
+      $unlocate_course_array = $this->unlocate_course_from_time_slot($course, $time_slot);
+      $this->put_course_to_time_slot($course, $time_slot);
+
+      $put_success = $this->recursive_swap_algorithm(
+        $unlocate_course_array,
+        $level_recursive + 1,
+        $number_of_call_recursive + 1
+      );
+
+      if ($put_success) {
+        return true;
+      }
+    }
+
+    if (!$put_success) {
+      return false;
+    }
+
+    throw new Exception('swap_course_function is runing wrong!', 1);
+  }
+  public function recursive_swap_algorithm($course_array, $level_recursive, $number_of_call_recursive)
+  {
+    if ($level_recursive > $this->max_level_recursive and $number_of_call_recursive > $this->max_number_of_call_recursive) {
+      return false;
+    }
+
+    foreach ($course_array as $course) {
+      $available_time_slot_array = [];
+      foreach ($this->time_slot_array as $time_slot) {
+        if (empty($this->check_position($time_slot, $course))) {
+          $available_time_slot_array[] = $time_slot;
+        }
+      }
+
+      if (!empty($available_time_slot_array)) {
+        $index = rand(0, count($available_time_slot_array) - 1);
+        $this->put_course_to_time_slot($course, $available_time_slot_array[$index]);
+      } else {
+        $this->swap_course($course, $level_recursive, $number_of_call_recursive);
+      }
+    }
+
+    if ($this->is_put_all_course_into_time_slot($course_array)) {
+      return true;
+    }
+
+    return false;
+  }
 
   /**
    * Summary of generate_time_table.
@@ -3979,8 +4146,11 @@ class time_table_generator
     // Bước 2: Try to place each activity (A_i) in an allowed time slot, following the above order, one at a time.
     // Search for an available slot (T_j) for A_i, in which this activity can be placed respecting the constraints.
     // If more slots are available, choose a random one. If none is available, do recursive swapping:
-
-    // to do
+    $this->recursive_swap_algorithm(
+      $this->course_array,
+      0,
+      0
+    );
 
   }
 
@@ -4023,21 +4193,28 @@ class time_table_generator
     // nó sẽ khó cho quá trình duyệt qua mảng sẽ gây thiếu sót, khó khăn khi chỉ có thể dùng mỗi foreach.
 
     $course_array = [];
+    $index = 0;
     foreach ($courses_not_schedule as $course) {
       // xử lý danh sách course này để thêm vào các buổi học của cùng một course .
       // Sao cho danh sách course này sẽ gồm các course * tổng số buổi học của course đó
 
+      $course->stt_course = $index;
       $course_array[] = $course;
       if (empty($course->total_course_section)) {
         $course->total_course_section = 1;
+        $index++;
         continue;
       }
 
       if ($course->total_course_section > 1) {
         for ($j = 0; $j < $course->total_course_section - 1; $j++) {
+          $index++;
+          $course->stt_course = $index;
           $course_array[] = $course;
         }
       }
+
+      $index++;
     }
 
     return $course_array;
@@ -4079,7 +4256,7 @@ class time_table_generator
 
   public function get_number_day()
   {
-    return $this->number_day;
+    return (int) $this->number_day;
   }
 
   public function print_time_table()
