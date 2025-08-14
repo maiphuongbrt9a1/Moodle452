@@ -157,7 +157,7 @@ const END_MORNING = STT_CLASS_SESSIONS[6];
 const START_AFTERNOON = STT_CLASS_SESSIONS[6];
 const END_AFTERNOON = STT_CLASS_SESSIONS[10];
 const START_EVENING = STT_CLASS_SESSIONS[10];
-const END_EVENING = STT_CLASS_SESSIONS[15];
+const END_EVENING = STT_CLASS_SESSIONS[15] + 1;
 
 /**
  * Summary of TIME_SLOT_DURATION
@@ -172,6 +172,8 @@ const TIME_SLOT_DURATION = 45 * 60;
  * @var int 
  */
 const CLASS_DURATION = 90 * 60;
+
+const MAX_CLASS_DURATION = 5;
 /**
  * Summary of number_course_session_weekly
  * @var int
@@ -4016,6 +4018,93 @@ class time_table_generator
     return $total_conflict_a <=> $total_conflict_b;
   }
 
+  public function check_time_gap_and_check_fix_class_address_between_course_session_of_course($course, $time_slot, $time_slot_array)
+  {
+    $time_slot_conflict_array = [];
+    $number_time_slot_conflict = 0;
+    $result = [];
+
+    return $result;
+  }
+
+  public function check_forbidden_session($time_slot, $course)
+  {
+    $time_slot_conflict_array = [];
+    $number_time_slot_conflict = 0;
+    $result = [];
+    $date_string_format = date("D", $time_slot->date);
+
+    if (
+      $date_string_format == "Mon"
+      or $date_string_format == "Tue"
+      or $date_string_format == "Wed"
+      or $date_string_format == "Thu"
+      or $date_string_format == "Fri"
+    ) {
+      if ($time_slot->session < START_EVENING) {
+        $result[] = [
+          'error_type' => 7,
+          'error_decription' => 'This time slot is forbidden session for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+          'time_slot_conflict_array' => $time_slot_conflict_array,
+          'number_time_slot_conflict' => $number_time_slot_conflict
+        ];
+        return $result;
+      }
+    }
+    return $result;
+  }
+
+  public function check_holiday($time_slot, $course)
+  {
+    global $DB;
+    $time_slot_conflict_array = [];
+    $number_time_slot_conflict = 0;
+    $result = [];
+
+    $params = [
+      'start_date' => $this->earliest_start_date_timestamp,
+      'end_date' => $this->latest_end_date_timestamp
+    ];
+    $holiday_sql = "SELECT * 
+                    FROM {local_course_calendar_holiday} h 
+                    WHERE h.holiday >= :start_date and h.holiday <= :end_date";
+    $holiday_in_system_config = $DB->get_records_sql($holiday_sql, $params);
+
+    foreach ($holiday_in_system_config as $holiday) {
+      if (date("d-m-Y", $holiday->holiday) == date("d-m-Y", $time_slot->date)) {
+        $result[] = [
+          'error_type' => 6,
+          'error_decription' => 'This time slot is holiday for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+          'time_slot_conflict_array' => $time_slot_conflict_array,
+          'number_time_slot_conflict' => $number_time_slot_conflict
+        ];
+        return $result;
+      }
+    }
+
+    return $result;
+  }
+
+  public function check_class_session_during_over_max_teaching_time($course)
+  {
+    $course_session_length = $course->class_duration;
+    $time_slot_conflict_array = [];
+    $number_time_slot_conflict = 0;
+    $result = [];
+
+    if ($course_session_length > MAX_CLASS_DURATION) {
+      $result[] = [
+        'error_type' => 5,
+        'error_decription' => 'This course is over max teaching time in system config for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+        'time_slot_conflict_array' => $time_slot_conflict_array,
+        'number_time_slot_conflict' => $number_time_slot_conflict
+      ];
+
+      return $result;
+    }
+    return $result;
+  }
+
   public function check_class_session_during_in_one_session_of_day($course, $time_slot, $time_slot_array)
   {
     $course_session_length = $course->class_duration;
@@ -4023,6 +4112,34 @@ class time_table_generator
     $number_time_slot_conflict = 0;
     $result = [];
 
+    if ($time_slot->session < END_EVENING and $time_slot->session + $course_session_length >= END_EVENING) {
+      $result[] = [
+        'error_type' => 2,
+        'error_decription' => 'This time slot have not enough time slot range in one evening session of day for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+        'time_slot_conflict_array' => $time_slot_conflict_array,
+        'number_time_slot_conflict' => $number_time_slot_conflict
+      ];
+
+      return $result;
+    } else if ($time_slot->session < END_AFTERNOON and $time_slot->session + $course_session_length >= END_AFTERNOON) {
+      $result[] = [
+        'error_type' => 3,
+        'error_decription' => 'This time slot have not enough time slot range in one afternoon session of day for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+        'time_slot_conflict_array' => $time_slot_conflict_array,
+        'number_time_slot_conflict' => $number_time_slot_conflict
+      ];
+
+      return $result;
+    } else if ($time_slot->session < END_MORNING and $time_slot->session + $course_session_length >= END_MORNING) {
+      $result[] = [
+        'error_type' => 4,
+        'error_decription' => 'This time slot have not enough time slot range in one morning session of day for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+        'time_slot_conflict_array' => $time_slot_conflict_array,
+        'number_time_slot_conflict' => $number_time_slot_conflict
+      ];
+
+      return $result;
+    }
 
     return $result;
   }
@@ -4167,9 +4284,9 @@ class time_table_generator
     $errors_array_in_this_time_slot[] = $this->check_duplicate_course_at_same_time($course, $time_slot, $time_slot_array);
     $errors_array_in_this_time_slot[] = $this->check_class_session_during_in_one_session_of_day($course, $time_slot, $time_slot_array);
     $errors_array_in_this_time_slot[] = $this->check_class_session_during_over_max_teaching_time($course);
-    $errors_array_in_this_time_slot[] = $this->check_holiday($time_slot);
-    $errors_array_in_this_time_slot[] = $this->check_forbidden_session($time_slot);
-    $errors_array_in_this_time_slot[] = $this->check_time_gap_between_course_session_of_course($course, $time_slot, $time_slot_array);
+    $errors_array_in_this_time_slot[] = $this->check_holiday($time_slot, $course);
+    $errors_array_in_this_time_slot[] = $this->check_forbidden_session($time_slot, $course);
+    $errors_array_in_this_time_slot[] = $this->check_time_gap_and_check_fix_class_address_between_course_session_of_course($course, $time_slot, $time_slot_array);
 
     return $errors_array_in_this_time_slot;
   }
@@ -4263,7 +4380,7 @@ class time_table_generator
       $unlocate_course_array = [];
       $time_slot = $this->time_slot_array[$time_slot_contain_errors->original_time_slot_index];
 
-      $unlocate_course_array = $this->unlocate_course_from_time_slot($course, $time_slot);
+      $unlocate_course_array = $this->unlocate_course_from_time_slot($course, $time_slot, $time_slot_contain_errors);
       $this->put_course_to_time_slot($course, $time_slot);
 
       $put_success = $this->recursive_swap_algorithm(
@@ -4584,7 +4701,9 @@ class time_table_generator
 
   public function edit_sync_start_date_and_end_date_for_course(&$course_array)
   {
-    foreach ($course_array as $course) {
+    $course_array_length = count($course_array);
+    for ($i = 0; $i < $course_array_length; $i++) {
+      $course = $course_array[$i];
       if (date("D", $course->startdate)) {
         for ($i = 1; $i < 8; $i++) {
           $temp_start_date = $course->startdate + $i * 24 * 60 * 60;
