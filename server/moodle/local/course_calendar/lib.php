@@ -180,6 +180,8 @@ const MAX_CLASS_DURATION = 5;
  */
 const NUMBER_COURSE_SESSION_WEEKLY = 2;
 
+const TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE = 2;
+
 class course_session_information
 {
   public $courseid;
@@ -193,6 +195,8 @@ class course_session_information
   public $date;
   public $random_room_stt;
   public $room;
+
+  public $room_number;
 
   public $floor;
 
@@ -227,6 +231,7 @@ class course_session_information
     $total_number_course_section = null,
     $number_course_section_weekly = null,
     $stt_course = null,
+    $room_number = null,
   ) {
     $this->courseid = $courseid;
     $this->course_name = $course_name;
@@ -246,6 +251,7 @@ class course_session_information
     $this->total_number_course_section = $total_number_course_section;
     $this->number_course_section_weekly = $number_course_section_weekly;
     $this->stt_course = $stt_course;
+    $this->room_number = $room_number;
   }
 
   public function set_value(
@@ -267,7 +273,7 @@ class course_session_information
     $total_number_course_section = null,
     $number_course_section_weekly = null,
     $stt_course = null,
-
+    $room_number = null,
   ) {
     $this->courseid = $courseid;
     $this->course_name = $course_name;
@@ -287,6 +293,7 @@ class course_session_information
     $this->total_number_course_section = $total_number_course_section;
     $this->number_course_section_weekly = $number_course_section_weekly;
     $this->stt_course = $stt_course;
+    $this->room_number = $room_number;
   }
 
   public function get_copy()
@@ -310,6 +317,8 @@ class course_session_information
       $this->total_number_course_section,
       $this->number_course_section_weekly,
       $this->stt_course,
+      $this->room_number,
+
     );
     return $clone;
   }
@@ -322,11 +331,15 @@ class time_slot
   public $session;
   public $course_session_information;
   public $time_slot_index;
-
   public $is_occupied;
   public $is_occupied_by_course_in_prev_time_slot;
   public $is_not_allow_change;
-
+  public $room_number;
+  public $floor;
+  public $building;
+  public $ward;
+  public $district;
+  public $province;
   public function __construct(
     $room = null,
     $date = null,
@@ -335,7 +348,14 @@ class time_slot
     $time_slot_index = null,
     $is_occupied = null,
     $is_occupied_by_course_in_prev_time_slot = null,
-    $is_not_allow_change = null
+    $is_not_allow_change = null,
+    $room_number = null,
+    $floor = null,
+    $building = null,
+    $ward = null,
+    $district = null,
+    $province = null,
+
   ) {
     $this->room = $room;
     $this->date = $date;
@@ -345,6 +365,12 @@ class time_slot
     $this->is_occupied = $is_occupied;
     $this->is_occupied_by_course_in_prev_time_slot = $is_occupied_by_course_in_prev_time_slot;
     $this->is_not_allow_change = $is_not_allow_change;
+    $this->room_number = $room_number;
+    $this->floor = $floor;
+    $this->building = $building;
+    $this->ward = $ward;
+    $this->district = $district;
+    $this->province = $province;
   }
 
   public function set_value(
@@ -355,7 +381,14 @@ class time_slot
     $time_slot_index = null,
     $is_occupied = null,
     $is_occupied_by_course_in_prev_time_slot = null,
-    $is_not_allow_change = null
+    $is_not_allow_change = null,
+    $room_number = null,
+    $floor = null,
+    $building = null,
+    $ward = null,
+    $district = null,
+    $province = null,
+
   ) {
     $this->room = $room;
     $this->date = $date;
@@ -365,7 +398,12 @@ class time_slot
     $this->is_occupied = $is_occupied;
     $this->is_occupied_by_course_in_prev_time_slot = $is_occupied_by_course_in_prev_time_slot;
     $this->is_not_allow_change = $is_not_allow_change;
-
+    $this->room_number = $room_number;
+    $this->floor = $floor;
+    $this->building = $building;
+    $this->ward = $ward;
+    $this->district = $district;
+    $this->province = $province;
   }
 
   public function get_copy()
@@ -378,7 +416,13 @@ class time_slot
       $this->time_slot_index,
       $this->is_occupied,
       $this->is_occupied_by_course_in_prev_time_slot,
-      $this->is_not_allow_change
+      $this->is_not_allow_change,
+      $this->room_number,
+      $this->floor,
+      $this->building,
+      $this->ward,
+      $this->district,
+      $this->province,
 
     );
 
@@ -3871,7 +3915,12 @@ class time_table_generator
                 $time_slot->course_session_information->building,
                 $time_slot->course_session_information->ward,
                 $time_slot->course_session_information->district,
-                $time_slot->course_session_information->province
+                $time_slot->course_session_information->province,
+                $time_slot->course_session_information->total_number_course_section,
+                $time_slot->course_session_information->number_course_section_weekly,
+                $time_slot->course_session_information->stt_course,
+                $time_slot->course_session_information->room_number,
+
               );
 
               break;
@@ -3903,6 +3952,12 @@ class time_table_generator
         $time_slot->is_occupied,
         $time_slot->is_occupied_by_course_in_prev_time_slot,
         $time_slot->is_not_allow_change,
+        $time_slot->room_number,
+        $time_slot->floor,
+        $time_slot->building,
+        $time_slot->ward,
+        $time_slot->district,
+        $time_slot->province,
 
       );
     }
@@ -4018,13 +4073,133 @@ class time_table_generator
     return $total_conflict_a <=> $total_conflict_b;
   }
 
+  public function compute_number_day_between_start_day_and_end_day($start_date_timestamp, $end_date_timestamp)
+  {
+    $start_date_datetime = (new \DateTime())->setTimestamp($start_date_timestamp);
+    $end_date_datetime = (new \DateTime())->setTimestamp($end_date_timestamp);
+    $number_day = $start_date_datetime->diff($end_date_datetime)->days;
+
+    return $number_day;
+
+  }
+
   public function check_time_gap_and_check_fix_class_address_between_course_session_of_course($course, $time_slot, $time_slot_array)
   {
     $time_slot_conflict_array = [];
     $number_time_slot_conflict = 0;
     $result = [];
 
-    return $result;
+    $prev_course_session_time_slot_array = [];
+    $count_prev_course_session = 0;
+    for ($i = $time_slot->time_slot_index; $i >= 0; $i--) {
+      if (
+        !empty($time_slot_array[$i]->course_session_information)
+        and $time_slot_array[$i]->course_session_information->courseid == $course->courseid
+      ) {
+        $prev_course_session_time_slot_array = $time_slot_array[$i];
+        $count_prev_course_session++;
+      }
+
+      if (
+        $count_prev_course_session == $course->number_course_session_weekly
+      ) {
+        break;
+      }
+    }
+
+    if (empty($prev_course_session_time_slot_array)) {
+      return []; // EMPTY ARRAY
+    }
+
+    if ($count_prev_course_session != $course->number_course_section_weekly) {
+      if ($time_slot->session == $prev_course_session_time_slot_array[$count_prev_course_session - 1]->session) {
+        if ($time_slot->room == $prev_course_session_time_slot_array[$count_prev_course_session - 1]->room) {
+          if (
+            $this->compute_number_day_between_start_day_and_end_day(
+              $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date,
+              $time_slot->date
+            ) == TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE
+          ) {
+            return []; // EMPTY ARRAY
+          } else {
+            $result[] = [
+              'error_type' => 8,
+              'error_decription' => 'This time slot does not fix room, session, time gap for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+              'time_slot_conflict_array' => $time_slot_conflict_array,
+              'number_time_slot_conflict' => $number_time_slot_conflict
+            ];
+
+            return $result;
+          }
+        }
+      }
+    } else if ($count_prev_course_session == $course->number_course_section_weekly) {
+      $end_time_slot_contain_course_session = $time_slot_array[$time_slot->time_slot_index - 1];
+      for ($i = $time_slot->time_slot_index - 1; $i >= 0; $i--) {
+        if (
+          !empty($time_slot_array[$i]->course_session_information)
+          and $time_slot_array[$i]->course_session_information->courseid == $course->courseid
+        ) {
+          $end_time_slot_contain_course_session = $time_slot_array[$i];
+          break;
+        }
+      }
+
+      $count = 0;
+      $number_course_session_weekly = $course->number_course_section_weekly;
+
+      for ($i = 0; $i < $time_slot->time_slot_index; $i++) {
+        if (
+          !empty($time_slot_array[$i]->course_session_information)
+          and $time_slot_array[$i]->course_session_information->courseid == $course->courseid
+        ) {
+          $count++;
+        }
+
+        if ($count == $number_course_session_weekly) {
+          $count = 0;
+        }
+      }
+
+      $index = $count;
+      if ($time_slot->session == $prev_course_session_time_slot_array[$index]->session) {
+        if ($time_slot->room == $prev_course_session_time_slot_array[$index]->room) {
+          if ($index != 0) {
+            if (
+              $this->compute_number_day_between_start_day_and_end_day(
+                $end_time_slot_contain_course_session->date,
+                $time_slot->date
+              ) == TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE
+            ) {
+              return []; // EMPTY ARRAY
+            } else {
+              $result[] = [
+                'error_type' => 8,
+                'error_decription' => 'This time slot does not fix room, session, time gap for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+                'time_slot_conflict_array' => $time_slot_conflict_array,
+                'number_time_slot_conflict' => $number_time_slot_conflict
+              ];
+
+              return $result;
+            }
+          } else {
+            if (date("D", $time_slot->date) == date("D", $prev_course_session_time_slot_array[$index]->date)) {
+              return [];
+            } else {
+              $result[] = [
+                'error_type' => 8,
+                'error_decription' => 'This time slot does not fix room, session, time gap for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+                'time_slot_conflict_array' => $time_slot_conflict_array,
+                'number_time_slot_conflict' => $number_time_slot_conflict
+              ];
+
+              return $result;
+            }
+          }
+        }
+      }
+    }
+    return [];
   }
 
   public function check_forbidden_session($time_slot, $course)
@@ -4275,7 +4450,7 @@ class time_table_generator
     return $result;
   }
 
-  public function pseudo_put_course_to_time_slot($course, $time_slot, $time_slot_array = $this->time_slot_array)
+  public function pseudo_put_course_to_time_slot($course, $time_slot, $time_slot_array)
   {
     $errors_array_in_this_time_slot = [];
 
@@ -4286,14 +4461,14 @@ class time_table_generator
     $errors_array_in_this_time_slot[] = $this->check_class_session_during_over_max_teaching_time($course);
     $errors_array_in_this_time_slot[] = $this->check_holiday($time_slot, $course);
     $errors_array_in_this_time_slot[] = $this->check_forbidden_session($time_slot, $course);
-    $errors_array_in_this_time_slot[] = $this->check_time_gap_and_check_fix_class_address_between_course_session_of_course($course, $time_slot, $time_slot_array);
+    // $errors_array_in_this_time_slot[] = $this->check_time_gap_and_check_fix_class_address_between_course_session_of_course($course, $time_slot, $time_slot_array);
 
     return $errors_array_in_this_time_slot;
   }
 
   public function check_position($time_slot, $course)
   {
-    return $this->pseudo_put_course_to_time_slot($course, $time_slot);
+    return $this->pseudo_put_course_to_time_slot($course, $time_slot, $this->time_slot_array);
   }
 
   public function is_time_slot_not_allow_change($time_slot)
@@ -4310,10 +4485,6 @@ class time_table_generator
     foreach ($this->time_slot_array as $current_time_slot) {
       if ($current_time_slot->time_slot_index == $time_slot->time_slot_index) {
 
-        // ở đây mới cài đặt thông tin cho room theo số thự tự 0-> n room 
-        // số thự tự này được tạo trong lần đầu khởi tạo mảng time_slot_array.
-        // còn thiếu thông tin cụ thể của room đó là room number, floor, building, physical address
-
         $this->time_slot_array[$time_slot->time_slot_index]->course_session_information = new course_session_information(
           $course->courseid,
           $course->shortname,
@@ -4325,6 +4496,16 @@ class time_table_generator
           $time_slot->date,
           $time_slot->room,
           $time_slot->room,
+          $time_slot->floor,
+          $time_slot->building,
+          $time_slot->ward,
+          $time_slot->district,
+          $time_slot->province,
+          $course->total_course_section,
+          $course->number_course_section_weekly,
+          $course->stt_course,
+          $time_slot->room_number,
+
         );
         $this->time_slot_array[$time_slot->time_slot_index]->is_occupied = true;
         $this->time_slot_array[$time_slot->time_slot_index]->is_occupied_by_course_in_prev_time_slot = false;
@@ -4342,14 +4523,67 @@ class time_table_generator
       }
     }
   }
+
+  public function unlocate_course_from_time_slot($course_param, $time_slot_param, $time_slot_contain_errors)
+  {
+    $unlocate_course_array = [];
+    $errors = $time_slot_contain_errors['errors'];
+    foreach ($errors as $error) {
+      $time_slot_conflict_array = $error->time_slot_conflict_array;
+      foreach ($time_slot_conflict_array as $current_time_slot) {
+        foreach ($this->time_slot_array as $time_slot) {
+          if ($time_slot->time_slot_index == $current_time_slot->time_slot_index) {
+
+            if (!empty($time_slot->course_session_information)) {
+              $courseid = $time_slot->course_session_information->courseid;
+              $stt_course = $time_slot->course_session_information->stt_course;
+              foreach ($this->course_array as $course) {
+                if ($course->courseid == $courseid and $course->stt_course == $stt_course) {
+                  $unlocate_course_array[] = $course;
+                  break;
+                }
+              }
+            }
+
+            $this->time_slot_array[$time_slot->time_slot_index]->course_session_information = new course_session_information();
+            $this->time_slot_array[$time_slot->time_slot_index]->is_occupied = false;
+            $this->time_slot_array[$time_slot->time_slot_index]->is_occupied_by_course_in_prev_time_slot = false;
+
+          }
+        }
+      }
+    }
+    return $unlocate_course_array;
+  }
+
+  public function is_time_slot_need_to_skip($time_slot_contain_errors)
+  {
+    if ($this->is_time_slot_not_allow_change($this->time_slot_array[$time_slot_contain_errors->original_time_slot_index])) {
+      return true;
+    }
+
+    $errors = $time_slot_contain_errors['errors'];
+    foreach ($errors as $error) {
+      switch ($error->error_type) {
+        case 0:
+        case 2:
+        case 3:
+        case 4:
+        case 6:
+        case 7:
+          return true;
+      }
+    }
+
+    return false;
+  }
   public function swap_course($course, $level_recursive, $number_of_call_recursive)
   {
     $best_time_slot_array = [];
     foreach ($this->time_slot_array as $time_slot) {
-      new time_slot();
       $slot_info = [
         'original_time_slot_index' => $time_slot->time_slot_index,
-        'errors' => $this->pseudo_put_course_to_time_slot($course, $time_slot),
+        'errors' => $this->pseudo_put_course_to_time_slot($course, $time_slot, $this->time_slot_array),
       ];
       $best_time_slot_array[] = $slot_info;
     }
@@ -4372,7 +4606,9 @@ class time_table_generator
 
     $put_success = false;
     foreach ($best_time_slot_array as $time_slot_contain_errors) {
-      if ($this->is_time_slot_not_allow_change($this->time_slot_array[$time_slot_contain_errors->original_time_slot_index])) {
+      // cần tiến hành xử lý và bỏ qua các vị trí cho lỗi tiết cấm, ngày cấm, không đủ tiết để đặt, ... ở đây
+      // dựa vào error_type để kiểm tra.
+      if ($this->is_time_slot_need_to_skip($time_slot_contain_errors)) {
         continue;
       }
 
@@ -4380,6 +4616,8 @@ class time_table_generator
       $unlocate_course_array = [];
       $time_slot = $this->time_slot_array[$time_slot_contain_errors->original_time_slot_index];
 
+      // hàm unlocate_course_from_time_slot này sẽ truy cập đến vị trí time slot theo time slot index và tiến hành gỡ bỏ các lỗi 
+      // các lỗi đã được lưu trong time slot contain errors.
       $unlocate_course_array = $this->unlocate_course_from_time_slot($course, $time_slot, $time_slot_contain_errors);
       $this->put_course_to_time_slot($course, $time_slot);
 
@@ -4399,8 +4637,6 @@ class time_table_generator
     if (!$put_success) {
       return false;
     }
-
-    throw new Exception('swap_course_function is runing wrong!', 1);
   }
   public function recursive_swap_algorithm($course_array, $level_recursive, $number_of_call_recursive)
   {
@@ -4577,15 +4813,14 @@ class time_table_generator
   {
     global $DB;
 
-    $timeTable = new \local_course_calendar\time_table_generator();
-    $timeTable = $timeTable->create_automatic_calendar_by_recursive_swap_algorithm();
-    $calendar = $timeTable->format_time_table($timeTable->get_time_slot_array());
+    $timeTable = $this->time_slot_array;
+    $calendar = $this->format_time_table($timeTable);
 
-    $available_rooms = $DB->get_records('local_course_calendar_course_room');
+    $available_rooms = $this->room_array;
 
     $number_room = count($available_rooms);
     $number_class_sessions = count(STT_CLASS_SESSIONS);
-    $number_day = $timeTable->get_number_day();
+    $number_day = $this->number_day;
 
     // --- In bảng thời khóa biểu ---
     echo "<!DOCTYPE html>";
@@ -4629,34 +4864,7 @@ class time_table_generator
     echo "<tr>";
     echo "<th>Phòng / Ngày</th>"; // Góc trên bên trái
     for ($j = 0; $j < $number_day; $j++) {
-      switch ($j) {
-        case 0:
-          echo "<th class='day-header'>Thứ 2" . "</th>";
-          break;
-        case 1:
-          echo "<th class='day-header'>Thứ 3" . "</th>";
-
-          break;
-        case 2:
-          echo "<th class='day-header'>Thứ 4" . "</th>";
-
-          break;
-        case 3:
-          echo "<th class='day-header'>Thứ 5" . "</th>";
-
-          break;
-        case 4:
-          echo "<th class='day-header'>Thứ 6" . "</th>";
-
-          break;
-        case 5:
-          echo "<th class='day-header'>Thứ 7" . "</th>";
-          break;
-        case 6:
-          echo "<th class='day-header'>CN" . "</th>";
-          break;
-
-      }
+      echo "<th class='day-header'>" . date("D, d-m-Y", $j * 24 * 60 * 60 + $this->earliest_start_date_timestamp) . "</th>";
 
     }
     echo "</tr>";
@@ -4860,11 +5068,8 @@ class time_table_generator
     $this->edit_sync_start_date_and_end_date_for_course($course_array);
 
     $earliest_start_date_timestamp = $this->get_earliest_start_day($course_array);
-    $earliest_start_date_datetime = (new \DateTime())->setTimestamp($earliest_start_date_timestamp);
-
     $latest_end_date_timestamp = $this->get_latest_end_day($course_array);
-    $latest_end_date_datetime = (new \DateTime())->setTimestamp($latest_end_date_timestamp);
-    $number_day = $earliest_start_date_datetime->diff($latest_end_date_datetime)->days + 1;
+    $number_day = $this->compute_number_day_between_start_day_and_end_day($earliest_start_date_timestamp, $latest_end_date_timestamp) + 1;
 
     $time_slot_array = [];
     $time_slot_index = 0;
@@ -4883,7 +5088,12 @@ class time_table_generator
             false,
             false,
             false,
-
+            $available_rooms[$j]->room_number,
+            $available_rooms[$j]->room_floor,
+            $available_rooms[$j]->room_building,
+            $available_rooms[$j]->ward_address,
+            $available_rooms[$j]->district_address,
+            $available_rooms[$j]->province_address,
           );
           $time_slot_index++;
         }
@@ -4897,7 +5107,7 @@ class time_table_generator
     // độ sâu tối đa mà thuật toán có thể gọi đến là 16 - theo hướng dẫn của giải thuật fet application - file doc
     // Số lần có thể gọi đệ quy là bằng 2 * số hoạt động có thể có - trong bài toán này số hoạt động có thể có là $number_course_not_schedule.
     $level_recursive = 0;
-    $max_level_recursive = 16;
+    $max_level_recursive = MAX_LEVEL_RECURSIVE;
     $number_of_call_recursive = 0;
     $max_number_of_call_recursive = 2 * $number_courses_not_schedule;
 
@@ -4919,7 +5129,6 @@ class time_table_generator
       $earliest_start_date_timestamp,
       $latest_end_date_timestamp,
     );
-
     $time_table->generate_time_table();
     $time_table->insert_teacher_and_non_teacher_to_time_table();
 

@@ -81,7 +81,9 @@ try {
 
     // Add a button to add a new course schedule.
     $add_new_course_schedule = new moodle_url('/local/course_calendar/edit_course_calendar_step_1.php', []);
+    $add_new_auto_create_course_schedule = new moodle_url('/local/course_calendar/auto_create_calendar_by_recursive_swap.php', []);
     echo '<div class="d-flex justify-content-end align-items-center">';
+    echo '<div><a class="btn btn-primary me-2" href="' . $add_new_auto_create_course_schedule->out() . '">+ Add new auto schedule</a></div>';
     echo '<div><a class="btn btn-primary " href="' . $add_new_course_schedule->out() . '">+ Add new schedule</a></div>';
     echo '</div>';
 
