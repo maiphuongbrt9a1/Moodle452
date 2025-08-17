@@ -4726,6 +4726,7 @@ class time_table_generator
       foreach ($this->time_slot_array as $time_slot) {
         if ($this->check_position($time_slot, $course)) {
           $available_time_slot_array[] = $time_slot->get_copy();
+          break;
         }
       }
 

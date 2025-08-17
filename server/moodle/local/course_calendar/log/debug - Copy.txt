@@ -1,0 +1,96 @@
+Put course with courseid: 8 with stt_course: 10 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 39786
+Put course to time_slot: 39787
+Put course to time_slot: 39788
+Put course to time_slot: 39789
+Put course with courseid: 8 with stt_course: 11 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 8314
+Put course to time_slot: 8315
+Put course to time_slot: 8316
+Put course to time_slot: 8317
+Put course with courseid: 8 with stt_course: 12 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 2922
+Put course to time_slot: 2923
+Put course to time_slot: 2924
+Put course to time_slot: 2925
+Put course with courseid: 8 with stt_course: 13 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 20922
+Put course to time_slot: 20923
+Put course to time_slot: 20924
+Put course to time_slot: 20925
+Put course with courseid: 8 with stt_course: 14 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 1914
+Put course to time_slot: 1915
+Put course to time_slot: 1916
+Put course to time_slot: 1917
+Put course with courseid: 8 with stt_course: 15 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 44762
+Put course to time_slot: 44763
+Put course to time_slot: 44764
+Put course to time_slot: 44765
+Put course with courseid: 8 with stt_course: 16 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 31434
+Put course to time_slot: 31435
+Put course to time_slot: 31436
+Put course to time_slot: 31437
+Put course with courseid: 8 with stt_course: 17 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 19755
+Put course to time_slot: 19756
+Put course to time_slot: 19757
+Put course to time_slot: 19758
+Put course with courseid: 8 with stt_course: 18 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3546
+Put course to time_slot: 3547
+Put course to time_slot: 3548
+Put course to time_slot: 3549
+Put course with courseid: 8 with stt_course: 19 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 2891
+Put course to time_slot: 2892
+Put course to time_slot: 2893
+Put course to time_slot: 2894
+Put course with courseid: 8 with stt_course: 20 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 22955
+Put course to time_slot: 22956
+Put course to time_slot: 22957
+Put course to time_slot: 22958
+Put course with courseid: 8 with stt_course: 21 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 30507
+Put course to time_slot: 30508
+Put course to time_slot: 30509
+Put course to time_slot: 30510
+Put course with courseid: 8 with stt_course: 22 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 37835
+Put course to time_slot: 37836
+Put course to time_slot: 37837
+Put course to time_slot: 37838
+Put course with courseid: 8 with stt_course: 23 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 17515
+Put course to time_slot: 17516
+Put course to time_slot: 17517
+Put course to time_slot: 17518
+Put course with courseid: 8 with stt_course: 24 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 10619
+Put course to time_slot: 10620
+Put course to time_slot: 10621
+Put course to time_slot: 10622
+Put course with courseid: 8 with stt_course: 25 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 42123
+Put course to time_slot: 42124
+Put course to time_slot: 42125
+Put course to time_slot: 42126
+Put course with courseid: 8 with stt_course: 26 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 48618
+Put course to time_slot: 48619
+Put course to time_slot: 48620
+Put course to time_slot: 48621
+Put course with courseid: 8 with stt_course: 27 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 23344
+Put course to time_slot: 23345
+Put course to time_slot: 23346
+Put course to time_slot: 23347
+Put course with courseid: 8 with stt_course: 28 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 8139
+Put course to time_slot: 8140
+Put course to time_slot: 8141
+Put course to time_slot: 8142
+Put course with courseid: 8 with stt_course: 29 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 40458
+Put course to time_slot: 40459
+Put course to time_slot: 40460
+Put course to time_slot: 40461
+Put course with courseid: 8 with stt_course: 30 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 11978
+Put course to time_slot: 11979
+Put course to time_slot: 11980
+Put course to time_slot: 11981
+Put course with courseid: 8 with stt_course: 31 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 14075
+Put course to time_slot: 14076
+Put course to time_slot: 14077
+Put course to time_slot: 14078
+Put course with courseid: 8 with stt_course: 32 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 43979
+Put course to time_slot: 43980
+Put course to time_slot: 43981
+Put course to time_slot: 43982
+Put course with courseid: 8 with stt_course: 33 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 6874
+Put course to time_slot: 6875
+Put course to time_slot: 6876
+Put course to time_slot: 6877
