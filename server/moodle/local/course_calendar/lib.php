@@ -3892,58 +3892,6 @@ class time_table_generator
   {
     return $this->time_slot_array;
   }
-  /**
-   * Summary of format_time_table
-   * Hàm này dùng để định dạng lại time_table theo format calendar[room][day][session].
-   * @return array Trả về mảng calendar là định dạng mới của time_table. Định dạng của calendar là calendar[room][day][session].
-   */
-  public function format_time_table($time_slot_array)
-  {
-    $calendar = [];
-
-    for ($i = 0; $i < $this->number_day; $i++) {
-      $calendar[] = [];
-      for ($j = 0; $j < $this->number_room; $j++) {
-        $calendar[$i][] = [];
-        for ($k = 0; $k < $this->number_class_sessions; $k++) {
-          foreach ($time_slot_array as $time_slot) {
-            if (
-              ($time_slot->date - $this->earliest_start_date_timestamp) / 86400 == $i
-              and $time_slot->room == $j
-              and $time_slot->session == $k
-            ) {
-              $calendar[$i][$j][] = new course_session_information(
-                $time_slot->course_session_information->courseid,
-                $time_slot->course_session_information->course_name,
-                $time_slot->course_session_information->course_session_length,
-                $time_slot->course_session_information->course_session_start_time,
-                $time_slot->course_session_information->course_session_end_time,
-                $time_slot->course_session_information->editting_teacherid,
-                $time_slot->course_session_information->non_editting_teacherid,
-                $time_slot->course_session_information->date,
-                $time_slot->course_session_information->random_room_stt,
-                $time_slot->course_session_information->room,
-                $time_slot->course_session_information->floor,
-                $time_slot->course_session_information->building,
-                $time_slot->course_session_information->ward,
-                $time_slot->course_session_information->district,
-                $time_slot->course_session_information->province,
-                $time_slot->course_session_information->total_number_course_section,
-                $time_slot->course_session_information->number_course_session_weekly,
-                $time_slot->course_session_information->stt_course,
-                $time_slot->course_session_information->room_number,
-
-              );
-
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    return $calendar;
-  }
 
   /**
    * Summary of deep_copy_time_slot_array
@@ -4063,7 +4011,7 @@ class time_table_generator
     $end_date_datetime = (new \DateTime())->setTimestamp($end_date_timestamp);
     $number_day = $start_date_datetime->diff($end_date_datetime)->days;
 
-    return $number_day;
+    return (int) $number_day;
 
   }
 
@@ -4106,6 +4054,7 @@ class time_table_generator
               $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date,
               $time_slot->date
             ) == TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE
+            and $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date < $time_slot->date
           ) {
             return []; // EMPTY ARRAY
           } else {
@@ -4159,6 +4108,7 @@ class time_table_generator
                 $end_time_slot_contain_course_session->date,
                 $time_slot->date
               ) == TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE
+              and $end_time_slot_contain_course_session->date < $time_slot->date
             ) {
               return []; // EMPTY ARRAY
             } else {
@@ -4774,11 +4724,15 @@ class time_table_generator
     // Bước 2: Try to place each activity (A_i) in an allowed time slot, following the above order, one at a time.
     // Search for an available slot (T_j) for A_i, in which this activity can be placed respecting the constraints.
     // If more slots are available, choose a random one. If none is available, do recursive swapping:
-    $this->recursive_swap_algorithm(
+    $suscess_flag = $this->recursive_swap_algorithm(
       $this->course_array,
       0,
       0
     );
+
+    if ($this->file_handle) {
+      fwrite($this->file_handle, "Generate time table success: " . $suscess_flag . "\n");
+    }
 
   }
 
@@ -4890,15 +4844,10 @@ class time_table_generator
   public function print_time_table()
   {
     global $DB;
-
-    $timeTable = $this->time_slot_array;
-    $calendar = $this->format_time_table($timeTable);
-
-    $available_rooms = $this->room_array;
-
-    $number_room = count($available_rooms);
-    $number_class_sessions = count(STT_CLASS_SESSIONS);
+    $number_room = $this->number_room;
+    $number_class_sessions = $this->number_class_sessions;
     $number_day = $this->number_day;
+    $time_slot_array = $this->time_slot_array;
 
     // --- In bảng thời khóa biểu ---
     echo "<!DOCTYPE html>";
@@ -4930,6 +4879,11 @@ class time_table_generator
     echo "            background-color: #f9f9f9;";
     echo "            font-weight: bold;";
     echo "        }";
+    echo "        .forbidden-session {";
+    echo "            background-color: #FF0000";
+    echo "            font-weight: bold;";
+    echo "        }";
+
     echo "    </style>";
     echo "</head>";
     echo "<body>";
@@ -4950,29 +4904,34 @@ class time_table_generator
 
     // Nội dung bảng
     echo "<tbody>";
+    $time_slot_index = 0;
     for ($i = 0; $i < $number_room; $i++) {
       echo "<tr>";
       echo "<td class='room-header'>Phòng " . ($i + 1) . "</td>"; // Cột đầu tiên là tên phòng
       for ($j = 0; $j < $number_day; $j++) {
         echo "<td>";
         // Duyệt qua các buổi học trong ngày và phòng hiện tại
-        if (!empty($calendar) and !empty($calendar[$j][$i])) {
-          $tiet = 1;
-          foreach ($calendar[$j][$i] as $k => $session_data) {
-            // Hiển thị nội dung buổi học.
-            // Bạn có thể format lại ở đây để hiển thị thông tin chi tiết hơn.
-            if (isset($session_data->courseid)) {
-              echo "<div>" . "Tiết " . $tiet . "</div>";
-              // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
-              echo "<div>" . $session_data->course_name . "</div>";
-            }
-            if ($k < $number_class_sessions - 1) {
-              echo "<hr style='border-top: 1px dashed #eee; margin: 5px 0;'>"; // Đường kẻ phân cách các buổi
-            }
-            $tiet++;
+        $tiet = 1;
+        for ($k = 0; $k < $number_class_sessions; $k++) {
+          // Hiển thị nội dung buổi học.
+          // Bạn có thể format lại ở đây để hiển thị thông tin chi tiết hơn.
+          if (!empty($time_slot_array[$time_slot_index]->course_session_information)) {
+            echo "<div>" . "Tiết " . $tiet . "</div>";
+            // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
+            echo "<div>" . $time_slot_array[$time_slot_index]->course_session_information->course_name . "</div>";
           }
-        } else {
-          echo "<i>(Chưa có dữ liệu)</i>"; // Hiển thị khi không có dữ liệu
+
+          if (
+            $time_slot_array[$time_slot_index]->is_not_allow_change
+            or !empty($this->check_holiday($time_slot_array[$time_slot_index], $this->course_array[0]))
+          ) {
+            echo "<div class='forbidden-session'>" . "</div>";
+          }
+
+          echo "<hr style='border-top: 1px dashed #eee; margin: 5px 0;'>"; // Đường kẻ phân cách các buổi
+
+          $tiet++;
+          $time_slot_index++;
         }
         echo "</td>";
       }
@@ -5118,6 +5077,88 @@ class time_table_generator
     }
   }
 
+  public function write_log()
+  {
+    if ($this->file_handle) {
+      $value = "**************************This is system config informations: ***************************************\n";
+      fwrite($this->file_handle, $value);
+
+      $date = "";
+      foreach (DATES as $d) {
+        $date . $d . ', ';
+      }
+      $date . "\n";
+      fwrite($this->file_handle, $date);
+
+      $session = "";
+      foreach (AVAILABLE_CLASS_SESSIONS as $s) {
+        $session . $s . ', ';
+      }
+      $session . "\n";
+      fwrite($this->file_handle, $session);
+
+      fwrite($this->file_handle, "One session is " . TIME_SLOT_DURATION / 60 . " minute \n");
+      fwrite($this->file_handle, "Max continue class session is " . MAX_CLASS_DURATION . " sessions \n");
+      fwrite($this->file_handle, "Number course session of one course weekly is " . NUMBER_COURSE_SESSION_WEEKLY . "\n");
+      fwrite($this->file_handle, "Time gap between course session of same course " . TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE . "\n");
+
+      $value = "***************************************This is time table informations: ***************************************\n";
+      fwrite($this->file_handle, $value);
+
+      fwrite($this->file_handle, "Number courses didn't schedule: " . count($this->course_array) . "\n");
+      fwrite($this->file_handle, "Number room: " . $this->number_room . "\n");
+      fwrite($this->file_handle, "Number teacher and non teacher: " . count($this->teacher_and_non_teacher_array) . "\n");
+      fwrite($this->file_handle, "Schedule in time range with start date: " . date("D, d-m-Y", $this->earliest_start_date_timestamp) . "\n");
+      fwrite($this->file_handle, "Schedule in time range with end date: " . date("D, d-m-Y", $this->latest_end_date_timestamp) . "\n");
+      fwrite($this->file_handle, "Number day in time range: " . $this->number_day . "\n");
+      fwrite($this->file_handle, "Number session in one day of one room: " . $this->number_class_sessions . "\n");
+
+      $value = "***************************************This is course array informations: ***************************************\n";
+      fwrite($this->file_handle, $value);
+      $course_infor = "";
+      foreach ($this->course_array as $course) {
+        $course_infor .= "Course id: " . $course->courseid . " "
+          . "Course category " . $course->category . " "
+          . "Course name " . $course->shortname . " "
+          . "Course start date " . date("D, d-m-Y", $course->startdate) . " "
+          . "Course end date " . date("D, d-m-Y", $course->enddate) . " "
+          . "Visible " . $course->visible . " "
+          . "Course session duration " . $course->class_duration . " "
+          . "Number course session weekly " . $course->number_course_session_weekly . " "
+          . "Number student on course " . $course->number_student_on_course . " "
+          . "Total course session of course " . $course->total_course_section . "\n";
+      }
+      fwrite($this->file_handle, $course_infor);
+
+      $value = "***************************************This is teacher and non teacher array informations: ***************************************\n";
+      fwrite($this->file_handle, $value);
+      $teacher_and_non_teacher_infor = "";
+      foreach ($this->teacher_and_non_teacher_array as $teacher) {
+        "(user.id) id, user.firstname, user.lastname, user.email, role.shortname";
+        $teacher_and_non_teacher_infor .= "Teacher id: " . $teacher->id . " "
+          . "Teacher name " . $teacher->firstname . " " . $teacher->lastname . " "
+          . "Teacher email " . $teacher->email . " "
+          . "Teacher role name " . $teacher->shortname . "\n";
+      }
+      fwrite($this->file_handle, $teacher_and_non_teacher_infor);
+      $value = "***************************************This is room array informations: ***************************************\n";
+      fwrite($this->file_handle, $value);
+      $room_infor = "";
+      foreach ($this->room_array as $room) {
+        "";
+        $room_infor .= "Room id: " . $room->id . " "
+          . "Room number " . $room->room_number . " "
+          . "Room floor " . $room->room_floor . " "
+          . "Room building " . $room->room_building . " "
+          . "Room ward address" . $room->ward_address . " "
+          . "Room district address" . $room->district_address . " "
+          . "Room province address " . $room->province_address . " "
+          . "\n";
+      }
+      fwrite($this->file_handle, $room_infor);
+    }
+  }
+
   /**
    * Summary of create_automatic_calendar_by_recursive_swap_algorithm
    * Hàm này thực hiện việc truy xuất các dữ liệu cần thiết cho việc tạo thời khóa biểu và tiến hành gọi hàm 
@@ -5220,6 +5261,7 @@ class time_table_generator
 
     $time_table->generate_time_table();
     $time_table->insert_teacher_and_non_teacher_to_time_table();
+    $time_table->write_log();
 
     // --- Kết thúc đo thời gian ---
     $end_time = microtime(true);
@@ -5227,8 +5269,8 @@ class time_table_generator
     $execution_time = $end_time - $start_time;
 
     // Chuẩn bị nội dung log
-    $log_content = "Giải thuật bắt đầu lúc: " . date("Y-m-d H:i:s", $start_time) . "\n";
-    $log_content .= "Giải thuật kết thúc lúc: " . date("Y-m-d H:i:s", $end_time) . "\n";
+    $log_content = "Giải thuật bắt đầu lúc: " . date("Y-m-d H:i:s", (int) $start_time) . "\n";
+    $log_content .= "Giải thuật kết thúc lúc: " . date("Y-m-d H:i:s", (int) $end_time) . "\n";
     $log_content .= "Tổng thời gian chạy: " . number_format($execution_time, 4) . " giây\n\n";
     // Ghi nội dung vào file
     fwrite($file_handle, $log_content);
