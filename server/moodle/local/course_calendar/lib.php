@@ -182,6 +182,8 @@ const NUMBER_COURSE_SESSION_WEEKLY = 2;
 
 const TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE = 2;
 
+const TOTAL_COURSE_SESSION_OF_COURSE = 15;
+
 class course_session_information
 {
   public $courseid;
@@ -4395,6 +4397,26 @@ class time_table_generator
     return [];
   }
 
+  public function check_course_session_of_course_in_range_start_time_to_end_time($course, $time_slot, $time_slot_array)
+  {
+    $start_date_of_course = $course->startdate;
+    $end_date_of_course = $course->enddate;
+    $time_slot_conflict_array = [];
+    $number_time_slot_conflict = 0;
+
+    if ($time_slot->date >= $start_date_of_course and $time_slot->date <= $end_date_of_course) {
+      return [];
+
+    }
+
+    return [
+      'error_type' => 9,
+      'error_decription' => 'This time slot have not in range start date to end date of course for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+      'time_slot_conflict_array' => $time_slot_conflict_array,
+      'number_time_slot_conflict' => $number_time_slot_conflict
+    ];
+  }
+
   public function pseudo_put_course_to_time_slot($course, $time_slot, $time_slot_array)
   {
     $errors_array_in_this_time_slot = [];
@@ -4407,6 +4429,7 @@ class time_table_generator
     $errors_array_in_this_time_slot[] = $this->check_holiday($time_slot, $course);
     $errors_array_in_this_time_slot[] = $this->check_forbidden_session($time_slot, $course);
     $errors_array_in_this_time_slot[] = $this->check_time_gap_and_check_fix_class_address_between_course_session_of_course($course, $time_slot, $time_slot_array);
+    $errors_array_in_this_time_slot[] = $this->check_course_session_of_course_in_range_start_time_to_end_time($course, $time_slot, $time_slot_array);
 
     return $errors_array_in_this_time_slot;
   }
@@ -4575,6 +4598,7 @@ class time_table_generator
         case 4:
         case 6:
         case 7:
+        case 9:
           return true;
       }
     }
@@ -4783,7 +4807,9 @@ class time_table_generator
       $course->stt_course = $index;
       $course_array[] = clone $course;
       if (empty($course->total_course_section)) {
+        // CHECK HERE
         $course->total_course_section = 1;
+
         $index++;
         continue;
       }
@@ -4895,8 +4921,8 @@ class time_table_generator
     echo "<thead>";
     echo "<tr>";
     echo "<th>Phòng / Ngày</th>"; // Góc trên bên trái
-    for ($j = 0; $j < $number_day; $j++) {
-      echo "<th class='day-header'>" . date("D, d-m-Y", $j * 24 * 60 * 60 + $this->earliest_start_date_timestamp) . "</th>";
+    for ($j = 0; $j < $number_room; $j++) {
+      echo "<th class='room-header'>Phòng " . ($j + 1) . "</th>"; // Cột đầu tiên là tên phòng
 
     }
     echo "</tr>";
@@ -4905,10 +4931,10 @@ class time_table_generator
     // Nội dung bảng
     echo "<tbody>";
     $time_slot_index = 0;
-    for ($i = 0; $i < $number_room; $i++) {
+    for ($i = 0; $i < $number_day; $i++) {
       echo "<tr>";
-      echo "<td class='room-header'>Phòng " . ($i + 1) . "</td>"; // Cột đầu tiên là tên phòng
-      for ($j = 0; $j < $number_day; $j++) {
+      echo "<td class='day-header'>" . date("D, d-m-Y", $i * 24 * 60 * 60 + $this->earliest_start_date_timestamp) . "</td>";
+      for ($j = 0; $j < $number_room; $j++) {
         echo "<td>";
         // Duyệt qua các buổi học trong ngày và phòng hiện tại
         $tiet = 1;
@@ -4918,15 +4944,16 @@ class time_table_generator
           if (!empty($time_slot_array[$time_slot_index]->course_session_information)) {
             echo "<div>" . "Tiết " . $tiet . "</div>";
             // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
-            echo "<div>" . $time_slot_array[$time_slot_index]->course_session_information->course_name . "</div>";
+            echo "<div>" . "Course name: " . $time_slot_array[$time_slot_index]->course_session_information->course_name . " Stt course session: " . $time_slot_array[$time_slot_index]->course_session_information->stt_course . "</div>";
           }
 
-          if (
-            $time_slot_array[$time_slot_index]->is_not_allow_change
-            or !empty($this->check_holiday($time_slot_array[$time_slot_index], $this->course_array[0]))
-          ) {
-            echo "<div class='forbidden-session'>" . "</div>";
-          }
+          // if (
+          //   $time_slot_array[$time_slot_index]->is_not_allow_change
+          //   or !empty($this->check_holiday($time_slot_array[$time_slot_index], $this->course_array[0]))
+          //   or !empty($this->check_forbidden_session($time_slot_array[$time_slot_index], $this->course_array[0]))
+          // ) {
+          //   echo "<div class='forbidden-session' style ='background-color: #FF0000;'>" . "Tiết: " . $tiet . "</div>";
+          // }
 
           echo "<hr style='border-top: 1px dashed #eee; margin: 5px 0;'>"; // Đường kẻ phân cách các buổi
 
@@ -4953,7 +4980,9 @@ class time_table_generator
         for ($j = 1; $j < 8; $j++) {
           $temp_start_date = $course->startdate + $j * 24 * 60 * 60;
           if (date("D", $temp_start_date) == "Mon") {
-            $course->startdate = $temp_start_date;
+            $course->startdate = strtotime(
+              date("d-m-Y", $temp_start_date) . " " . "0:00"
+            );
             break;
           }
         }
@@ -4963,7 +4992,9 @@ class time_table_generator
         for ($j = 1; $j < 8; $j++) {
           $temp_end_date = $course->enddate + $j * 24 * 60 * 60;
           if (date("D", $temp_end_date) == "Mon") {
-            $course->enddate = $temp_end_date;
+            $course->enddate = strtotime(
+              date("d-m-Y", $temp_end_date) . " " . "0:00"
+            );
             break;
           }
         }
