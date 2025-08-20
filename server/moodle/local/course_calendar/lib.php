@@ -184,6 +184,7 @@ const TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE = 2;
 
 const TOTAL_COURSE_SESSION_OF_COURSE = 15;
 
+const DEFAULT_NUMBER_COURSE_SESSION_OF_COURSE = 15;
 class course_session_information
 {
   public $courseid;
@@ -4050,16 +4051,57 @@ class time_table_generator
       return []; // EMPTY ARRAY
     }
 
+    // get monday and sunday of current week
+    $monday_timestamp = $time_slot->date;
+    $sunday_timestamp = $time_slot->date;
+    for ($i = 0; $i < 8; $i++) {
+      $date = $time_slot->date - $i * 24 * 60 * 60;
+      if (date("D", $date) == "Mon") {
+        $monday_timestamp = $date;
+        break;
+      }
+    }
+
+    $sunday_timestamp = $monday_timestamp + 6 * 24 * 60 * 60;
+    $count_number_course_session_in_current_week = 0;
+    foreach ($prev_course_session_time_slot_array as $prev_time_slot) {
+      if ($prev_time_slot->date >= $monday_timestamp and $prev_time_slot->date <= $sunday_timestamp) {
+        $count_number_course_session_in_current_week++;
+      }
+    }
+
+    // kiểm tra tuần hiện tại đã đặt dủ buổi hay chưa
     if (
-      $prev_course_session_time_slot_array[$count_prev_course_session - 1]->room == $time_slot->room
-      and $prev_course_session_time_slot_array[$count_prev_course_session - 1]->session == $time_slot->session
-      and $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date < $time_slot->date
-      and $this->compute_number_day_between_start_day_and_end_day(
-        $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date,
-        $time_slot->date
-      ) == TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE
+      $count_number_course_session_in_current_week > 0
+      and $count_number_course_session_in_current_week < $course->number_course_session_weekly
     ) {
-      return [];
+      $index = $count_number_course_session_in_current_week - 1;
+      if (
+        $prev_course_session_time_slot_array[$index]->room <= $time_slot->room
+        and $prev_course_session_time_slot_array[$index]->session == $time_slot->session
+        and $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date < $time_slot->date
+        and $this->compute_number_day_between_start_day_and_end_day(
+          $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date,
+          $time_slot->date
+        ) == TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE
+      ) {
+        return [];
+      }
+    } else if ($count_number_course_session_in_current_week == 0) {
+      if (
+        $prev_course_session_time_slot_array[0]->room <= $time_slot->room
+        and $prev_course_session_time_slot_array[0]->session == $time_slot->session
+        and date("D", $prev_course_session_time_slot_array[0]->date) == date("D", $time_slot->date)
+      ) {
+        return [];
+      }
+    } else if ($count_number_course_session_in_current_week == $course->number_course_session_weekly) {
+      return [
+        'error_type' => 11,
+        'error_decription' => 'This current week has enough number course session for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+        'time_slot_conflict_array' => $time_slot_conflict_array,
+        'number_time_slot_conflict' => $number_time_slot_conflict
+      ];
     }
 
     return [
@@ -4365,16 +4407,18 @@ class time_table_generator
     }
 
     $count_putted_course_time_slot = count($putted_course_time_slot_infor);
-    if (date("D, d-m-Y", $putted_course_time_slot_infor[$count_putted_course_time_slot - 1]->date) != date("D, d-m-Y", $time_slot->date)) {
-      return [];
+    for ($i = 0; $i < $count_putted_course_time_slot; $i++) {
+      if (date("D, d-m-Y", $putted_course_time_slot_infor[$i]->date) == date("D, d-m-Y", $time_slot->date)) {
+        return [
+          'error_type' => 10,
+          'error_decription' => 'duplicate course session of same course on one day for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+          'time_slot_conflict_array' => $time_slot_conflict_array,
+          'number_time_slot_conflict' => $number_time_slot_conflict
+        ];
+      }
     }
 
-    return [
-      'error_type' => 10,
-      'error_decription' => 'duplicate course session of same course on one day for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
-      'time_slot_conflict_array' => $time_slot_conflict_array,
-      'number_time_slot_conflict' => $number_time_slot_conflict
-    ];
+    return [];
   }
 
   public function pseudo_put_course_to_time_slot($course, $time_slot, $time_slot_array)
@@ -4619,6 +4663,7 @@ class time_table_generator
         case 7:
         case 9:
         case 10:
+        case 11:
           return true;
       }
     }
@@ -4692,8 +4737,6 @@ class time_table_generator
       // clone here
       $unlocate_course_array = $this->unlocate_course_from_time_slot($course, $time_slot, $time_slot_contain_errors);
 
-      $check_condition = $this->pseudo_put_course_to_time_slot($course, $time_slot, $this->time_slot_array);
-
       $this->put_course_to_time_slot($course, $time_slot);
 
       $put_success = $this->recursive_swap_algorithm(
@@ -4732,7 +4775,7 @@ class time_table_generator
       if (!empty($available_time_slot_array)) {
         $index = rand(0, count($available_time_slot_array) - 1);
 
-        $check_condition = $this->pseudo_put_course_to_time_slot($course, $available_time_slot_array[$index], $this->time_slot_array);
+        // $check_condition = $this->pseudo_put_course_to_time_slot($course, $available_time_slot_array[$index], $this->time_slot_array);
 
         $this->put_course_to_time_slot($course, $available_time_slot_array[$index]);
       } else {
@@ -4836,10 +4879,7 @@ class time_table_generator
       $course_array[] = clone $course;
       if (empty($course->total_course_section)) {
         // CHECK HERE
-        $course->total_course_section = 1;
-
-        $index++;
-        continue;
+        $course->total_course_section = DEFAULT_NUMBER_COURSE_SESSION_OF_COURSE;
       }
 
       if ($course->total_course_section > 1) {
@@ -4973,24 +5013,25 @@ class time_table_generator
             echo "<div>" . "Tiết " . $tiet . "</div>";
             // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
             echo "<div>"
-              . "Course name: "
-              . $time_slot_array[$time_slot_index]->course_session_information->course_name
+              . "Course id: "
+              . $time_slot_array[$time_slot_index]->course_session_information->courseid
               . " Stt course session: "
               . $time_slot_array[$time_slot_index]->course_session_information->stt_course
-              . " Course session date: "
-              . date("D, d-m-Y", $time_slot_array[$time_slot_index]->date)
-              . " Course session room: "
-              . $time_slot_array[$time_slot_index]->room
+              . " Course name: "
+              . $time_slot_array[$time_slot_index]->course_session_information->course_name
+              // . " Primary teacher id: "
+              // . $time_slot_array[$time_slot_index]->course_session_information->editting_teacherid
+              // . " Secondary teacher id: "
+              // . $time_slot_array[$time_slot_index]->course_session_information->non_editting_teacherid
               . "</div>";
           }
-
-          // if (
-          //   $time_slot_array[$time_slot_index]->is_not_allow_change
-          //   or !empty($this->check_holiday($time_slot_array[$time_slot_index], $this->course_array[0]))
-          //   or !empty($this->check_forbidden_session($time_slot_array[$time_slot_index], $this->course_array[0]))
-          // ) {
-          //   echo "<div class='forbidden-session' style ='background-color: #FF0000;'>" . "Tiết: " . $tiet . "</div>";
-          // }
+          if (
+            $time_slot_array[$time_slot_index]->is_not_allow_change
+            or !empty($this->check_holiday($time_slot_array[$time_slot_index], $this->course_array[0]))
+            // or !empty($this->check_forbidden_session($time_slot_array[$time_slot_index], $this->course_array[0]))
+          ) {
+            echo "<div class='forbidden-session' style ='background-color: #FF0000;'>" . "Tiết: " . $tiet . "</div>";
+          }
 
           echo "<hr style='border-top: 1px dashed #eee; margin: 5px 0;'>"; // Đường kẻ phân cách các buổi
 
@@ -5186,6 +5227,7 @@ class time_table_generator
       $course_infor = "";
       foreach ($this->course_array as $course) {
         $course_infor .= "Course id: " . $course->courseid . " "
+          . "STT Course session " . $course->stt_course . " "
           . "Course category " . $course->category . " "
           . "Course name " . $course->shortname . " "
           . "Course start date " . date("D, d-m-Y", $course->startdate) . " "
@@ -5329,10 +5371,10 @@ class time_table_generator
     );
 
     $time_table->set_file_handle_for_write_log($file_handle);
+    $time_table->write_log();
 
     $time_table->generate_time_table();
     $time_table->insert_teacher_and_non_teacher_to_time_table();
-    $time_table->write_log();
 
     // --- Kết thúc đo thời gian ---
     $end_time = microtime(true);

@@ -1,24 +1,385 @@
-Put course with courseid: 8 with stt_course: 10 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3482
+**************************This is system config informations: ***************************************
+One session is 45 minute 
+Max continue class session is 5 sessions 
+Number course session of one course weekly is 2
+Time gap between course session of same course 2
+***************************************This is time table informations: ***************************************
+Number courses didn't schedule: 88
+Number room: 31
+Number teacher and non teacher: 5
+Schedule in time range with start date: Mon, 23-06-2025
+Schedule in time range with end date: Mon, 29-09-2025
+Number day in time range: 99
+Number session in one day of one room: 16
+***************************************This is course array informations: ***************************************
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 2 Course category 1 Course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 8 Course category 2 Course name HK251 - Lập trình web - Thầy Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 9 Course category 2 Course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 25
+Course id: 3 Course category 1 Course name HK242 - Đồ án tốt nghiệp - Lê Thị Bảo Thu Course start date Mon, 23-06-2025 Course end date Mon, 22-09-2025 Visible 1 Course session duration 3 Number course session weekly 2 Number student on course 25 Total course session of course 
+Course id: 7 Course category 2 Course name HK243 - Kiến trúc phần mềm - Trần Trương Tuấn Phát Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 3 Number course session weekly 3 Number student on course 25 Total course session of course 
+Course id: 10 Course category 2 Course name HK221 - Mạng máy tính - Nguyễn Phương Duy Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 3 Number course session weekly 2 Number student on course 25 Total course session of course 
+Course id: 11 Course category 3 Course name HK231 - Thiết kế và phân tích hệ thống - Nguyễn Thanh Tùng Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 3 Number student on course 25 Total course session of course 
+Course id: 12 Course category 2 Course name HK221 - Kỹ thuật lập trình - Nguyễn Đức Dũng Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 
+Course id: 14 Course category 3 Course name HK251 - Hệ thống thông tin Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 
+Course id: 15 Course category 2 Course name HK221 - Nhập môn điện toán - Bùi Quốc Huy Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 3 Number student on course 25 Total course session of course 
+Course id: 16 Course category 2 Course name HK222 - Kiến trúc máy tính - Trần Thanh Bình Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 3 Number course session weekly 2 Number student on course 25 Total course session of course 
+Course id: 18 Course category 1 Course name HK231 - Hệ thống tài chính - Cô Hiền Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 2 Number course session weekly 2 Number student on course 25 Total course session of course 
+Course id: 19 Course category 1 Course name HK233 - Quản lý sản xuất cho kỹ sư - Thầy Hùng Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 3 Number course session weekly 3 Number student on course 25 Total course session of course 
+Course id: 20 Course category 1 Course name HK222 - Cấu trúc dữ liệu và giải thuật - Trần Ngọc Bảo Duy Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 2 Number student on course 25 Total course session of course 
+Course id: 22 Course category 1 Course name HK221 - Giải tích 2 - Ngọc Huyền Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 3 Number course session weekly 2 Number student on course 25 Total course session of course 
+Course id: 23 Course category 1 Course name HK231 - Vật lý 1 - Thầy Châu Course start date Mon, 30-06-2025 Course end date Mon, 29-09-2025 Visible 1 Course session duration 4 Number course session weekly 3 Number student on course 25 Total course session of course 
+***************************************This is teacher and non teacher array informations: ***************************************
+Teacher id: 2 Teacher name Admin User Teacher email maiphuongbrt9a1@gmail.com Teacher role name editingteacher
+Teacher id: 4 Teacher name Lê Thị Bảo Thu Teacher email lethibaothu@gmail.com Teacher role name editingteacher
+Teacher id: 5 Teacher name Lê Đình Thuận Teacher email ledinhthuan@gmail.com Teacher role name editingteacher
+Teacher id: 8 Teacher name Phan Trung Hiếu Teacher email phantrunghieu@gmail.com Teacher role name editingteacher
+Teacher id: 13 Teacher name Nguyễn Đình Anh Khoa Teacher email nguyendinhanhkhoa@gmail.com Teacher role name teacher
+***************************************This is room array informations: ***************************************
+Room id: 96 Room number 101 Room floor 1 Room building Building 1 Room ward addressPhường 14 Room district addressQuận 10 Room province address TP.HCM 
+Room id: 97 Room number 102 Room floor 1 Room building Building 1 Room ward addressPhường 14 Room district addressQuận 10 Room province address TP.HCM 
+Room id: 101 Room number 201 Room floor 2 Room building Building 1 Room ward addressPhường 14 Room district addressQuận 10 Room province address TP.HCM 
+Room id: 102 Room number 202 Room floor 2 Room building Building 1 Room ward addressPhường 14 Room district addressQuận 10 Room province address TP.HCM 
+Room id: 109 Room number 304 Room floor 3 Room building Building 1 Room ward addressPhường 14 Room district addressQuận 10 Room province address TP.HCM 
+Room id: 110 Room number 305 Room floor 3 Room building Building 1 Room ward addressPhường 14 Room district addressQuận 10 Room province address TP.HCM 
+Room id: 111 Room number 401 Room floor 4 Room building Building 1 Room ward addressPhường 14 Room district addressQuận 10 Room province address TP.HCM 
+Room id: 112 Room number 402 Room floor 4 Room building Building 1 Room ward addressPhường 14 Room district addressQuận 10 Room province address TP.HCM 
+Room id: 116 Room number 101 Room floor 1 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 118 Room number 103 Room floor 1 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 119 Room number 104 Room floor 1 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 123 Room number 203 Room floor 2 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 124 Room number 204 Room floor 2 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 125 Room number 205 Room floor 2 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 126 Room number 301 Room floor 3 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 127 Room number 302 Room floor 3 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 130 Room number 305 Room floor 3 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 131 Room number 401 Room floor 4 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 132 Room number 402 Room floor 4 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 133 Room number 403 Room floor 4 Room building Building 2 Room ward addressĐông Hòa Room district addressDĩ An Room province address Bình Dương 
+Room id: 136 Room number 101 Room floor 1 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 137 Room number 102 Room floor 1 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 138 Room number 103 Room floor 1 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 141 Room number 201 Room floor 2 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 142 Room number 202 Room floor 2 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 146 Room number 301 Room floor 3 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 147 Room number 302 Room floor 3 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 148 Room number 303 Room floor 3 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 151 Room number 401 Room floor 4 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 152 Room number 402 Room floor 4 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Room id: 153 Room number 403 Room floor 4 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
+Put course with courseid: 8 with stt_course: 25 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3482
 Put course to time_slot: 3483
 Put course to time_slot: 3484
 Put course to time_slot: 3485
-Put course with courseid: 8 with stt_course: 11 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 4474
+Put course with courseid: 8 with stt_course: 26 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 4474
 Put course to time_slot: 4475
 Put course to time_slot: 4476
 Put course to time_slot: 4477
-Put course with courseid: 8 with stt_course: 12 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3978
-Put course to time_slot: 3979
-Put course to time_slot: 3980
-Put course to time_slot: 3981
-Put course with courseid: 8 with stt_course: 13 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3994
-Put course to time_slot: 3995
-Put course to time_slot: 3996
-Put course to time_slot: 3997
-Put course with courseid: 8 with stt_course: 14 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 4010
-Put course to time_slot: 4011
-Put course to time_slot: 4012
-Put course to time_slot: 4013
-Put course with courseid: 8 with stt_course: 15 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 4026
-Put course to time_slot: 4027
-Put course to time_slot: 4028
-Put course to time_slot: 4029
+Put course with courseid: 8 with stt_course: 27 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 6954
+Put course to time_slot: 6955
+Put course to time_slot: 6956
+Put course to time_slot: 6957
+Put course with courseid: 8 with stt_course: 28 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 7946
+Put course to time_slot: 7947
+Put course to time_slot: 7948
+Put course to time_slot: 7949
+Put course with courseid: 8 with stt_course: 29 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 10426
+Put course to time_slot: 10427
+Put course to time_slot: 10428
+Put course to time_slot: 10429
+Put course with courseid: 8 with stt_course: 30 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 11418
+Put course to time_slot: 11419
+Put course to time_slot: 11420
+Put course to time_slot: 11421
+Put course with courseid: 8 with stt_course: 31 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 13898
+Put course to time_slot: 13899
+Put course to time_slot: 13900
+Put course to time_slot: 13901
+Put course with courseid: 8 with stt_course: 32 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 14890
+Put course to time_slot: 14891
+Put course to time_slot: 14892
+Put course to time_slot: 14893
+Put course with courseid: 8 with stt_course: 33 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 17370
+Put course to time_slot: 17371
+Put course to time_slot: 17372
+Put course to time_slot: 17373
+Put course with courseid: 8 with stt_course: 34 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 18362
+Put course to time_slot: 18363
+Put course to time_slot: 18364
+Put course to time_slot: 18365
+Put course with courseid: 8 with stt_course: 35 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 20842
+Put course to time_slot: 20843
+Put course to time_slot: 20844
+Put course to time_slot: 20845
+Put course with courseid: 8 with stt_course: 36 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 21834
+Put course to time_slot: 21835
+Put course to time_slot: 21836
+Put course to time_slot: 21837
+Put course with courseid: 8 with stt_course: 37 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 24314
+Put course to time_slot: 24315
+Put course to time_slot: 24316
+Put course to time_slot: 24317
+Put course with courseid: 8 with stt_course: 38 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 25306
+Put course to time_slot: 25307
+Put course to time_slot: 25308
+Put course to time_slot: 25309
+Put course with courseid: 8 with stt_course: 39 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 27786
+Put course to time_slot: 27787
+Put course to time_slot: 27788
+Put course to time_slot: 27789
+Put course with courseid: 8 with stt_course: 40 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 28778
+Put course to time_slot: 28779
+Put course to time_slot: 28780
+Put course to time_slot: 28781
+Put course with courseid: 8 with stt_course: 41 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 31258
+Put course to time_slot: 31259
+Put course to time_slot: 31260
+Put course to time_slot: 31261
+Put course with courseid: 8 with stt_course: 42 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 32250
+Put course to time_slot: 32251
+Put course to time_slot: 32252
+Put course to time_slot: 32253
+Put course with courseid: 8 with stt_course: 43 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 34730
+Put course to time_slot: 34731
+Put course to time_slot: 34732
+Put course to time_slot: 34733
+Put course with courseid: 8 with stt_course: 44 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 35722
+Put course to time_slot: 35723
+Put course to time_slot: 35724
+Put course to time_slot: 35725
+Put course with courseid: 8 with stt_course: 45 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 38202
+Put course to time_slot: 38203
+Put course to time_slot: 38204
+Put course to time_slot: 38205
+Put course with courseid: 8 with stt_course: 46 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 39194
+Put course to time_slot: 39195
+Put course to time_slot: 39196
+Put course to time_slot: 39197
+Put course with courseid: 8 with stt_course: 47 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 41674
+Put course to time_slot: 41675
+Put course to time_slot: 41676
+Put course to time_slot: 41677
+Put course with courseid: 8 with stt_course: 48 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 42666
+Put course to time_slot: 42667
+Put course to time_slot: 42668
+Put course to time_slot: 42669
+Put course with courseid: 8 with stt_course: 49 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 45146
+Put course to time_slot: 45147
+Put course to time_slot: 45148
+Put course to time_slot: 45149
+Put course with courseid: 2 with stt_course: 0 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 10
+Put course to time_slot: 11
+Put course with courseid: 2 with stt_course: 1 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 1002
+Put course to time_slot: 1003
+Put course with courseid: 2 with stt_course: 2 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 3498
+Put course to time_slot: 3499
+Put course with courseid: 2 with stt_course: 3 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 4490
+Put course to time_slot: 4491
+Put course with courseid: 2 with stt_course: 4 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 6970
+Put course to time_slot: 6971
+Put course with courseid: 2 with stt_course: 5 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 7962
+Put course to time_slot: 7963
+Put course with courseid: 2 with stt_course: 6 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 10442
+Put course to time_slot: 10443
+Put course with courseid: 2 with stt_course: 7 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 11434
+Put course to time_slot: 11435
+Put course with courseid: 2 with stt_course: 8 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 13914
+Put course to time_slot: 13915
+Put course with courseid: 2 with stt_course: 9 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 14906
+Put course to time_slot: 14907
+Put course with courseid: 2 with stt_course: 10 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 17386
+Put course to time_slot: 17387
+Put course with courseid: 2 with stt_course: 11 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 18378
+Put course to time_slot: 18379
+Put course with courseid: 2 with stt_course: 12 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 20858
+Put course to time_slot: 20859
+Put course with courseid: 2 with stt_course: 13 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 21850
+Put course to time_slot: 21851
+Put course with courseid: 2 with stt_course: 14 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 24330
+Put course to time_slot: 24331
+Put course with courseid: 2 with stt_course: 15 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 25322
+Put course to time_slot: 25323
+Put course with courseid: 2 with stt_course: 16 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 27802
+Put course to time_slot: 27803
+Put course with courseid: 2 with stt_course: 17 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 28794
+Put course to time_slot: 28795
+Put course with courseid: 2 with stt_course: 18 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 31274
+Put course to time_slot: 31275
+Put course with courseid: 2 with stt_course: 19 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 32266
+Put course to time_slot: 32267
+Put course with courseid: 2 with stt_course: 20 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 34746
+Put course to time_slot: 34747
+Put course with courseid: 2 with stt_course: 21 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 35738
+Put course to time_slot: 35739
+Put course with courseid: 2 with stt_course: 22 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 38218
+Put course to time_slot: 38219
+Put course with courseid: 2 with stt_course: 23 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 39210
+Put course to time_slot: 39211
+Put course with courseid: 2 with stt_course: 24 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 41690
+Put course to time_slot: 41691
+Put course with courseid: 9 with stt_course: 50 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3500
+Put course to time_slot: 3501
+Put course with courseid: 9 with stt_course: 51 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 4492
+Put course to time_slot: 4493
+Put course with courseid: 9 with stt_course: 52 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 6972
+Put course to time_slot: 6973
+Put course with courseid: 9 with stt_course: 53 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 7964
+Put course to time_slot: 7965
+Put course with courseid: 9 with stt_course: 54 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 10444
+Put course to time_slot: 10445
+Put course with courseid: 9 with stt_course: 55 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 11436
+Put course to time_slot: 11437
+Put course with courseid: 9 with stt_course: 56 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 13916
+Put course to time_slot: 13917
+Put course with courseid: 9 with stt_course: 57 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 14908
+Put course to time_slot: 14909
+Put course with courseid: 9 with stt_course: 58 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 17388
+Put course to time_slot: 17389
+Put course with courseid: 9 with stt_course: 59 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 18380
+Put course to time_slot: 18381
+Put course with courseid: 9 with stt_course: 60 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 20860
+Put course to time_slot: 20861
+Put course with courseid: 9 with stt_course: 61 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 21852
+Put course to time_slot: 21853
+Put course with courseid: 9 with stt_course: 62 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 24332
+Put course to time_slot: 24333
+Put course with courseid: 9 with stt_course: 63 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 25324
+Put course to time_slot: 25325
+Put course with courseid: 9 with stt_course: 64 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 27804
+Put course to time_slot: 27805
+Put course with courseid: 9 with stt_course: 65 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 28796
+Put course to time_slot: 28797
+Put course with courseid: 9 with stt_course: 66 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 31276
+Put course to time_slot: 31277
+Put course with courseid: 9 with stt_course: 67 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 32268
+Put course to time_slot: 32269
+Put course with courseid: 9 with stt_course: 68 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 34748
+Put course to time_slot: 34749
+Put course with courseid: 9 with stt_course: 69 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 35740
+Put course to time_slot: 35741
+Put course with courseid: 9 with stt_course: 70 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 38220
+Put course to time_slot: 38221
+Put course with courseid: 9 with stt_course: 71 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 39212
+Put course to time_slot: 39213
+Put course with courseid: 9 with stt_course: 72 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 41692
+Put course to time_slot: 41693
+Put course with courseid: 9 with stt_course: 73 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 42684
+Put course to time_slot: 42685
+Put course with courseid: 9 with stt_course: 74 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 45164
+Put course to time_slot: 45165
+Put course with courseid: 11 with stt_course: 78 and course name HK231 - Thiết kế và phân tích hệ thống - Nguyễn Thanh Tùng class duration = 4 to time_slot: 3514
+Put course to time_slot: 3515
+Put course to time_slot: 3516
+Put course to time_slot: 3517
+Put course with courseid: 23 with stt_course: 87 and course name HK231 - Vật lý 1 - Thầy Châu class duration = 4 to time_slot: 3530
+Put course to time_slot: 3531
+Put course to time_slot: 3532
+Put course to time_slot: 3533
+Put course with courseid: 14 with stt_course: 80 and course name HK251 - Hệ thống thông tin class duration = 4 to time_slot: 3546
+Put course to time_slot: 3547
+Put course to time_slot: 3548
+Put course to time_slot: 3549
+Put course with courseid: 20 with stt_course: 85 and course name HK222 - Cấu trúc dữ liệu và giải thuật - Trần Ngọc Bảo Duy class duration = 4 to time_slot: 3562
+Put course to time_slot: 3563
+Put course to time_slot: 3564
+Put course to time_slot: 3565
+Put course with courseid: 7 with stt_course: 76 and course name HK243 - Kiến trúc phần mềm - Trần Trương Tuấn Phát class duration = 3 to time_slot: 3578
+Put course to time_slot: 3579
+Put course to time_slot: 3580
+Put course with courseid: 19 with stt_course: 84 and course name HK233 - Quản lý sản xuất cho kỹ sư - Thầy Hùng class duration = 3 to time_slot: 3594
+Put course to time_slot: 3595
+Put course to time_slot: 3596
+Put course with courseid: 3 with stt_course: 75 and course name HK242 - Đồ án tốt nghiệp - Lê Thị Bảo Thu class duration = 3 to time_slot: 12
+Put course to time_slot: 13
+Put course to time_slot: 14
+Put course with courseid: 10 with stt_course: 77 and course name HK221 - Mạng máy tính - Nguyễn Phương Duy class duration = 3 to time_slot: 3610
+Put course to time_slot: 3611
+Put course to time_slot: 3612
+Put course with courseid: 16 with stt_course: 82 and course name HK222 - Kiến trúc máy tính - Trần Thanh Bình class duration = 3 to time_slot: 3626
+Put course to time_slot: 3627
+Put course to time_slot: 3628
+Put course with courseid: 22 with stt_course: 86 and course name HK221 - Giải tích 2 - Ngọc Huyền class duration = 3 to time_slot: 3642
+Put course to time_slot: 3643
+Put course to time_slot: 3644
+Put course with courseid: 15 with stt_course: 81 and course name HK221 - Nhập môn điện toán - Bùi Quốc Huy class duration = 2 to time_slot: 3581
+Put course to time_slot: 3582
+Put course with courseid: 12 with stt_course: 79 and course name HK221 - Kỹ thuật lập trình - Nguyễn Đức Dũng class duration = 2 to time_slot: 3597
+Put course to time_slot: 3598
+Put course with courseid: 18 with stt_course: 83 and course name HK231 - Hệ thống tài chính - Cô Hiền class duration = 2 to time_slot: 3613
+Put course to time_slot: 3614
+Generate time table success: 1
+Giải thuật bắt đầu lúc: 2025-08-20 18:14:35
+Giải thuật kết thúc lúc: 2025-08-20 18:24:03
+Tổng thời gian chạy: 568.3282 giây
+
