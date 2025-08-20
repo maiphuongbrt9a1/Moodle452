@@ -2,146 +2,146 @@ Put course with courseid: 8 with stt_course: 10 and course name HK251 - Lập tr
 Put course to time_slot: 3483
 Put course to time_slot: 3484
 Put course to time_slot: 3485
-Put course with courseid: 8 with stt_course: 11 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3498
+Put course with courseid: 8 with stt_course: 11 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 4474
+Put course to time_slot: 4475
+Put course to time_slot: 4476
+Put course to time_slot: 4477
+Put course with courseid: 8 with stt_course: 12 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 5466
+Put course to time_slot: 5467
+Put course to time_slot: 5468
+Put course to time_slot: 5469
+Put course with courseid: 8 with stt_course: 13 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 6458
+Put course to time_slot: 6459
+Put course to time_slot: 6460
+Put course to time_slot: 6461
+Put course with courseid: 8 with stt_course: 14 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 7450
+Put course to time_slot: 7451
+Put course to time_slot: 7452
+Put course to time_slot: 7453
+Put course with courseid: 8 with stt_course: 15 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 8442
+Put course to time_slot: 8443
+Put course to time_slot: 8444
+Put course to time_slot: 8445
+Put course with courseid: 8 with stt_course: 16 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 9434
+Put course to time_slot: 9435
+Put course to time_slot: 9436
+Put course to time_slot: 9437
+Put course with courseid: 8 with stt_course: 17 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 10426
+Put course to time_slot: 10427
+Put course to time_slot: 10428
+Put course to time_slot: 10429
+Put course with courseid: 8 with stt_course: 18 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 11418
+Put course to time_slot: 11419
+Put course to time_slot: 11420
+Put course to time_slot: 11421
+Put course with courseid: 8 with stt_course: 19 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 12410
+Put course to time_slot: 12411
+Put course to time_slot: 12412
+Put course to time_slot: 12413
+Put course with courseid: 8 with stt_course: 20 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 13402
+Put course to time_slot: 13403
+Put course to time_slot: 13404
+Put course to time_slot: 13405
+Put course with courseid: 8 with stt_course: 21 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 14394
+Put course to time_slot: 14395
+Put course to time_slot: 14396
+Put course to time_slot: 14397
+Put course with courseid: 8 with stt_course: 22 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 15386
+Put course to time_slot: 15387
+Put course to time_slot: 15388
+Put course to time_slot: 15389
+Put course with courseid: 8 with stt_course: 23 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 16378
+Put course to time_slot: 16379
+Put course to time_slot: 16380
+Put course to time_slot: 16381
+Put course with courseid: 8 with stt_course: 24 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 17370
+Put course to time_slot: 17371
+Put course to time_slot: 17372
+Put course to time_slot: 17373
+Put course with courseid: 9 with stt_course: 25 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3498
 Put course to time_slot: 3499
-Put course to time_slot: 3500
-Put course to time_slot: 3501
-Put course with courseid: 8 with stt_course: 12 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3514
+Put course with courseid: 9 with stt_course: 26 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 4490
+Put course to time_slot: 4491
+Put course with courseid: 9 with stt_course: 27 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 5482
+Put course to time_slot: 5483
+Put course with courseid: 9 with stt_course: 28 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 6474
+Put course to time_slot: 6475
+Put course with courseid: 9 with stt_course: 29 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 7466
+Put course to time_slot: 7467
+Put course with courseid: 9 with stt_course: 30 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 8458
+Put course to time_slot: 8459
+Put course with courseid: 9 with stt_course: 31 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 9450
+Put course to time_slot: 9451
+Put course with courseid: 9 with stt_course: 32 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 10442
+Put course to time_slot: 10443
+Put course with courseid: 9 with stt_course: 33 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 11434
+Put course to time_slot: 11435
+Put course with courseid: 9 with stt_course: 34 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 12426
+Put course to time_slot: 12427
+Put course with courseid: 9 with stt_course: 35 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 13418
+Put course to time_slot: 13419
+Put course with courseid: 9 with stt_course: 36 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 14410
+Put course to time_slot: 14411
+Put course with courseid: 2 with stt_course: 0 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 10
+Put course to time_slot: 11
+Put course with courseid: 2 with stt_course: 1 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 1002
+Put course to time_slot: 1003
+Put course with courseid: 2 with stt_course: 2 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 1994
+Put course to time_slot: 1995
+Put course with courseid: 2 with stt_course: 3 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 2986
+Put course to time_slot: 2987
+Put course with courseid: 2 with stt_course: 4 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 3978
+Put course to time_slot: 3979
+Put course with courseid: 2 with stt_course: 5 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 4970
+Put course to time_slot: 4971
+Put course with courseid: 2 with stt_course: 6 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 5962
+Put course to time_slot: 5963
+Put course with courseid: 2 with stt_course: 7 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 6954
+Put course to time_slot: 6955
+Put course with courseid: 2 with stt_course: 8 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 7946
+Put course to time_slot: 7947
+Put course with courseid: 2 with stt_course: 9 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 8938
+Put course to time_slot: 8939
+Put course with courseid: 11 with stt_course: 40 and course name HK231 - Thiết kế và phân tích hệ thống - Nguyễn Thanh Tùng class duration = 4 to time_slot: 3514
 Put course to time_slot: 3515
 Put course to time_slot: 3516
 Put course to time_slot: 3517
-Put course with courseid: 8 with stt_course: 13 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3530
+Put course with courseid: 23 with stt_course: 49 and course name HK231 - Vật lý 1 - Thầy Châu class duration = 4 to time_slot: 3530
 Put course to time_slot: 3531
 Put course to time_slot: 3532
 Put course to time_slot: 3533
-Put course with courseid: 8 with stt_course: 14 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3546
+Put course with courseid: 14 with stt_course: 42 and course name HK251 - Hệ thống thông tin class duration = 4 to time_slot: 3546
 Put course to time_slot: 3547
 Put course to time_slot: 3548
 Put course to time_slot: 3549
-Put course with courseid: 8 with stt_course: 15 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3562
+Put course with courseid: 20 with stt_course: 47 and course name HK222 - Cấu trúc dữ liệu và giải thuật - Trần Ngọc Bảo Duy class duration = 4 to time_slot: 3562
 Put course to time_slot: 3563
 Put course to time_slot: 3564
 Put course to time_slot: 3565
-Put course with courseid: 8 with stt_course: 16 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3578
+Put course with courseid: 7 with stt_course: 38 and course name HK243 - Kiến trúc phần mềm - Trần Trương Tuấn Phát class duration = 3 to time_slot: 3500
+Put course to time_slot: 3501
+Put course to time_slot: 3502
+Put course with courseid: 19 with stt_course: 46 and course name HK233 - Quản lý sản xuất cho kỹ sư - Thầy Hùng class duration = 3 to time_slot: 3578
 Put course to time_slot: 3579
 Put course to time_slot: 3580
-Put course to time_slot: 3581
-Put course with courseid: 8 with stt_course: 17 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3594
+Put course with courseid: 10 with stt_course: 39 and course name HK221 - Mạng máy tính - Nguyễn Phương Duy class duration = 3 to time_slot: 3594
 Put course to time_slot: 3595
 Put course to time_slot: 3596
-Put course to time_slot: 3597
-Put course with courseid: 8 with stt_course: 18 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3610
+Put course with courseid: 16 with stt_course: 44 and course name HK222 - Kiến trúc máy tính - Trần Thanh Bình class duration = 3 to time_slot: 3610
 Put course to time_slot: 3611
 Put course to time_slot: 3612
-Put course to time_slot: 3613
-Put course with courseid: 8 with stt_course: 19 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3626
+Put course with courseid: 22 with stt_course: 48 and course name HK221 - Giải tích 2 - Ngọc Huyền class duration = 3 to time_slot: 3626
 Put course to time_slot: 3627
 Put course to time_slot: 3628
-Put course to time_slot: 3629
-Put course with courseid: 8 with stt_course: 20 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3642
-Put course to time_slot: 3643
-Put course to time_slot: 3644
-Put course to time_slot: 3645
-Put course with courseid: 8 with stt_course: 21 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3658
-Put course to time_slot: 3659
-Put course to time_slot: 3660
-Put course to time_slot: 3661
-Put course with courseid: 8 with stt_course: 22 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3674
-Put course to time_slot: 3675
-Put course to time_slot: 3676
-Put course to time_slot: 3677
-Put course with courseid: 8 with stt_course: 23 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3690
-Put course to time_slot: 3691
-Put course to time_slot: 3692
-Put course to time_slot: 3693
-Put course with courseid: 8 with stt_course: 24 and course name HK251 - Lập trình web - Thầy Hiếu class duration = 4 to time_slot: 3706
-Put course to time_slot: 3707
-Put course to time_slot: 3708
-Put course to time_slot: 3709
-Put course with courseid: 9 with stt_course: 25 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3722
-Put course to time_slot: 3723
-Put course with courseid: 9 with stt_course: 26 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3724
-Put course to time_slot: 3725
-Put course with courseid: 9 with stt_course: 27 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3738
-Put course to time_slot: 3739
-Put course with courseid: 9 with stt_course: 28 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3740
-Put course to time_slot: 3741
-Put course with courseid: 9 with stt_course: 29 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3754
-Put course to time_slot: 3755
-Put course with courseid: 9 with stt_course: 30 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3756
-Put course to time_slot: 3757
-Put course with courseid: 9 with stt_course: 31 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3770
-Put course to time_slot: 3771
-Put course with courseid: 9 with stt_course: 32 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3772
-Put course to time_slot: 3773
-Put course with courseid: 9 with stt_course: 33 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3786
-Put course to time_slot: 3787
-Put course with courseid: 9 with stt_course: 34 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3788
-Put course to time_slot: 3789
-Put course with courseid: 9 with stt_course: 35 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3802
-Put course to time_slot: 3803
-Put course with courseid: 9 with stt_course: 36 and course name HK222 - Công nghệ phần mềm - Phan Trung Hiếu class duration = 2 to time_slot: 3804
-Put course to time_slot: 3805
-Put course with courseid: 2 with stt_course: 0 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 10
-Put course to time_slot: 11
-Put course with courseid: 2 with stt_course: 1 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 12
+Put course with courseid: 3 with stt_course: 37 and course name HK242 - Đồ án tốt nghiệp - Lê Thị Bảo Thu class duration = 3 to time_slot: 12
 Put course to time_slot: 13
-Put course with courseid: 2 with stt_course: 2 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 26
-Put course to time_slot: 27
-Put course with courseid: 2 with stt_course: 3 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 28
-Put course to time_slot: 29
-Put course with courseid: 2 with stt_course: 4 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 42
-Put course to time_slot: 43
-Put course with courseid: 2 with stt_course: 5 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 44
-Put course to time_slot: 45
-Put course with courseid: 2 with stt_course: 6 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 58
-Put course to time_slot: 59
-Put course with courseid: 2 with stt_course: 7 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 60
-Put course to time_slot: 61
-Put course with courseid: 2 with stt_course: 8 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 74
-Put course to time_slot: 75
-Put course with courseid: 2 with stt_course: 9 and course name HK242 - Đồ án chuyên ngành - Lê Thị Bảo Thu class duration = 2 to time_slot: 76
-Put course to time_slot: 77
-Put course with courseid: 11 with stt_course: 40 and course name HK231 - Thiết kế và phân tích hệ thống - Nguyễn Thanh Tùng class duration = 4 to time_slot: 3818
-Put course to time_slot: 3819
-Put course to time_slot: 3820
-Put course to time_slot: 3821
-Put course with courseid: 23 with stt_course: 49 and course name HK231 - Vật lý 1 - Thầy Châu class duration = 4 to time_slot: 3834
-Put course to time_slot: 3835
-Put course to time_slot: 3836
-Put course to time_slot: 3837
-Put course with courseid: 14 with stt_course: 42 and course name HK251 - Hệ thống thông tin class duration = 4 to time_slot: 3850
-Put course to time_slot: 3851
-Put course to time_slot: 3852
-Put course to time_slot: 3853
-Put course with courseid: 20 with stt_course: 47 and course name HK222 - Cấu trúc dữ liệu và giải thuật - Trần Ngọc Bảo Duy class duration = 4 to time_slot: 3866
-Put course to time_slot: 3867
-Put course to time_slot: 3868
-Put course to time_slot: 3869
-Put course with courseid: 7 with stt_course: 38 and course name HK243 - Kiến trúc phần mềm - Trần Trương Tuấn Phát class duration = 3 to time_slot: 3882
-Put course to time_slot: 3883
-Put course to time_slot: 3884
-Put course with courseid: 19 with stt_course: 46 and course name HK233 - Quản lý sản xuất cho kỹ sư - Thầy Hùng class duration = 3 to time_slot: 3898
-Put course to time_slot: 3899
-Put course to time_slot: 3900
-Put course with courseid: 10 with stt_course: 39 and course name HK221 - Mạng máy tính - Nguyễn Phương Duy class duration = 3 to time_slot: 3914
-Put course to time_slot: 3915
-Put course to time_slot: 3916
-Put course with courseid: 16 with stt_course: 44 and course name HK222 - Kiến trúc máy tính - Trần Thanh Bình class duration = 3 to time_slot: 3930
-Put course to time_slot: 3931
-Put course to time_slot: 3932
-Put course with courseid: 22 with stt_course: 48 and course name HK221 - Giải tích 2 - Ngọc Huyền class duration = 3 to time_slot: 3946
-Put course to time_slot: 3947
-Put course to time_slot: 3948
-Put course with courseid: 3 with stt_course: 37 and course name HK242 - Đồ án tốt nghiệp - Lê Thị Bảo Thu class duration = 3 to time_slot: 90
-Put course to time_slot: 91
-Put course to time_slot: 92
-Put course with courseid: 15 with stt_course: 43 and course name HK221 - Nhập môn điện toán - Bùi Quốc Huy class duration = 2 to time_slot: 3885
-Put course to time_slot: 3886
-Put course with courseid: 12 with stt_course: 41 and course name HK221 - Kỹ thuật lập trình - Nguyễn Đức Dũng class duration = 2 to time_slot: 3901
-Put course to time_slot: 3902
-Put course with courseid: 18 with stt_course: 45 and course name HK231 - Hệ thống tài chính - Cô Hiền class duration = 2 to time_slot: 3917
-Put course to time_slot: 3918
+Put course to time_slot: 14
+Put course with courseid: 15 with stt_course: 43 and course name HK221 - Nhập môn điện toán - Bùi Quốc Huy class duration = 2 to time_slot: 3581
+Put course to time_slot: 3582
+Put course with courseid: 12 with stt_course: 41 and course name HK221 - Kỹ thuật lập trình - Nguyễn Đức Dũng class duration = 2 to time_slot: 3597
+Put course to time_slot: 3598
+Put course with courseid: 18 with stt_course: 45 and course name HK231 - Hệ thống tài chính - Cô Hiền class duration = 2 to time_slot: 3613
+Put course to time_slot: 3614
 Generate time table success: 1
 **************************This is system config informations: ***************************************
 One session is 45 minute 
@@ -245,7 +245,7 @@ Room id: 148 Room number 303 Room floor 3 Room building Building 3 Room ward add
 Room id: 151 Room number 401 Room floor 4 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
 Room id: 152 Room number 402 Room floor 4 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
 Room id: 153 Room number 403 Room floor 4 Room building Building 3 Room ward addressHòa Hội Room district addressXuyên Mộc Room province address Bà Rịa - Vũng Tàu 
-Giải thuật bắt đầu lúc: 2025-08-19 07:56:50
-Giải thuật kết thúc lúc: 2025-08-19 07:59:48
-Tổng thời gian chạy: 178.1390 giây
+Giải thuật bắt đầu lúc: 2025-08-20 08:56:36
+Giải thuật kết thúc lúc: 2025-08-20 08:58:21
+Tổng thời gian chạy: 105.0783 giây
 
