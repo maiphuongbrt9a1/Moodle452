@@ -110,3 +110,5 @@ $string['classdurationmustbesmallerthan'] = 'Class duration must be smaller than
 $string['choose_time_for_class_section'] = 'Choose Time for Class Section';
 $string['previous_course_section_schedule_information:'] = 'Previous Course Section Schedule Information: {$a}';
 $string['no_prev_course_section_schedule_found'] = 'No previous course section schedule found';
+$string['auto_create_course_schedule_time_table'] = 'Auto create course schedule time table';
+$string['process_auto_create_course_schedule_time_table'] = 'Process create course schedule';

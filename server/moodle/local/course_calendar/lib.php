@@ -5307,6 +5307,95 @@ class time_table_generator
     return $course_array;
   }
 
+  public function get_course_not_schedule($courseid)
+  {
+    // Lấy ra các course mà chưa được tạo lịch học 
+    global $DB;
+    $course_not_schedule = [];
+    $course_not_schedule_sql = "SELECT distinct c.id courseid, 
+                                        c.category, 
+                                        c.shortname, 
+                                        c.startdate, 
+                                        c.enddate, 
+                                        c.visible, 
+                                        cc.class_duration, 
+                                        cc.number_course_session_weekly, 
+                                        cc.number_student_on_course, 
+                                        tcl.total_course_section
+                                FROM {local_course_calendar_course_section} cs
+                                RIGHT JOIN {course} c on cs.courseid = c.id
+                                left join {local_course_calendar_course_config_for_calendar} cc on cc.courseid = c.id
+                                left join {local_course_calendar_total_course_lesson} tcl on tcl.courseid = c.id
+                                WHERE cs.courseid is null 
+                                      and c.id != 1 
+                                      and c.id = :courseid
+                                      and c.visible = 1 
+                                      and c.enddate >= UNIX_TIMESTAMP(NOW())";
+    $params = ['courseid' => $courseid];
+    $course_not_schedule = $DB->get_records_sql($course_not_schedule_sql, $params);
+
+    // Tạo dữ liệu course_list bao gồm những course ta sẽ cần xếp thời khóa biểu và cần sắp xếp chúng theo thứ tự ưu tiên
+    // Thứ tự ưu tiên là thời gian diễn ra buổi học (số tiết học trên một buổi)
+    // Số buổi học trên một tuần
+    // Phải tạo thêm course_list để lưu là vì khi chúng ta thực hiện thêm course vào trong thời khóa biểu sẽ cần xóa course đó ra 
+    // và khi cần unlocated course thì cần nơi để lưu trở lại.
+    // và ta cũng cần sort lại mảng course này để sắp xếp lại theo thứ tự ưu tiên
+    // nếu ta làm trên mảng chính luôn có thể sẽ gây sai sót dữ liệu.
+
+    // và cũng vì cái $course_not_schedule đang được đánh index theo cột đầu tiên là courseid ta không biết chắc các id này có theo thứ tự không
+    // nó sẽ khó cho quá trình duyệt qua mảng sẽ gây thiếu sót, khó khăn khi chỉ có thể dùng mỗi foreach.
+
+    $course_array = [];
+    $index = 0;
+    foreach ($course_not_schedule as $course) {
+      // xử lý danh sách course này để thêm vào các buổi học của cùng một course .
+      // Sao cho danh sách course này sẽ gồm các course * tổng số buổi học của course đó
+      $teacher = $this->get_teachers_in_course($course);
+      $course->stt_course = $index;
+      $course->editting_teacher_array = $teacher;
+      $course->first_put_successfully_in_holiday_flag = false;
+      $course->first_put_successfully_in_is_not_allow_change_session_flag = false;
+      $course->time_gap_to_skip_holiday_and_goto_next_course_session = 0;
+      $course_array[] = clone $course;
+
+      if (empty($course->class_duration)) {
+        // CHECK HERE
+        $course->class_duration = CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
+      }
+
+      if (empty($course->number_course_session_weekly)) {
+        // CHECK HERE
+        $course->number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY;
+      }
+
+      if (empty($course->number_student_on_course)) {
+        // CHECK HERE
+        $course->number_student_on_course = NUMBER_STUDENT_ON_COURSE;
+      }
+
+      if (empty($course->total_course_section)) {
+        // CHECK HERE
+        $course->total_course_section = TOTAL_COURSE_SESSION_OF_COURSE;
+      }
+
+      if ($course->total_course_section > 1) {
+        for ($j = 0; $j < $course->total_course_section - 1; $j++) {
+          $index++;
+          $course->stt_course = $index;
+          $course->editting_teacher_array = $teacher;
+          $course->first_put_successfully_in_holiday_flag = false;
+          $course->first_put_successfully_in_is_not_allow_change_session_flag = false;
+          $course->time_gap_to_skip_holiday_and_goto_next_course_session = 0;
+          $course_array[] = clone $course;
+        }
+      }
+
+      $index++;
+    }
+
+    return $course_array;
+  }
+
   public function get_available_rooms()
   {
     global $DB;
@@ -5360,7 +5449,6 @@ class time_table_generator
     echo "<head>";
     echo "    <meta charset='UTF-8'>";
     echo "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>";
-    echo "    <title>Bảng Thời Khóa Biểu</title>";
     echo "    <style>";
     echo "        table {";
     echo "            width: 100%;";
@@ -5393,15 +5481,17 @@ class time_table_generator
     echo "</head>";
     echo "<body>";
 
-    echo "<h2>Thời Khóa Biểu</h2>";
-
     echo "<table>";
     // Hàng tiêu đề cho các ngày
     echo "<thead>";
     echo "<tr>";
     echo "<th>Phòng / Ngày</th>"; // Góc trên bên trái
     for ($j = 0; $j < $number_room; $j++) {
-      echo "<th class='room-header'>Phòng " . ($j) . "</th>"; // Cột đầu tiên là tên phòng
+      echo "<th class='room-header'>"
+        . $this->room_array[$j]->room_building
+        . "- Floor " . $this->room_array[$j]->room_floor
+        . "- Room " . $this->room_array[$j]->room_number
+        . "- " . $this->room_array[$j]->ward_address . "</th>"; // Cột đầu tiên là tên phòng
 
     }
     echo "</tr>";
@@ -5635,7 +5725,7 @@ class time_table_generator
 
       fwrite($this->file_handle, "Number courses didn't schedule: " . count($this->course_array) . "\n");
       fwrite($this->file_handle, "Number room: " . $this->number_room . "\n");
-      fwrite($this->file_handle, "Number teacher and non teacher: " . count($this->teacher_and_non_teacher_array) . "\n");
+      // fwrite($this->file_handle, "Number teacher and non teacher: " . count($this->teacher_and_non_teacher_array) . "\n");
       fwrite($this->file_handle, "Schedule in time range with start date: " . date("D, d-m-Y", $this->earliest_start_date_timestamp) . "\n");
       fwrite($this->file_handle, "Schedule in time range with end date: " . date("D, d-m-Y", $this->latest_end_date_timestamp) . "\n");
       fwrite($this->file_handle, "Number day in time range: " . $this->number_day . "\n");
@@ -5659,17 +5749,16 @@ class time_table_generator
       }
       fwrite($this->file_handle, $course_infor);
 
-      $value = "***************************************This is teacher and non teacher array informations: ***************************************\n";
-      fwrite($this->file_handle, $value);
-      $teacher_and_non_teacher_infor = "";
-      foreach ($this->teacher_and_non_teacher_array as $teacher) {
-        "(user.id) id, user.firstname, user.lastname, user.email, role.shortname";
-        $teacher_and_non_teacher_infor .= "Teacher id: " . $teacher->id . " "
-          . "Teacher name " . $teacher->firstname . " " . $teacher->lastname . " "
-          . "Teacher email " . $teacher->email . " "
-          . "Teacher role name " . $teacher->shortname . "\n";
-      }
-      fwrite($this->file_handle, $teacher_and_non_teacher_infor);
+      // $value = "***************************************This is teacher and non teacher array informations: ***************************************\n";
+      // fwrite($this->file_handle, $value);
+      // $teacher_and_non_teacher_infor = "";
+      // foreach ($this->teacher_and_non_teacher_array as $teacher) {
+      //   $teacher_and_non_teacher_infor .= "Teacher id: " . $teacher->id . " "
+      //     . "Teacher name " . $teacher->firstname . " " . $teacher->lastname . " "
+      //     . "Teacher email " . $teacher->email . " "
+      //     . "Teacher role name " . $teacher->shortname . "\n";
+      // }
+      // fwrite($this->file_handle, $teacher_and_non_teacher_infor);
       $value = "***************************************This is room array informations: ***************************************\n";
       fwrite($this->file_handle, $value);
       $room_infor = "";
@@ -5688,26 +5777,35 @@ class time_table_generator
     }
   }
 
+  public function save_data_into_database()
+  {
+    // todo
+  }
+
   /**
    * Summary of create_automatic_calendar_by_recursive_swap_algorithm
    * Hàm này thực hiện việc truy xuất các dữ liệu cần thiết cho việc tạo thời khóa biểu và tiến hành gọi hàm 
    * generate_time_table() để tạo thời khóa biểu.
    * @return time_table_generator
    */
-  public function create_automatic_calendar_by_recursive_swap_algorithm()
+  public function create_automatic_calendar_by_recursive_swap_algorithm($courseid_array)
   {
-    global $CFG;
+    global $CFG, $DB;
     // ghi log for debug
     $file_path = $CFG->dirroot . "/local/course_calendar/log/debug.txt";
     $file_handle = fopen($file_path, "w");
 
     // --- Bắt đầu đo thời gian ---
     $start_time = microtime(true);
-
-    $course_array = $this->get_courses_not_schedule();
-    $unlocate_course_array = $this->get_courses_not_schedule();
+    $course_array = [];
+    for ($i = 0; $i < count($courseid_array); $i++) {
+      $course_array = array_merge($course_array, $this->get_course_not_schedule($courseid_array[$i]));
+    }
+    $unlocate_course_array = $course_array;
     $available_rooms = $this->get_available_rooms();
-    $teacher_and_non_teacher_array = $this->get_teacher_and_non_teacher_array();
+
+    $teacher_and_non_teacher_array = [];
+    // $teacher_and_non_teacher_array = $this->get_teacher_and_non_teacher_array();
 
 
     // các biến được chuẩn bị cho việc tạo mảng time slot
