@@ -4457,6 +4457,17 @@ class time_table_generator
       ];
     }
 
+    for ($i = $time_slot->time_slot_index; $i < $time_slot->time_slot_index + $course_session_length; $i++) {
+      if ($this->is_time_slot_not_allow_change($this->time_slot_array[$i])) {
+        return [
+          'error_type' => 0,
+          'error_decription' => 'Not enough time slot range for put one course section with information course id: ' . $course->courseid . ' - ' . 'course name: ' . $course->shortname,
+          'time_slot_conflict_array' => $time_slot_conflict_array,
+          'number_time_slot_conflict' => $number_time_slot_conflict
+        ];
+      }
+    }
+
     if (
       empty($time_slot->course_session_information)
       and $time_slot->is_occupied == false
@@ -4740,8 +4751,13 @@ class time_table_generator
       return $errors_array_in_this_time_slot;
     }
 
-    $errors_array_in_this_time_slot[] = $this->check_class_session_during_over_max_teaching_time($course);
     $errors_array_in_this_time_slot[] = $this->check_duplicate_course_at_same_time($course, $time_slot, $time_slot_array);
+    $count = count($errors_array_in_this_time_slot);
+    if (!empty($errors_array_in_this_time_slot[$count - 1])) {
+      return $errors_array_in_this_time_slot;
+    }
+
+    $errors_array_in_this_time_slot[] = $this->check_class_session_during_over_max_teaching_time($course);
     return $errors_array_in_this_time_slot;
   }
 
@@ -4968,6 +4984,7 @@ class time_table_generator
 
       switch ($error['error_type']) {
         case 0:
+        case 1:
         case 2:
         case 3:
         case 4:
@@ -5147,27 +5164,11 @@ class time_table_generator
       $this->course_array
     );
 
-    array_multisort(
-      array_column($this->unlocate_course_array, 'total_course_section'),
-      SORT_DESC,
-      SORT_REGULAR,
-      array_column($this->unlocate_course_array, 'class_duration'),
-      SORT_DESC,
-      SORT_REGULAR,
-      array_column($this->unlocate_course_array, 'number_course_session_weekly'),
-      SORT_DESC,
-      SORT_REGULAR,
-      array_column($this->unlocate_course_array, 'number_student_on_course'),
-      SORT_DESC,
-      SORT_REGULAR,
-      $this->unlocate_course_array
-    );
-
     // Bước 2: Try to place each activity (A_i) in an allowed time slot, following the above order, one at a time.
     // Search for an available slot (T_j) for A_i, in which this activity can be placed respecting the constraints.
     // If more slots are available, choose a random one. If none is available, do recursive swapping:
     $suscess_flag = $this->recursive_swap_algorithm(
-      $this->unlocate_course_array,
+      $this->course_array,
       0,
       0
     );
@@ -5420,17 +5421,23 @@ class time_table_generator
           // Hiển thị nội dung buổi học.
           // Bạn có thể format lại ở đây để hiển thị thông tin chi tiết hơn.
           if (!empty($time_slot_array[$time_slot_index]->course_session_information)) {
+            $editting_teacher_array = $time_slot_array[$time_slot_index]->course_session_information->editting_teacher_array;
+            $editting_teacher_name_array = [];
+            foreach ($editting_teacher_array as $teacher) {
+              $editting_teacher_name_array[] = $teacher->firstname . " " . $teacher->lastname;
+            }
+
             echo "<div>" . "Tiết " . $tiet . "</div>";
             // echo "<div>" ."courseid: " . $session_data->courseid . "</div>";
             echo "<div>"
               . "Course id: "
-              . $time_slot_array[$time_slot_index]->course_session_information->courseid
+              . $time_slot_array[$time_slot_index]->course_session_information->courseid . "\n"
               . " Stt course session: "
-              . $time_slot_array[$time_slot_index]->course_session_information->stt_course
+              . $time_slot_array[$time_slot_index]->course_session_information->stt_course . "\n"
               . " Course name: "
-              . $time_slot_array[$time_slot_index]->course_session_information->course_name
+              . $time_slot_array[$time_slot_index]->course_session_information->course_name . "\n"
               . " Primary teacher id: "
-              . implode(',', $time_slot_array[$time_slot_index]->course_session_information->editting_teacher_array)
+              . implode(', ', $editting_teacher_name_array) . "\n"
               // . " Secondary teacher id: "
               // . $time_slot_array[$time_slot_index]->course_session_information->non_editting_teacher_array
               . "</div>";
