@@ -182,7 +182,7 @@ const NUMBER_COURSE_SESSION_WEEKLY = 2; // 2 SESSION
 
 const TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE = 2; // 2 DAYS
 
-const TOTAL_COURSE_SESSION_OF_COURSE = 15; // 15 SESSIONS
+const TOTAL_COURSE_SESSION_OF_COURSE = 25; // 25 SESSIONS
 
 const NUMBER_STUDENT_ON_COURSE = 25; // 25 STUDENTS
 
@@ -3998,6 +3998,8 @@ class time_table_generator
   public function is_put_all_course_into_time_slot($course_array)
   {
     $number_course = count($course_array);
+    $putted_course_array = [];
+    $non_putted_course_array = [];
     $count_number_placed_course = 0;
 
     foreach ($course_array as $course) {
@@ -4014,6 +4016,8 @@ class time_table_generator
           and $time_slot->is_occupied_by_course_in_prev_time_slot == false
         ) {
           $count_number_placed_course++;
+          $putted_course_array[] = $course;
+          break;
         }
       }
 
@@ -4023,7 +4027,25 @@ class time_table_generator
       return true;
     }
 
-    return false;
+    $non_putted_course_array = array_diff($course_array, $putted_course_array);
+
+    array_multisort(
+      array_column($non_putted_course_array, 'total_course_section'),
+      SORT_DESC,
+      SORT_REGULAR,
+      array_column($non_putted_course_array, 'class_duration'),
+      SORT_DESC,
+      SORT_REGULAR,
+      array_column($non_putted_course_array, 'number_course_session_weekly'),
+      SORT_DESC,
+      SORT_REGULAR,
+      array_column($non_putted_course_array, 'number_student_on_course'),
+      SORT_DESC,
+      SORT_REGULAR,
+      $non_putted_course_array
+    );
+
+    return $non_putted_course_array;
   }
 
   public function get_time_slot_index($stt_room, $stt_class_session, $class_date_timestamp)
@@ -4142,12 +4164,12 @@ class time_table_generator
       if ($course->first_put_successfully_in_is_not_allow_change_session_flag) {
         if (
           ($prev_course_session_time_slot_array[$index]->room <= $time_slot->room
-            and $prev_course_session_time_slot_array[$index]->session == $time_slot->session
+            and $prev_course_session_time_slot_array[$index]->session <= $time_slot->session
             and $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date < $time_slot->date
             and $this->compute_number_day_between_start_day_and_end_day(
               $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date,
               $time_slot->date
-            ) == TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE)
+            ) >= TIME_GAP_BETWEEN_COURSE_SESSION_OF_SAME_COURSE)
         ) {
           return [];
         }
@@ -4159,12 +4181,12 @@ class time_table_generator
       else if ($course->first_put_successfully_in_holiday_flag) {
         if (
           ($prev_course_session_time_slot_array[$index]->room <= $time_slot->room
-            and $prev_course_session_time_slot_array[$index]->session == $time_slot->session
+            and $prev_course_session_time_slot_array[$index]->session <= $time_slot->session
             and $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date < $time_slot->date
             and $this->compute_number_day_between_start_day_and_end_day(
               $prev_course_session_time_slot_array[$count_prev_course_session - 1]->date,
               $time_slot->date
-            ) == $course->time_gap_to_skip_holiday_and_goto_next_course_session)
+            ) >= $course->time_gap_to_skip_holiday_and_goto_next_course_session)
 
         ) {
           return [];
@@ -4988,6 +5010,7 @@ class time_table_generator
         case 2:
         case 3:
         case 4:
+        case 5:
         case 6:
         case 7:
         case 8:
@@ -5131,10 +5154,13 @@ class time_table_generator
       }
     }
 
-    if ($this->is_put_all_course_into_time_slot($course_array)) {
+    $non_putted_course_array = $this->is_put_all_course_into_time_slot($course_array);
+
+    if ($non_putted_course_array === true) {
       return true;
     }
 
+    $this->recursive_swap_algorithm($non_putted_course_array, $level_recursive + 1, $number_of_call_recursive + 1);
     return false;
   }
 
