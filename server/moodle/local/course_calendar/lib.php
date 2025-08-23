@@ -5672,22 +5672,25 @@ class time_table_generator
             }
 
             if (
-              $class_start < $class_end
-              and $class_end <= $time_slot_start_session_timestamp
-              and $time_slot_start_session_timestamp < $time_slot_end_session_timestamp
+              $time_slot_start_session_timestamp <= $class_start
+              and $class_end <= $time_slot_end_session_timestamp
             ) {
-              $time_slot->is_not_allow_change = false;
-              break;
-            } else if (
-              $time_slot_end_session_timestamp <= $class_start
-              and $class_start < $class_end
-              and $time_slot_start_session_timestamp < $time_slot_end_session_timestamp
-            ) {
-              $time_slot->is_not_allow_change = false;
-              break;
-            } else {
               $time_slot->is_not_allow_change = true;
               break;
+            } else if (
+              $time_slot_start_session_timestamp <= $class_start
+              and $class_start < $time_slot_end_session_timestamp
+            ) {
+              $time_slot->is_not_allow_change = true;
+              break;
+            } else if (
+              $time_slot_start_session_timestamp > $class_start
+              and $class_end <= $time_slot_end_session_timestamp
+            ) {
+              $time_slot->is_not_allow_change = true;
+              break;
+            } else {
+              $time_slot->is_not_allow_change = false;
             }
           }
         }
@@ -5779,7 +5782,46 @@ class time_table_generator
 
   public function save_data_into_database()
   {
-    // todo
+    global $DB, $USER;
+    $time_slot_array = $this->time_slot_array;
+    $course_session_information_array = [];
+
+    foreach ($time_slot_array as $time_slot) {
+      if (!empty($time_slot->course_session_information)) {
+        // Chuẩn hóa dữ liệu trước khi lưu
+        // Chỉ lấy ra những dữ liệu nào cần thiết để lưu
+        $course_session_information = new stdClass();
+        $course_session_information->courseid = $time_slot->course_session_information->courseid;
+        $course_session_information->created_user_id = $USER->id;
+        $course_session_information->modified_user_id = $USER->id;
+        $course_session_information->course_room_id = $this->room_array[$time_slot->course_session_information->room]->id;
+        $course_session_information->createdtime = time();
+        $course_session_information->modifiedtime = time();
+        $course_session_information->class_begin_time = $time_slot->course_session_information->date;
+        $course_session_information->class_end_time = $time_slot->course_session_information->date + $time_slot->course_session_information->course_session_length * TIME_SLOT_DURATION;
+        $course_session_information->class_total_sessions = $time_slot->course_session_information->course_session_length;
+        $course_session_information->reason = "Insert course session information by automatic algorithm";
+        $course_session_information->is_cancel = 0;
+        $course_session_information->is_makeup = 0;
+        $course_session_information->is_accepted = 1;
+        $course_session_information->visible = 1;
+        $course_session_information->editing_teacher_primary_teacher = !empty($time_slot->course_session_information->editting_teacher_array) ? $time_slot->course_session_information->editting_teacher_array[0]->id : 0;
+        $course_session_information->non_editing_teacher_secondary_teacher = count($time_slot->course_session_information->editting_teacher_array) > 1 ? $time_slot->course_session_information->editting_teacher_array[1]->id : 0;
+
+        $course_session_information_array[] = $course_session_information;
+      }
+    }
+
+    $table_name = 'local_course_calendar_course_section';
+    $transaction = $DB->start_delegated_transaction();
+    try {
+      $inserted_ids = $DB->insert_records($table_name, $course_session_information_array);
+      $transaction->allow_commit();
+      return true;
+    } catch (Exception $e) {
+      $transaction->rollback($e);
+      throw $e;
+    }
   }
 
   /**

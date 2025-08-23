@@ -19,3 +19,17 @@ function getSelectedCourseIds() {
   });
   return selectedIds;
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Lấy form bằng class hoặc id của nó
+  var form = document.querySelector(".mform"); // Moodle form có class là 'mform'
+
+  if (form) {
+    form.addEventListener("submit", function () {
+      var loadingOverlay = document.getElementById("loading-overlay");
+      if (loadingOverlay) {
+        loadingOverlay.style.display = "flex"; // Hiển thị lớp phủ
+      }
+    });
+  }
+});

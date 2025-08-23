@@ -13,20 +13,26 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+namespace local_course_calendar\form;
 
-/**
- * Version information for local_course_calendar
- *
- * @package    local_course_calendar
- * @copyright  2025 Võ Mai Phương <vomaiphuonghhvt@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+// moodleform is defined in formslib.php
+require_once("$CFG->libdir/formslib.php");
+require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 
-defined('MOODLE_INTERNAL') || die();
+class process_auto_create_calendar_form extends \moodleform
+{
+    /**
+     * Elements of the test form.
+     */
+    public function definition()
+    {
+        $mform = $this->_form;
 
-$plugin->component = 'local_course_calendar';
-$plugin->release = '1.0';
-$plugin->version = 20250606020;
-$plugin->requires = 2024100700;
-$plugin->supported = [405, 500];
-$plugin->maturity = MATURITY_STABLE;
+        $this->add_action_buttons(true, get_string('save_schedule', 'local_course_calendar'));
+    }
+
+    public function validation($data, $files)
+    {
+        return [];
+    }
+}

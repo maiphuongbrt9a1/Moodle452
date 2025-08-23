@@ -381,7 +381,7 @@ try {
         echo '</div>';
 
         echo '<div>';
-        echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('next_step', 'local_course_calendar')));
+        echo html_writer::empty_tag('input', array('class' => 'btn btn-primary form-submit', 'type' => 'submit', 'value' => get_string('create_schedule', 'local_course_calendar')));
         echo '</div>';
         echo '</div>';
 

@@ -24,6 +24,8 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/course_calendar/lib.php');
 require_once($CFG->dirroot . '/local/dlog/lib.php');
+require_once($CFG->dirroot . '/local/course_calendar/classes/form/process_auto_create_calendar.php');
+
 use local_course_calendar\helper as LocalCourseCalendarHelper;
 use local_course_calendar as LocalCourseCalendar;
 try {
@@ -34,17 +36,9 @@ try {
     $PAGE->requires->js('/local/course_calendar/js/lib.js');
     $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
-    try {
-        $courseid_array = required_param_array('selected_courses', PARAM_INT);
-    } catch (Exception $e) {
-        dlog($e->getTrace());
-        $params = [];
-        $base_url = new moodle_url('/local/course_calendar/auto_create_calendar_by_recursive_swap.php', $params);
-        redirect($base_url, "You must select one course.", 0, \core\output\notification::NOTIFY_ERROR);
-    }
-    // Khai báo các biến toàn cục
-    global $PAGE, $OUTPUT, $DB, $USER, $SESSION;
 
+    // Khai báo các biến toàn cục
+    global $PAGE, $OUTPUT, $DB, $USER;
     $context = context_system::instance(); // Lấy ngữ cảnh của trang hệ thống
     // Đặt ngữ cảnh trang
     $PAGE->set_context($context);
@@ -69,14 +63,92 @@ try {
     // Thêm breadcrumb cho trang hiện tại
     $PAGE->navbar->add(get_string('process_auto_create_course_schedule_time_table', 'local_course_calendar'));
 
+    $mform = new \local_course_calendar\form\process_auto_create_calendar_form();
+
+    // Form processing and displaying is done here.
+    if ($mform->is_cancelled()) {
+        $base_url = new moodle_url('/local/course_calendar/auto_create_calendar_by_recursive_swap.php', []);
+
+        redirect(
+            $base_url,
+            "Canceled save data.",
+            0,
+            \core\output\notification::NOTIFY_ERROR
+        );
+
+    } else if ($mform->is_submitted()) {
+
+        global $PAGE, $OUTPUT, $USER;
+
+        $cache = \cache::make('local_course_calendar', 'time_table_cache');
+        $cache_key = 'user_timetable_' . $USER->id;
+        $time_table = $cache->get($cache_key);
+
+        if ($time_table !== false) {
+            try {
+                $success_flag = $time_table->save_data_into_database();
+                if ($success_flag) {
+
+                    $cache = \cache::make('local_course_calendar', 'time_table_cache');
+                    $cache_key = 'user_timetable_' . $USER->id;
+                    $cache->delete($cache_key);
+
+                    $base_url = new moodle_url('/local/course_calendar/auto_create_calendar_by_recursive_swap.php', []);
+                    redirect(
+                        $base_url,
+                        "Save data successfully.",
+                        0,
+                        \core\output\notification::NOTIFY_SUCCESS
+                    );
+                }
+            } catch (Exception $e) {
+                $base_url = new moodle_url('/local/course_calendar/auto_create_calendar_by_recursive_swap.php', []);
+                redirect(
+                    $base_url,
+                    "Time table didn't create successfully.",
+                    0,
+                    \core\output\notification::NOTIFY_ERROR
+                );
+            }
+        }
+    } else {
+        try {
+            $courseid_array = required_param_array('selected_courses', PARAM_INT);
+        } catch (Exception $e) {
+            dlog($e->getTrace());
+            $params = [];
+            $base_url = new moodle_url('/local/course_calendar/auto_create_calendar_by_recursive_swap.php', $params);
+            redirect($base_url, "You must select one course.", 0, \core\output\notification::NOTIFY_ERROR);
+        }
+
+        $time_table = new \local_course_calendar\time_table_generator();
+        $time_table = $time_table->create_automatic_calendar_by_recursive_swap_algorithm($courseid_array);
+
+        $cache = \cache::make('local_course_calendar', 'time_table_cache');
+        $cache_key = 'user_timetable_' . $USER->id;
+        $cache->set($cache_key, $time_table);
+
+    }
+
     echo $OUTPUT->header();
     // Nội dung trang của bạn
     echo $OUTPUT->box_start();
 
-    $time_table = new \local_course_calendar\time_table_generator();
-    $time_table = $time_table->create_automatic_calendar_by_recursive_swap_algorithm($courseid_array);
-    $time_table->print_time_table();
-    $time_table->save_data_into_database();
+    // hiển thị trạng thái loading nếu form đang được xử lý
+    echo html_writer::start_tag('div', array('id' => 'loading-overlay', 'class' => 'loading-overlay'));
+    echo html_writer::start_tag('div', array('class' => 'loading-spinner'));
+    echo html_writer::end_tag('div');
+    echo html_writer::end_tag('div');
+
+    $cache = \cache::make('local_course_calendar', 'time_table_cache');
+    $cache_key = 'user_timetable_' . $USER->id;
+    $time_table = $cache->get($cache_key);
+
+    if ($time_table !== false) {
+        $time_table->print_time_table();
+    }
+
+    $mform->display();
 
     echo $OUTPUT->box_end();
 

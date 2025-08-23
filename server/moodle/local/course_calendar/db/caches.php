@@ -24,9 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_course_calendar';
-$plugin->release = '1.0';
-$plugin->version = 20250606020;
-$plugin->requires = 2024100700;
-$plugin->supported = [405, 500];
-$plugin->maturity = MATURITY_STABLE;
+$definitions = [
+    'time_table_cache' => [
+        'mode' => cache_store::MODE_SESSION,
+    ]
+];

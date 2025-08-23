@@ -112,3 +112,6 @@ $string['previous_course_section_schedule_information:'] = 'Previous Course Sect
 $string['no_prev_course_section_schedule_found'] = 'No previous course section schedule found';
 $string['auto_create_course_schedule_time_table'] = 'Auto create course schedule time table';
 $string['process_auto_create_course_schedule_time_table'] = 'Process create course schedule';
+$string['cachedef_time_table_cache'] = 'This is the description of the cache time_table_cache';
+$string['create_schedule'] = 'Create Schedule';
+$string['save_schedule'] = 'Save Schedule';

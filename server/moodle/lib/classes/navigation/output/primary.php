@@ -32,7 +32,8 @@ use custom_menu;
  * @copyright   2021 onwards Peter Dias
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class primary implements renderable, templatable {
+class primary implements renderable, templatable
+{
     /** @var \moodle_page $page the moodle page that the navigation belongs to */
     private $page = null;
 
@@ -40,7 +41,8 @@ class primary implements renderable, templatable {
      * primary constructor.
      * @param \moodle_page $page
      */
-    public function __construct($page) {
+    public function __construct($page)
+    {
         $this->page = $page;
     }
 
@@ -50,7 +52,8 @@ class primary implements renderable, templatable {
      * @param renderer_base|null $output
      * @return array
      */
-    public function export_for_template(?renderer_base $output = null): array {
+    public function export_for_template(?renderer_base $output = null): array
+    {
         if (!$output) {
             $output = $this->page->get_renderer('core');
         }
@@ -75,14 +78,15 @@ class primary implements renderable, templatable {
      * @param \navigation_node|null $parent used for nested nodes, by default the primarynav node
      * @return array
      */
-    protected function get_primary_nav($parent = null): array {
+    protected function get_primary_nav($parent = null): array
+    {
         if ($parent === null) {
             $parent = $this->page->primarynav;
         }
         $nodes = [];
         foreach ($parent->children as $node) {
             $children = $this->get_primary_nav($node);
-            $activechildren = array_filter($children, function($child) {
+            $activechildren = array_filter($children, function ($child) {
                 return !empty($child['isactive']);
             });
             if ($node->preceedwithhr && count($nodes) && empty($nodes[count($nodes) - 1]['divider'])) {
@@ -110,17 +114,18 @@ class primary implements renderable, templatable {
      * @param renderer_base $output
      * @return array
      */
-    protected function get_custom_menu(renderer_base $output): array {
+    protected function get_custom_menu(renderer_base $output): array
+    {
         global $CFG, $DB, $USER;
 
-        if(isloggedin()) {
+        if (isloggedin()) {
             $systemcontext = \context_system::instance();
             $usercontext = \context_user::instance($USER->id);
-            
+
             /* 
                 check current user is admin or not
                 this is most quickly way to check if the current user is admin or not
-            */ 
+            */
 
             $isadmin = is_siteadmin();
 
@@ -129,33 +134,37 @@ class primary implements renderable, templatable {
                 display the custom menu item for children management
             */
 
-            if(has_capability('local/children_management:view', $systemcontext, $USER) 
-                // && !$isadmin
+            if (
+                has_capability('local/children_management:view', $systemcontext, $USER)
+                && !$isadmin
             ) {
                 $stringlang1 = get_string('children_management', 'local_children_management');
                 $stringURL1 = $CFG->wwwroot . '/local/children_management/index.php';
                 $CFG->custommenuitems .= "$stringlang1 | $stringURL1";
             }
-            
-            if(has_capability('local/children_course_list_management:view', $systemcontext, $USER) 
-                // && !$isadmin
+
+            if (
+                has_capability('local/children_course_list_management:view', $systemcontext, $USER)
+                && !$isadmin
             ) {
                 $stringlang2 = get_string('children_course_list_management', 'local_children_course_list_management');
                 $stringURL2 = $CFG->wwwroot . '/local/children_course_list_management/index.php';
                 $CFG->custommenuitems .= "
                 $stringlang2 | $stringURL2";
             }
-            
-            if(has_capability('local/children_course_list_management:view', $systemcontext, $USER) 
-                // && !$isadmin
+
+            if (
+                has_capability('local/children_course_list_management:view', $systemcontext, $USER)
+                && !$isadmin
             ) {
                 $stringlang3 = get_string('children_course_calendar', 'local_children_course_list_management');
                 $stringURL3 = $CFG->wwwroot . '/local/children_course_list_management/children_course_calendar.php';
                 $CFG->custommenuitems .= "
                 $stringlang3 | $stringURL3";
             }
-            
-            if(has_capability('local/course_calendar:view', $systemcontext, $USER) 
+
+            if (
+                has_capability('local/course_calendar:view', $systemcontext, $USER)
                 // && !$isadmin
             ) {
                 $stringlang4 = get_string('course_calendar', 'local_course_calendar');
@@ -164,7 +173,8 @@ class primary implements renderable, templatable {
                 $stringlang4 | $stringURL4";
             }
 
-            if(has_capability('local/course_calendar:view', $systemcontext, $USER) 
+            if (
+                has_capability('local/course_calendar:view', $systemcontext, $USER)
                 // && !$isadmin
             ) {
                 $stringlang5 = get_string('course_calendar_list', 'local_course_calendar');
@@ -172,8 +182,9 @@ class primary implements renderable, templatable {
                 $CFG->custommenuitems .= "
                 $stringlang5 | $stringURL5";
             }
-            
-            if(has_capability('local/course_calendar:view', $systemcontext, $USER) 
+
+            if (
+                has_capability('local/course_calendar:view', $systemcontext, $USER)
                 // && !$isadmin
             ) {
                 $stringlang6 = get_string('course_teaching_statistics', 'local_course_calendar');
@@ -182,7 +193,7 @@ class primary implements renderable, templatable {
                 $stringlang6 | $stringURL6";
             }
         }
-         
+
         // Early return if a custom menu does not exists.
         if (empty($CFG->custommenuitems)) {
             return [];
@@ -210,7 +221,8 @@ class primary implements renderable, templatable {
      * @param bool $expandedmenu
      * @return array
      */
-    protected function merge_primary_and_custom(array $primary, array $custom, bool $expandedmenu = false): array {
+    protected function merge_primary_and_custom(array $primary, array $custom, bool $expandedmenu = false): array
+    {
         if (empty($custom)) {
             return $primary; // No custom nav, nothing to merge.
         }
@@ -246,7 +258,8 @@ class primary implements renderable, templatable {
      * @param bool $expandedmenu
      * @return bool
      */
-    protected function flag_active_nodes(object $node, bool $expandedmenu = false): bool {
+    protected function flag_active_nodes(object $node, bool $expandedmenu = false): bool
+    {
         global $FULLME;
         $active = false;
         foreach (array_keys($node->children ?? []) as $c) {
@@ -321,7 +334,8 @@ class primary implements renderable, templatable {
      * @param renderer_base $output
      * @return array
      */
-    public function get_user_menu(renderer_base $output): array {
+    public function get_user_menu(renderer_base $output): array
+    {
         global $CFG, $USER, $PAGE;
         require_once($CFG->dirroot . '/user/lib.php');
 
@@ -379,7 +393,7 @@ class primary implements renderable, templatable {
             }
         }
 
-        $modifiedarray = array_map(function($value) {
+        $modifiedarray = array_map(function ($value) {
             $value->divider = $value->itemtype == 'divider';
             $value->link = $value->itemtype == 'link';
             if (isset($value->pix) && !empty($value->pix)) {
@@ -415,7 +429,7 @@ class primary implements renderable, templatable {
                 array_splice($modifiedarray, $menuposition, 0, [$language]);
 
                 // Generate the data for the language selector submenu.
-                $submenusdata[] = (object)[
+                $submenusdata[] = (object) [
                     'id' => $langsubmenuid,
                     'title' => get_string('languageselector'),
                     'items' => $languageitems,
