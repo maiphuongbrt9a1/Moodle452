@@ -136,7 +136,7 @@ class primary implements renderable, templatable
 
             if (
                 has_capability('local/children_management:view', $systemcontext, $USER)
-                && !$isadmin
+                // && !$isadmin
             ) {
                 $stringlang1 = get_string('children_management', 'local_children_management');
                 $stringURL1 = $CFG->wwwroot . '/local/children_management/index.php';
@@ -145,7 +145,7 @@ class primary implements renderable, templatable
 
             if (
                 has_capability('local/children_course_list_management:view', $systemcontext, $USER)
-                && !$isadmin
+                // && !$isadmin
             ) {
                 $stringlang2 = get_string('children_course_list_management', 'local_children_course_list_management');
                 $stringURL2 = $CFG->wwwroot . '/local/children_course_list_management/index.php';
@@ -155,7 +155,7 @@ class primary implements renderable, templatable
 
             if (
                 has_capability('local/children_course_list_management:view', $systemcontext, $USER)
-                && !$isadmin
+                // && !$isadmin
             ) {
                 $stringlang3 = get_string('children_course_calendar', 'local_children_course_list_management');
                 $stringURL3 = $CFG->wwwroot . '/local/children_course_list_management/children_course_calendar.php';

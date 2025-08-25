@@ -3995,6 +3995,25 @@ class time_table_generator
     // người giảng viên cần được gán vào khóa học trước khi lên lịch dạy.
   }
 
+  public function get_courses_only_in_a($a, $b)
+  {
+    $result = [];
+    foreach ($a as $course_a) {
+      $found = false;
+      foreach ($b as $course_b) {
+        // So sánh các thuộc tính mà bạn quan tâm
+        if ($course_a->courseid == $course_b->courseid && $course_a->stt_course == $course_b->stt_course) {
+          $found = true;
+          break;
+        }
+      }
+      if (!$found) {
+        $result[] = clone $course_a;
+      }
+    }
+    return $result;
+  }
+
   public function is_put_all_course_into_time_slot($course_array)
   {
     $number_course = count($course_array);
@@ -4016,7 +4035,7 @@ class time_table_generator
           and $time_slot->is_occupied_by_course_in_prev_time_slot == false
         ) {
           $count_number_placed_course++;
-          $putted_course_array[] = $course;
+          $putted_course_array[] = clone $course;
           break;
         }
       }
@@ -4027,7 +4046,7 @@ class time_table_generator
       return true;
     }
 
-    $non_putted_course_array = array_diff($course_array, $putted_course_array);
+    $non_putted_course_array = $this->get_courses_only_in_a($course_array, $putted_course_array);
 
     array_multisort(
       array_column($non_putted_course_array, 'total_course_section'),
@@ -5293,31 +5312,22 @@ class time_table_generator
       $course->first_put_successfully_in_holiday_flag = false;
       $course->first_put_successfully_in_is_not_allow_change_session_flag = false;
       $course->time_gap_to_skip_holiday_and_goto_next_course_session = 0;
+      
+      $course->class_duration = $course->class_duration ?? CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
+      $course->number_course_session_weekly = $course->number_course_session_weekly ?? NUMBER_COURSE_SESSION_WEEKLY;
+      $course->number_student_on_course = $course->number_student_on_course ?? NUMBER_STUDENT_ON_COURSE;
+      $course->total_course_section = $course->total_course_section ?? TOTAL_COURSE_SESSION_OF_COURSE;
+      
       $course_array[] = clone $course;
-
-      if (empty($course->class_duration)) {
-        // CHECK HERE
-        $course->class_duration = CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
-      }
-
-      if (empty($course->number_course_session_weekly)) {
-        // CHECK HERE
-        $course->number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY;
-      }
-
-      if (empty($course->number_student_on_course)) {
-        // CHECK HERE
-        $course->number_student_on_course = NUMBER_STUDENT_ON_COURSE;
-      }
-
-      if (empty($course->total_course_section)) {
-        // CHECK HERE
-        $course->total_course_section = TOTAL_COURSE_SESSION_OF_COURSE;
-      }
-
       if ($course->total_course_section > 1) {
-        for ($j = 0; $j < $course->total_course_section - 1; $j++) {
+        for ($j = 1; $j < $course->total_course_section; $j++) {
           $index++;
+
+          $course->class_duration = $course->class_duration ?? CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
+          $course->number_course_session_weekly = $course->number_course_session_weekly ?? NUMBER_COURSE_SESSION_WEEKLY;
+          $course->number_student_on_course = $course->number_student_on_course ?? NUMBER_STUDENT_ON_COURSE;
+          $course->total_course_section = $course->total_course_section ?? TOTAL_COURSE_SESSION_OF_COURSE;
+
           $course->stt_course = $index;
           $course->editting_teacher_array = $teacher;
           $course->first_put_successfully_in_holiday_flag = false;
@@ -5382,31 +5392,22 @@ class time_table_generator
       $course->first_put_successfully_in_holiday_flag = false;
       $course->first_put_successfully_in_is_not_allow_change_session_flag = false;
       $course->time_gap_to_skip_holiday_and_goto_next_course_session = 0;
+      
+      $course->class_duration = $course->class_duration ?? CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
+      $course->number_course_session_weekly = $course->number_course_session_weekly ?? NUMBER_COURSE_SESSION_WEEKLY;
+      $course->number_student_on_course = $course->number_student_on_course ?? NUMBER_STUDENT_ON_COURSE;
+      $course->total_course_section = $course->total_course_section ?? TOTAL_COURSE_SESSION_OF_COURSE;
       $course_array[] = clone $course;
-
-      if (empty($course->class_duration)) {
-        // CHECK HERE
-        $course->class_duration = CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
-      }
-
-      if (empty($course->number_course_session_weekly)) {
-        // CHECK HERE
-        $course->number_course_session_weekly = NUMBER_COURSE_SESSION_WEEKLY;
-      }
-
-      if (empty($course->number_student_on_course)) {
-        // CHECK HERE
-        $course->number_student_on_course = NUMBER_STUDENT_ON_COURSE;
-      }
-
-      if (empty($course->total_course_section)) {
-        // CHECK HERE
-        $course->total_course_section = TOTAL_COURSE_SESSION_OF_COURSE;
-      }
-
+      
       if ($course->total_course_section > 1) {
-        for ($j = 0; $j < $course->total_course_section - 1; $j++) {
+        for ($j = 1; $j < $course->total_course_section; $j++) {
           $index++;
+
+          $course->class_duration = $course->class_duration ?? CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
+          $course->number_course_session_weekly = $course->number_course_session_weekly ?? NUMBER_COURSE_SESSION_WEEKLY;
+          $course->number_student_on_course = $course->number_student_on_course ?? NUMBER_STUDENT_ON_COURSE;
+          $course->total_course_section = $course->total_course_section ?? TOTAL_COURSE_SESSION_OF_COURSE;
+
           $course->stt_course = $index;
           $course->editting_teacher_array = $teacher;
           $course->first_put_successfully_in_holiday_flag = false;
@@ -5825,7 +5826,7 @@ class time_table_generator
         $course_session_information->modifiedtime = time();
         $course_session_information->class_begin_time = $time_slot->course_session_information->date;
         $course_session_information->class_end_time = $time_slot->course_session_information->date + $time_slot->course_session_information->course_session_length * TIME_SLOT_DURATION;
-        $course_session_information->class_total_sessions = $time_slot->course_session_information->course_session_length;
+        $course_session_information->class_total_sessions = $time_slot->course_session_information->total_number_course_section;
         $course_session_information->reason = "Insert course session information by automatic algorithm";
         $course_session_information->is_cancel = 0;
         $course_session_information->is_makeup = 0;

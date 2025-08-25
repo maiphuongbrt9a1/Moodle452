@@ -102,7 +102,7 @@ try {
             $SESSION->add_child_form_childrenid = $fromform->studentid;
             $SESSION->add_child_form_createtime = time();
             $SESSION->add_child_form_lastmodifytime = time();
-            $SESSION->add_child_form_otp_code = rand(00000000, 99999999);
+            $SESSION->add_child_form_otp_code = rand(10000000, 99999999);
             $SESSION->add_child_form_otp_code_expiration_time = time() + 5 * 60;
             $SESSION->add_child_form_email = $fromform->email;
             $step2 = true;
@@ -133,9 +133,6 @@ try {
         }
 
     } else {
-        // This branch is executed if the form is submitted but the data doesn't
-        // validate and the form should be redisplayed or on the first display of the form.
-
         // Set anydefault data (if any).
         // Xử lý việc lấy lại OTP code ở đây.
         $mform->set_data($toform);

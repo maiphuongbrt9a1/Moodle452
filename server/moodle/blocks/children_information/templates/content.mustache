@@ -1,0 +1,18 @@
+<div class="children-list">
+    {{#haschildren}}
+        <ul>
+            {{#children}}
+                <li>
+                    <strong>{{ name }}</strong> 
+                    (<a href="{{ profileurl }}">Xem hồ sơ</a>)
+                </li>
+            {{/children}}
+        </ul>
+        <a href="{{ children_management_page_link }}">Children management page.</a>
+    {{/haschildren}}
+
+    {{^haschildren}}
+        <p>{{ nochildrenmessage }}</p>
+        <a href="{{ linkformurl }}">+Create new connection to your children.</a>
+    {{/haschildren}}
+</div>
