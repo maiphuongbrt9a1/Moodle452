@@ -27,10 +27,10 @@ defined('MOODLE_INTERNAL') || die();
 
 // en/local_parentportal.php
 $string['pluginname'] = 'Children Management';
-$string['children_management'] = 'Children Management';
+$string['children_management'] = 'Children List';
 $string['children_management_title'] = 'My Children';
 $string['children_management_heading'] = 'List of My Children';
-$string['children_management_add_child_form_heading'] ='Add new children information';
+$string['children_management_add_child_form_heading'] = 'Add new children information';
 $string['children_list'] = 'Your Children';
 $string['no_children_found'] = 'No children linked to your account.';
 $string['view_profile'] = 'View Profile';
@@ -82,7 +82,10 @@ $string['otpsent'] = 'OTP has been sent to your email.';
 $string['failedtosendotp'] = 'Failed to send OTP. Please try again.';
 $string['invalidotp'] = 'Invalid OTP code.';
 $string['otpexpired'] = 'OTP code has expired.';
-$string['sending'] = 'Sending...'; 
-$string['phone'] = 'Phone number'; 
-$string['otpsubject'] = 'Your OTP for {$a}'; 
-$string['otpemailmessage'] = 'Your One-Time Password is: {$a}. It will expire in 5 minutes.'; 
+$string['sending'] = 'Sending...';
+$string['phone'] = 'Phone number';
+$string['otpsubject'] = 'Your OTP for {$a}';
+$string['otpemailmessage'] = 'Your One-Time Password is: {$a}. It will expire in 5 minutes.';
+$string['viewtab'] = 'View Tab';
+$string['settingstab'] = 'Settings Tab';
+$string['reportstab'] = 'Reports Tab';

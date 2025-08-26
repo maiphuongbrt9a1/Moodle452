@@ -46,36 +46,18 @@ try {
     // Tiêu đề trang
     $PAGE->set_title(get_string('course_calendar_list_title', 'local_course_calendar'));
     $PAGE->set_heading(get_string('course_calendar_list_heading', 'local_course_calendar'));
+    
+    $secondarynav = $PAGE->secondarynav;
 
-    // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
+    $indexurl = new moodle_url('/local/course_calendar/index.php', []);
+    $secondarynav->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), $indexurl);
+    
+    $settingsurl = new moodle_url('/local/course_calendar/course_calendar.php', []);
+    $node = $secondarynav->add(get_string('course_calendar_list', 'local_course_calendar'), $settingsurl);
+    $node->make_active();
 
-
-    // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_list', 'local_course_calendar'));
-
-
-    // // add menu item to the settings navigation.
-    // $settingsnav = $PAGE->settingsnav;
-    // if (has_capability('local/course_calendar:edit', context_system::instance())) {
-    //     if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
-    //         $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
-    //         $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
-    //         $foonode = navigation_node::create(
-    //             $strfoo,
-    //             $url,
-    //             navigation_node::NODETYPE_LEAF,
-    //             get_string('edit_total_lesson_for_course', 'local_course_calendar'),
-    //             'edit_total_lesson_for_course',
-    //             new pix_icon('i/edit', $strfoo)
-    //         );
-    //         if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
-    //             $foonode->make_active();
-    //         }
-    //         $settingnode->add_node($foonode);
-    //     }
-    // }
-
+    $reportsurl = new moodle_url('/local/course_calendar/course_calendar_statistic.php', []);
+    $secondarynav->add(get_string('course_teaching_statistics', 'local_course_calendar'), $reportsurl);
 
     echo $OUTPUT->header();
 
@@ -110,6 +92,7 @@ try {
     $total_records = 0;
     $offset = $current_page * $per_page;
     $params = [];
+    $admin_id = get_admin()->id;
 
     // Khởi tạo dữ liệu và xử lý cho việc sắp xếp dữ liệu trong các cột dữ liệu
     $valid_sort_columns = [
@@ -135,7 +118,7 @@ try {
 
     // Get all course with teacher and room information.
     if (empty($search_query)) {
-        $params = [];
+        $params = ['admin_id' => $admin_id];
 
         $total_count_sql = "SELECT count(*)
                             FROM mdl_user user 
@@ -146,6 +129,7 @@ try {
                             join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
                             join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
                             WHERE c.id != 1 
+                                and user.id != :admin_id
                                 and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                                 and ctx.contextlevel = 50   
                             ";
@@ -174,6 +158,7 @@ try {
                 join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
                 join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
                 WHERE c.id != 1 
+                    and user.id != :admin_id
                     and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                     and ctx.contextlevel = 50    
                 ORDER BY {$sort} {$direction}";
@@ -186,7 +171,7 @@ try {
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
-        $params = [
+        $params = ['admin_id' => $admin_id,
             'search_param_course_id' => $search_query,
             'search_param_course_name' => $search_query,
             'search_param_user_firstname' => $search_query,
@@ -211,6 +196,7 @@ try {
                             join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
                             join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id            
                             WHERE c.id != 1 
+                                and user.id != :admin_id
                                 and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                                 and ctx.contextlevel = 50   
                                 and 
@@ -255,6 +241,7 @@ try {
                 join mdl_local_course_calendar_course_section course_section on course_section.courseid = c.id
                 join mdl_local_course_calendar_course_room course_room on course_room.id = course_section.course_room_id
                 WHERE c.id != 1 
+                    and user.id != :admin_id
                     and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                     and ctx.contextlevel = 50   
                     and 
@@ -347,7 +334,7 @@ try {
             $view_course_detail_action = null;
             // If the user has permission to edit the course, add an edit link.
             if (has_capability('local/course_calendar:edit', context_system::instance())) {
-                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar.php', ['courseid' => $course->id]);
+                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', ['selected_courses' => $course->courseid]);
                 $edit_course_schedule_action = $OUTPUT->action_icon(
                     $edit_schedule_url,
                     new pix_icon('i/edit', get_string('edit_schedule', 'local_course_calendar'))

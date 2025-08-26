@@ -51,6 +51,11 @@ class block_children_information extends block_base
         $this->content = new stdClass();
         $this->content->footer = '';
 
+        $is_admin = is_siteadmin();
+        if ($is_admin) {
+            return $this->content;
+        }
+
         // Add logic here to define your template data or any other content.
         $sql = "SELECT children.childrenid,
                         children.parentid,

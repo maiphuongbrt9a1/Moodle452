@@ -29,7 +29,7 @@ require_once($CFG->dirroot . '/local/children_management/classes/form/add_child_
 
 try {
     require_login();
-    require_capability('local/children_management:edit', context_system::instance());
+    require_capability('block/children_information:myaddinstance', context_system::instance());
 
     global $CFG, $USER, $DB, $PAGE;
     $PAGE->requires->js('/local/children_management/js/lib.js');

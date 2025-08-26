@@ -107,28 +107,7 @@ try {
         'local_course_calendar',
         $selected_courses_name_from_request
     ));
-
-    // // add menu item to the settings navigation.
-    // $settingsnav = $PAGE->settingsnav;
-    // if (has_capability('local/course_calendar:edit', context_system::instance())) {
-    //     if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
-    //         $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
-    //         $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
-    //         $foonode = navigation_node::create(
-    //             $strfoo,
-    //             $url,
-    //             navigation_node::NODETYPE_LEAF,
-    //             get_string('edit_total_lesson_for_course', 'local_course_calendar'),
-    //             'edit_total_lesson_for_course',
-    //             new pix_icon('i/edit', $strfoo)
-    //         );
-    //         if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
-    //             $foonode->make_active();
-    //         }
-    //         $settingnode->add_node($foonode);
-    //     }
-    // }
-
+    
     echo $OUTPUT->header();
 
     // Nội dung trang của bạn

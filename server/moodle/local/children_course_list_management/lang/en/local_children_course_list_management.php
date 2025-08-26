@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // en/local_children_course_list_management.php
 $string['pluginname'] = 'Children Course List Management';
-$string['children_course_list_management'] = 'Children Course List Management';
+$string['children_course_list_management'] = 'Children Course List';
 $string['children_course_list_management_title'] = 'My Children Course List';
 $string['children_course_list_management_heading'] = 'List Course of My Children';
 $string['children_course_list_management_add_child_form_heading'] ='Add new children information';

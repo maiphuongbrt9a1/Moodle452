@@ -136,7 +136,7 @@ class primary implements renderable, templatable
 
             if (
                 has_capability('local/children_management:view', $systemcontext, $USER)
-                // && !$isadmin
+                && !$isadmin
             ) {
                 $stringlang1 = get_string('children_management', 'local_children_management');
                 $stringURL1 = $CFG->wwwroot . '/local/children_management/index.php';
@@ -145,22 +145,22 @@ class primary implements renderable, templatable
 
             if (
                 has_capability('local/children_course_list_management:view', $systemcontext, $USER)
-                // && !$isadmin
+                && !$isadmin
             ) {
                 $stringlang2 = get_string('children_course_list_management', 'local_children_course_list_management');
                 $stringURL2 = $CFG->wwwroot . '/local/children_course_list_management/index.php';
                 $CFG->custommenuitems .= "
-                $stringlang2 | $stringURL2";
+                    $stringlang2 | $stringURL2";
             }
 
             if (
                 has_capability('local/children_course_list_management:view', $systemcontext, $USER)
-                // && !$isadmin
+                && !$isadmin
             ) {
                 $stringlang3 = get_string('children_course_calendar', 'local_children_course_list_management');
                 $stringURL3 = $CFG->wwwroot . '/local/children_course_list_management/children_course_calendar.php';
                 $CFG->custommenuitems .= "
-                $stringlang3 | $stringURL3";
+                    $stringlang3 | $stringURL3";
             }
 
             if (
@@ -170,28 +170,29 @@ class primary implements renderable, templatable
                 $stringlang4 = get_string('course_calendar', 'local_course_calendar');
                 $stringURL4 = $CFG->wwwroot . '/local/course_calendar/index.php';
                 $CFG->custommenuitems .= "
-                $stringlang4 | $stringURL4";
+                    $stringlang4 | $stringURL4";
             }
 
-            if (
-                has_capability('local/course_calendar:view', $systemcontext, $USER)
-                // && !$isadmin
-            ) {
-                $stringlang5 = get_string('course_calendar_list', 'local_course_calendar');
-                $stringURL5 = $CFG->wwwroot . '/local/course_calendar/course_calendar.php';
-                $CFG->custommenuitems .= "
-                $stringlang5 | $stringURL5";
-            }
+            // if (
+            //     has_capability('local/course_calendar:view', $systemcontext, $USER)
+            //     // && !$isadmin
+            // ) {
+            //     $stringlang5 = get_string('course_calendar_list', 'local_course_calendar');
+            //     $stringURL5 = $CFG->wwwroot . '/local/course_calendar/course_calendar.php';
+            //     $CFG->custommenuitems .= "
+            //         $stringlang5 | $stringURL5";
+            // }
 
-            if (
-                has_capability('local/course_calendar:view', $systemcontext, $USER)
-                // && !$isadmin
-            ) {
-                $stringlang6 = get_string('course_teaching_statistics', 'local_course_calendar');
-                $stringURL6 = $CFG->wwwroot . '/local/course_calendar/course_calendar_statistic.php';
-                $CFG->custommenuitems .= "
-                $stringlang6 | $stringURL6";
-            }
+            // if (
+            //     has_capability('local/course_calendar:view', $systemcontext, $USER)
+            //     // && !$isadmin
+            // ) {
+            //     $stringlang6 = get_string('course_teaching_statistics', 'local_course_calendar');
+            //     $stringURL6 = $CFG->wwwroot . '/local/course_calendar/course_calendar_statistic.php';
+            //     $CFG->custommenuitems .= "
+            //         $stringlang6 | $stringURL6";
+            // }
+            
         }
 
         // Early return if a custom menu does not exists.

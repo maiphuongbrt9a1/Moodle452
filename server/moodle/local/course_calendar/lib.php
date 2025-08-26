@@ -5312,12 +5312,12 @@ class time_table_generator
       $course->first_put_successfully_in_holiday_flag = false;
       $course->first_put_successfully_in_is_not_allow_change_session_flag = false;
       $course->time_gap_to_skip_holiday_and_goto_next_course_session = 0;
-      
+
       $course->class_duration = $course->class_duration ?? CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
       $course->number_course_session_weekly = $course->number_course_session_weekly ?? NUMBER_COURSE_SESSION_WEEKLY;
       $course->number_student_on_course = $course->number_student_on_course ?? NUMBER_STUDENT_ON_COURSE;
       $course->total_course_section = $course->total_course_section ?? TOTAL_COURSE_SESSION_OF_COURSE;
-      
+
       $course_array[] = clone $course;
       if ($course->total_course_section > 1) {
         for ($j = 1; $j < $course->total_course_section; $j++) {
@@ -5392,13 +5392,13 @@ class time_table_generator
       $course->first_put_successfully_in_holiday_flag = false;
       $course->first_put_successfully_in_is_not_allow_change_session_flag = false;
       $course->time_gap_to_skip_holiday_and_goto_next_course_session = 0;
-      
+
       $course->class_duration = $course->class_duration ?? CLASS_DURATION_OF_COURSE_SESSION_OF_COURSE;
       $course->number_course_session_weekly = $course->number_course_session_weekly ?? NUMBER_COURSE_SESSION_WEEKLY;
       $course->number_student_on_course = $course->number_student_on_course ?? NUMBER_STUDENT_ON_COURSE;
       $course->total_course_section = $course->total_course_section ?? TOTAL_COURSE_SESSION_OF_COURSE;
       $course_array[] = clone $course;
-      
+
       if ($course->total_course_section > 1) {
         for ($j = 1; $j < $course->total_course_section; $j++) {
           $index++;

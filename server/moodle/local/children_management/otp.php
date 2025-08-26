@@ -29,7 +29,7 @@ require_once($CFG->dirroot . '/local/children_management/classes/form/add_child_
 
 try {
     require_login();
-    require_capability('local/children_management:edit', context_system::instance());
+    require_capability('block/children_information:myaddinstance', context_system::instance());
     try {
         $step2 = required_param('step2', PARAM_BOOL);
     } catch (Exception $e) {
@@ -89,20 +89,52 @@ try {
             $data->createtime = $SESSION->add_child_form_createtime;
             $data->lastmodifytime = $SESSION->add_child_form_lastmodifytime;
 
-            if ($DB->insert_record('children_and_parent_information', $data)) {
-                redirect(new moodle_url('/local/children_management/index.php', []), 'Add new children with children ID: ' . $data->childrenid . ' successfully', 0, \core\output\notification::NOTIFY_SUCCESS);
-
+            $parent_role = $DB->get_record('role', ['shortname' => 'parent']);
+            if (!$parent_role) {
+                mtrace('Parent role not found. Please contact management');
+                return false;
             } else {
-                redirect(new moodle_url('/local/children_management/add_child.php', []), 'Error: Add new children with children ID: ' . $data->childrenid . ' failed', 0, \core\output\notification::NOTIFY_ERROR);
+                $context = \core\context\user::instance($data->childrenid);
+                if (!$context) {
+                    mtrace('Context for child user not found. Please contact management');
+                    return false;
+                } else {
+                    if (role_assign($parent_role->id, $data->parentid, $context->id)) {
+                        // insert role parent on context system.
+                        $context_system = \core\context\system::instance();
+                        role_assign($parent_role->id, $data->parentid, $context_system->id);
+                        // Successfully assigned parent role to parent user in context of child user
+                        if ($DB->insert_record('children_and_parent_information', $data)) {
+                            unset($SESSION->add_child_form_parentid);
+                            unset($SESSION->add_child_form_childrenid);
+                            unset($SESSION->add_child_form_createtime);
+                            unset($SESSION->add_child_form_lastmodifytime);
+                            unset($SESSION->add_child_form_otp_code);
+                            unset($SESSION->add_child_form_otp_code_expiration_time);
+                            unset($SESSION->add_child_form_email);
+                            redirect(
+                                new moodle_url('/local/children_management/index.php', []),
+                                'Add new children with children ID: ' . $data->childrenid . ' successfully',
+                                0,
+                                \core\output\notification::NOTIFY_SUCCESS
+                            );
+                        } else {
+                            redirect(
+                                new moodle_url('/local/children_management/add_child.php', []),
+                                'Error: Add new children with children ID: ' . $data->childrenid . ' failed',
+                                0,
+                                \core\output\notification::NOTIFY_ERROR
+                            );
+                        }
+                    } else {
+                        mtrace(
+                            'Error: Cannot assign parent role to parent user in context of child user. Please contact management'
+                        );
+                        return false;
+                    }
+                }
             }
 
-            unset($SESSION->add_child_form_parentid);
-            unset($SESSION->add_child_form_childrenid);
-            unset($SESSION->add_child_form_createtime);
-            unset($SESSION->add_child_form_lastmodifytime);
-            unset($SESSION->add_child_form_otp_code);
-            unset($SESSION->add_child_form_otp_code_expiration_time);
-            unset($SESSION->add_child_form_email);
         }
 
     } else {

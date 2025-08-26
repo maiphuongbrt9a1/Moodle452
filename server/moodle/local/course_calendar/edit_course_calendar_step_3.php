@@ -104,27 +104,6 @@ try {
     // Thêm breadcrumb cho trang hiện tại
     $PAGE->navbar->add(get_string('teaching_schedule_assignment_choose_address_and_time', 'local_course_calendar'));
 
-    // // add menu item to the settings navigation.
-    // $settingsnav = $PAGE->settingsnav;
-    // if (has_capability('local/course_calendar:edit', context_system::instance())) {
-    //     if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
-    //         $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
-    //         $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => $PAGE->course->id));
-    //         $foonode = navigation_node::create(
-    //             $strfoo,
-    //             $url,
-    //             navigation_node::NODETYPE_LEAF,
-    //             get_string('edit_total_lesson_for_course', 'local_course_calendar'),
-    //             'edit_total_lesson_for_course',
-    //             new pix_icon('i/edit', $strfoo)
-    //         );
-    //         if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
-    //             $foonode->make_active();
-    //         }
-    //         $settingnode->add_node($foonode);
-    //     }
-    // }
-
     // form to search time
     $start_class_time = time();
     $end_class_time = $start_class_time + 90 * 60;
@@ -153,13 +132,6 @@ try {
         if (isset($selected_courses)) {
             $params['selected_courses'] = $selected_courses;
         }
-
-        // if (!empty($selected_teachers) and isset($selected_teachers)) {
-        //     foreach ($selected_teachers as $teacherid) {
-        //         // Add hidden input for each selected teacher.
-        //         $params['selected_teachers[]'] = $teacherid;
-        //     }
-        // }
 
         if (!empty($start_class_time) and !empty($end_class_time)) {
             $params['starttime'] = $start_class_time;
@@ -539,13 +511,6 @@ try {
             if (isset($courses)) {
                 $params['selected_courses'] = $courses;
             }
-
-            // if (!empty($teachers) and isset($teachers)) {
-            //     foreach ($teachers as $teacherid) {
-            //         // Add hidden input for each selected teacher.
-            //         $params['selected_teachers[]'] = $teacherid;
-            //     }
-            // }
 
             // Please use this value in session var.
 

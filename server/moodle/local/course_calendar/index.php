@@ -45,37 +45,17 @@ try {
     $PAGE->set_title(get_string('course_calendar_title', 'local_course_calendar'));
     $PAGE->set_heading(get_string('course_list', 'local_course_calendar'));
 
-    // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('course_calendar_title', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
+    $secondarynav = $PAGE->secondarynav;
 
+    $indexurl = new moodle_url('/local/course_calendar/index.php', []);
+    $node = $secondarynav->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), $indexurl);
+    $node->make_active();
 
-    // Thêm một breadcrumb cho các link khác.
-    $PAGE->navbar->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), new moodle_url('/local/course_calendar/index.php', []));
+    $settingsurl = new moodle_url('/local/course_calendar/course_calendar.php', []);
+    $secondarynav->add(get_string('course_calendar_list', 'local_course_calendar'), $settingsurl);
 
-    // Thêm breadcrumb cho trang hiện tại
-    $PAGE->navbar->add(get_string('course_list', 'local_course_calendar'));
-
-    // // add menu item to the settings navigation.
-    // $settingsnav = $PAGE->settingsnav;
-    // if (has_capability('local/course_calendar:edit', context_system::instance())) {
-    //     if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
-    //         $strfoo = get_string('edit_total_lesson_for_course', 'local_course_calendar');
-    //         $url = new moodle_url('/local/course_calendar/edit_total_lesson_for_course.php', array('courseid' => 1));
-    //         $foonode = navigation_node::create(
-    //             $strfoo,
-    //             $url,
-    //             navigation_node::NODETYPE_LEAF,
-    //             get_string('edit_total_lesson_for_course', 'local_course_calendar'),
-    //             'edit_total_lesson_for_course',
-    //             new pix_icon('i/edit', $strfoo)
-    //         );
-    //         if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
-    //             $foonode->make_active();
-    //         }
-    //         $settingnode->add_node($foonode);
-    //     }
-    // }
-
+    $reportsurl = new moodle_url('/local/course_calendar/course_calendar_statistic.php', []);
+    $secondarynav->add(get_string('course_teaching_statistics', 'local_course_calendar'), $reportsurl);
 
     echo $OUTPUT->header();
 
@@ -280,7 +260,7 @@ try {
             LocalCourseCalendarHelper::make_sort_table_header_helper(
                 $PAGE,
                 'total_course_section',
-                get_string('section_number', 'local_course_calendar'),
+                get_string('session_number', 'local_course_calendar'),
                 $sort,
                 $direction
             ),
@@ -298,7 +278,7 @@ try {
             $view_course_detail_action = null;
             // If the user has permission to edit the course, add an edit link.
             if (has_capability('local/course_calendar:edit', context_system::instance())) {
-                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', ['courseid' => $course->id]);
+                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', ['selected_courses' => $course->id]);
                 $edit_course_schedule_action = $OUTPUT->action_icon(
                     $edit_schedule_url,
                     new pix_icon('i/edit', get_string('edit_schedule', 'local_course_calendar'))

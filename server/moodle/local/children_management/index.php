@@ -29,7 +29,7 @@ use local_children_management\helper as ChildrenManagementHelper;
 
 try {
     require_login();
-    require_capability('local/children_management:view', context_system::instance());
+    require_capability('block/children_information:myaddinstance', context_system::instance());
     $PAGE->set_url(new moodle_url('/local/children_management/index.php', []));
     $PAGE->set_context(context_system::instance());
     $PAGE->set_pagelayout('report');

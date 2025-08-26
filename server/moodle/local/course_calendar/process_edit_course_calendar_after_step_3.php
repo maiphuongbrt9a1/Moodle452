@@ -123,12 +123,6 @@ try {
             $params['selected_courses'] = $courses;
         }
 
-        // if (!empty($teachers) and isset($teachers)) {
-        //     foreach ($teachers as $teacherid) {
-        //         // Add hidden input for each selected teacher.
-        //         $params['selected_teachers[]'] = $teacherid;
-        //     }
-        // }
         $base_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_3.php', $params);
         redirect($base_url, "You must select start time and end time and must be press find room button.", 0, \core\output\notification::NOTIFY_ERROR);
     }
