@@ -46,12 +46,12 @@ try {
     // Tiêu đề trang
     $PAGE->set_title(get_string('course_calendar_list_title', 'local_course_calendar'));
     $PAGE->set_heading(get_string('course_calendar_list_heading', 'local_course_calendar'));
-    
+
     $secondarynav = $PAGE->secondarynav;
 
     $indexurl = new moodle_url('/local/course_calendar/index.php', []);
     $secondarynav->add(get_string('teaching_schedule_assignment', 'local_course_calendar'), $indexurl);
-    
+
     $settingsurl = new moodle_url('/local/course_calendar/course_calendar.php', []);
     $node = $secondarynav->add(get_string('course_calendar_list', 'local_course_calendar'), $settingsurl);
     $node->make_active();
@@ -83,10 +83,17 @@ try {
 
     // --- End code to render Search Input ---
 
+    // print current week and date time
+    echo "<div class = 'd-flex justify-content-center p-3 mb-2'>";
+    echo "<div>";
+    echo "Week " . date('W', time()) . ', ' . date('D, d-m-Y', time());
+    echo "</div>";
+    echo "</div>";
+
     // Set default variable.
     $stt = 0;
     $courses = [];
-
+    $courses_display_form = [];
     $per_page = optional_param('perpage', 20, PARAM_INT);
     $current_page = optional_param('page', 0, PARAM_INT);
     $total_records = 0;
@@ -162,7 +169,7 @@ try {
                     and (r.shortname = 'editingteacher' or r.shortname = 'teacher')  
                     and ctx.contextlevel = 50    
                 ORDER BY {$sort} {$direction}";
-        $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
+        $courses = $DB->get_records_sql($sql, $params);
     }
 
     // if admin use search input, we need to filter the course calendar list.
@@ -171,7 +178,8 @@ try {
         // Escape the search query to prevent SQL injection.
         $search_query = trim($search_query);
         $search_query = '%' . $DB->sql_like_escape($search_query) . '%';
-        $params = ['admin_id' => $admin_id,
+        $params = [
+            'admin_id' => $admin_id,
             'search_param_course_id' => $search_query,
             'search_param_course_name' => $search_query,
             'search_param_user_firstname' => $search_query,
@@ -262,7 +270,7 @@ try {
                         )
                 ORDER BY {$sort} {$direction}";
 
-        $courses = $DB->get_records_sql($sql, $params, $offset, $per_page);
+        $courses = $DB->get_records_sql($sql, $params);
     }
 
     // Display children list of parent on screen.
@@ -321,42 +329,69 @@ try {
                 $sort,
                 $direction
             ),
+            html_writer::empty_tag('div'),
         ];
         $table->align = ['center', 'left', 'center', 'center', 'center', 'center'];
-        foreach ($courses as $course) {
-            // add no. for the table.
-            $stt = $stt + 1;
 
-            // You might want to add a link to course's profile overview and course detail.
-            $course_detail_url = new moodle_url('/course/view.php', ['id' => $course->courseid]);
-            $teacher_detail_url = new moodle_url('/user/profile.php', ['id' => $course->userid]);
-            $edit_course_schedule_action = null;
-            $view_course_detail_action = null;
-            // If the user has permission to edit the course, add an edit link.
-            if (has_capability('local/course_calendar:edit', context_system::instance())) {
-                $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', ['selected_courses' => $course->courseid]);
-                $edit_course_schedule_action = $OUTPUT->action_icon(
-                    $edit_schedule_url,
-                    new pix_icon('i/edit', get_string('edit_schedule', 'local_course_calendar'))
+        foreach ($courses as $course) {
+            $course_key = $course->courseid;
+            if (
+                !isset($courses_display_form[$course_key])
+                or (
+                    isset($courses_display_form[$course_key])
+                    and date("D, H:i", $courses_display_form[$course_key]->class_begin_time) != date("D, H:i", $course->class_begin_time)
+                    and date("D, H:i", $courses_display_form[$course_key]->class_end_time) != date("D, H:i", $course->class_end_time)
+                )
+            ) {
+                $courses_display_form[$course_key] = new stdClass();
+
+                $courses_display_form[$course_key]->stt = $stt + 1;
+                $courses_display_form[$course_key]->course = $course;
+                $courses_display_form[$course_key]->class_begin_time = $course->class_begin_time;
+                $courses_display_form[$course_key]->class_end_time = $course->class_end_time;
+                $courses_display_form[$course_key]->week[] = date("W", $course->class_begin_time);
+
+                // You might want to add a link to course's profile overview and course detail.
+                $courses_display_form[$course_key]->course_detail_url = new moodle_url('/course/view.php', ['id' => $course->courseid]);
+                $courses_display_form[$course_key]->teacher_detail_url = new moodle_url('/user/profile.php', ['id' => $course->userid]);
+                // If the user has permission to edit the course, add an edit link.
+                if (has_capability('local/course_calendar:edit', context_system::instance())) {
+                    $edit_schedule_url = new moodle_url('/local/course_calendar/edit_course_calendar_step_2.php', ['selected_courses' => $course->courseid]);
+                    $courses_display_form[$course_key]->edit_course_schedule_action = $OUTPUT->action_icon(
+                        $edit_schedule_url,
+                        new pix_icon('i/edit', get_string('edit_schedule', 'local_course_calendar'))
+                    );
+                }
+
+                $courses_display_form[$course_key]->view_course_detail_action = $OUTPUT->action_icon(
+                    $courses_display_form[$course_key]->course_detail_url,
+                    new pix_icon('i/hide', get_string('view_course_detail', 'local_course_calendar'))
                 );
+
+            } else if (
+                isset($courses_display_form[$course_key])
+                and date("D, H:i", $courses_display_form[$course_key]->class_begin_time) == date("D, H:i", $course->class_begin_time)
+                and date("D, H:i", $courses_display_form[$course_key]->class_end_time) == date("D, H:i", $course->class_end_time)
+            ) {
+                // If the course already exists, append the week to the existing weeks array.
+                $courses_display_form[$course_key]->week[] = date("W", $course->class_begin_time);
             }
 
-            $view_course_detail_action = $OUTPUT->action_icon(
-                $course_detail_url,
-                new pix_icon('i/hide', get_string('view_course_detail', 'local_course_calendar'))
-            );
+        }
 
+        foreach ($courses_display_form as $course) {
             // Add the row to the table.
             // Use html_writer to create the avatar image and other fields.
             $table->data[] = [
-                $stt,
-                html_writer::link($course_detail_url, format_string($course->course_fullname)),
-                html_writer::link($teacher_detail_url, $course->user_firstname . ' ' . $course->user_lastname),
-                date('d/m/Y H:i', $course->class_begin_time),
-                date('d/m/Y H:i', $course->class_end_time),
-                $course->room_building . '- Floor ' . $course->room_floor . '- Room ' . $course->room_number . ' - ' .
-                $course->ward_address . ', ' . $course->district_address . ', ' . $course->province_address . '<br>',
-                $view_course_detail_action . ' ' . $edit_course_schedule_action
+                $course->stt,
+                html_writer::link($course->course_detail_url, format_string($course->course->course_fullname)),
+                html_writer::link($course->teacher_detail_url, $course->course->user_firstname . ' ' . $course->course->user_lastname),
+                date('D, H:i', $course->class_begin_time),
+                date('D, H:i', $course->class_end_time),
+                implode("| ", $course->week),
+                $course->course->room_building . '- Floor ' . $course->course->room_floor . '- Room ' . $course->course->room_number . ' - ' .
+                $course->course->ward_address . ', ' . $course->course->district_address . ', ' . $course->course->province_address . '<br>',
+                $course->view_course_detail_action . ' ' . $course->edit_course_schedule_action
             ];
         }
         echo html_writer::table($table);
